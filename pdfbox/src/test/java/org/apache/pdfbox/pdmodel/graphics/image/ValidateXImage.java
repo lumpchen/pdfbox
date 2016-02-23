@@ -28,7 +28,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.rendering.PDFRenderer;
-
+import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
@@ -45,11 +45,11 @@ public class ValidateXImage
     {
         // check the dictionary
         assertNotNull(ximage);
-        COSStream cosStream = ximage.getCOSStream();
+        COSStream cosStream = ximage.getCOSObject();
         assertNotNull(cosStream);
         assertEquals(COSName.XOBJECT, cosStream.getItem(COSName.TYPE));
         assertEquals(COSName.IMAGE, cosStream.getItem(COSName.SUBTYPE));
-        assertTrue(ximage.getCOSStream().getLength() > 0);
+        assertTrue(ximage.getCOSObject().getLength() > 0);
         assertEquals(bpc, ximage.getBitsPerComponent());
         assertEquals(width, ximage.getWidth());
         assertEquals(height, ximage.getHeight());
@@ -96,7 +96,7 @@ public class ValidateXImage
 
         PDPage page = new PDPage();
         document.addPage(page);
-        PDPageContentStream contentStream = new PDPageContentStream(document, page, true, false);
+        PDPageContentStream contentStream = new PDPageContentStream(document, page, AppendMode.APPEND, false);
         contentStream.drawImage(ximage, 150, 300);
         contentStream.drawImage(ximage, 200, 350);
         contentStream.close();

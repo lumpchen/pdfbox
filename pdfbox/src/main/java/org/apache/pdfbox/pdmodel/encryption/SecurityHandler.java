@@ -28,6 +28,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +52,7 @@ import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.util.Charsets;
 
 /**
  * A security handler as described in the PDF specifications.
@@ -69,7 +71,7 @@ public abstract class SecurityHandler
     // see 7.6.2, page 58, PDF 32000-1:2008
     private static final byte[] AES_SALT = { (byte) 0x73, (byte) 0x41, (byte) 0x6c, (byte) 0x54 };
 
-    /** The length of the secret key used to encrypt the document. */
+    /** The length in bits of the secret key used to encrypt the document. */
     protected int keyLength = DEFAULT_KEY_LENGTH;
 
     /** The encryption key that will used to encrypt / decrypt.*/
@@ -143,11 +145,6 @@ public abstract class SecurityHandler
         }
         else
         {
-            if (useAES && !decrypt)
-            {
-                throw new IllegalArgumentException("AES encryption with key length other than 256 bits is not yet implemented.");
-            }
-
             byte[] finalKey = calcFinalKey(objectNumber, genNumber);
 
             if (useAES)
@@ -244,18 +241,9 @@ public abstract class SecurityHandler
     {
         byte[] iv = new byte[16];
 
-        int ivSize = data.read(iv);
-
-        if (decrypt && ivSize == -1)
+        if (!prepareAESInitializationVector(decrypt, iv, data, output))
         {
             return;
-        }
-
-        if (ivSize != iv.length)
-        {
-            throw new IOException(
-                    "AES initialization vector not fully read: only "
-                    + ivSize + " bytes read instead of " + iv.length);
         }
 
         try
@@ -317,29 +305,9 @@ public abstract class SecurityHandler
     {
         byte[] iv = new byte[16];
 
-        if (decrypt)
+        if (!prepareAESInitializationVector(decrypt, iv, data, output))
         {
-            // read IV from stream
-            int ivSize = data.read(iv);
-
-            if (ivSize == -1)
-            {
-                return;
-            }
-
-            if (ivSize != iv.length)
-            {
-                throw new IOException(
-                        "AES initialization vector not fully read: only "
-                        + ivSize + " bytes read instead of " + iv.length);
-            }
-        }
-        else
-        {
-            // generate random IV and write to stream
-            SecureRandom rnd = new SecureRandom();
-            rnd.nextBytes(iv);
-            output.write(iv);
+            return;
         }
 
         Cipher cipher;
@@ -374,6 +342,33 @@ public abstract class SecurityHandler
         {
             cis.close();
         }
+    }
+
+    private boolean prepareAESInitializationVector(boolean decrypt, byte[] iv, InputStream data, OutputStream output) throws IOException
+    {
+        if (decrypt)
+        {
+            // read IV from stream
+            int ivSize = data.read(iv);
+            if (ivSize == -1)
+            {
+                return false;
+            }
+            if (ivSize != iv.length)
+            {
+                throw new IOException(
+                        "AES initialization vector not fully read: only "
+                                + ivSize + " bytes read instead of " + iv.length);
+            }
+        }
+        else
+        {
+            // generate random IV and write to stream
+            SecureRandom rnd = new SecureRandom();
+            rnd.nextBytes(iv);
+            output.write(iv);
+        }
+        return true;
     }
 
     /**
@@ -421,14 +416,29 @@ public abstract class SecurityHandler
      */
     public void decryptStream(COSStream stream, long objNum, long genNum) throws IOException
     {
-        if (!decryptMetadata && COSName.METADATA.equals(stream.getCOSName(COSName.TYPE)))
+        COSBase type = stream.getCOSName(COSName.TYPE);
+        if (!decryptMetadata && COSName.METADATA.equals(type))
         {
             return;
         }
         // "The cross-reference stream shall not be encrypted"
-        if (COSName.XREF.equals(stream.getCOSName(COSName.TYPE)))
+        if (COSName.XREF.equals(type))
         {
             return;
+        }
+        if (COSName.METADATA.equals(type))
+        {
+            // PDFBOX-3229 check case where metadata is not encrypted despite /EncryptMetadata missing
+            InputStream is = stream.createRawInputStream();
+            byte buf[] = new byte[10];
+            is.read(buf);
+            is.close();
+            if (Arrays.equals(buf, "<?xpacket ".getBytes(Charsets.ISO_8859_1)))
+            {
+                LOG.warn("Metadata is not encrypted, but was expected to be");
+                LOG.warn("Read PDF specification about EncryptMetadata (default value: true)");
+                return;
+            }
         }
         decryptDictionary(stream, objNum, genNum);
         byte[] encrypted = IOUtils.toByteArray(stream.createRawInputStream());

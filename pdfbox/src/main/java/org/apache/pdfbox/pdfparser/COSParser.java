@@ -610,11 +610,12 @@ public class COSParser extends BaseParser
             for (COSObject obj : objToBeParsed.remove(objToBeParsed.firstKey()))
             {
                 COSBase parsedObj = parseObjectDynamically(obj, false);
-
-                obj.setObject(parsedObj);
-                addNewToList(toBeParsedList, parsedObj, addedObjects);
-
-                parsedObjects.add(getObjectId(obj));
+                if (parsedObj != null)
+                {
+                    obj.setObject(parsedObj);
+                    addNewToList(toBeParsedList, parsedObj, addedObjects);
+                    parsedObjects.add(getObjectId(obj));
+                }
             }
         }
     }
@@ -818,7 +819,23 @@ public class COSParser extends BaseParser
         {
             // parse object stream
             PDFObjectStreamParser parser = new PDFObjectStreamParser((COSStream) objstmBaseObj, document);
-            parser.parse();
+            try
+            {
+                parser.parse();
+            }
+            catch(IOException exception)
+            {
+                if (isLenient)
+                {
+                    LOG.debug("Stop reading object stream "+objstmObjNr+" due to an exception", exception);
+                    // the error is handled in parseDictObjects
+                    return;
+                }
+                else
+                {
+                    throw exception;
+                }
+            }
 
             // get set of object numbers referenced for this object stream
             final Set<Long> refObjNrs = xrefTrailerResolver.getContainedObjectNumbers(objstmObjNr);
@@ -1190,23 +1207,27 @@ public class COSParser extends BaseParser
         // seek to offset-1 
         source.seek(startXRefOffset-1);
         int nextValue = source.read();
-        // the first character has to be a whitespace, and then a digit
-        if (isWhitespace(nextValue) && isDigit())
+        // the first character has to be whitespace(s), and then a digit
+        if (isWhitespace(nextValue))
         {
-            try
+            skipSpaces();
+            if (isDigit())
             {
-                // it's a XRef stream
-                readObjectNumber();
-                readGenerationNumber();
-                readExpectedString(OBJ_MARKER, true);
-                source.seek(startXRefOffset);
-                return startXRefOffset;
-            }
-            catch (IOException exception)
-            {
+                try
+                {
+                    // it's a XRef stream
+                    readObjectNumber();
+                    readGenerationNumber();
+                    readExpectedString(OBJ_MARKER, true);
+                    source.seek(startXRefOffset);
+                    return startXRefOffset;
+                }
+                catch (IOException exception)
+                {
                 // there wasn't an object of a xref stream
-                // try to repair the offset
-                source.seek(startXRefOffset);
+                    // try to repair the offset
+                    source.seek(startXRefOffset);
+                }
             }
         }
         // try to find a fixed offset
@@ -1236,7 +1257,7 @@ public class COSParser extends BaseParser
             LOG.debug("Fixed reference for xref table/stream " + objectOffset + " -> " + newOffset);
             return newOffset;
         }
-        LOG.error("Can't find the object axref table/stream at offset " + objectOffset);
+        LOG.error("Can't find the object xref table/stream at offset " + objectOffset);
         return 0;
     }
 
@@ -1275,6 +1296,34 @@ public class COSParser extends BaseParser
                 bfSearchForObjects();
                 if (bfSearchCOSObjectKeyOffsets != null && !bfSearchCOSObjectKeyOffsets.isEmpty())
                 {
+                    List<COSObjectKey> objStreams = new ArrayList<COSObjectKey>();
+                    // find all object streams
+                    for (COSObjectKey key : xrefOffset.keySet())
+                    {
+                        Long offset = xrefOffset.get(key);
+                        if (offset != null && offset < 0 )
+                        {
+                            COSObjectKey objStream = new COSObjectKey(-offset, 0);
+                            if (!objStreams.contains(objStream))
+                            {
+                                objStreams.add(new COSObjectKey(-offset, 0));
+                            }
+                        }
+                    }
+                    // remove all found object streams
+                    for (COSObjectKey key : bfSearchCOSObjectKeyOffsets.keySet())
+                    {
+                        objStreams.remove(key);
+                    }
+                    // remove all objects which are part of an object stream which wasn't found
+                    for (COSObjectKey key : objStreams)
+                    {
+                        Set<Long> objects = xrefTrailerResolver.getContainedObjectNumbers((int)(key.getNumber()));
+                        for (Long objNr :objects)
+                        {
+                            xrefOffset.remove(new COSObjectKey(objNr, 0));
+                        }
+                    }
                     LOG.debug("Replaced read xref table with the results of a brute force search");
                     xrefOffset.putAll(bfSearchCOSObjectKeyOffsets);
                 }
@@ -1642,13 +1691,14 @@ public class COSParser extends BaseParser
                             trailer.setItem(COSName.ROOT, document.getObjectFromPool(entry.getKey()));
                         }
                         // info dictionary
-                        else if (dictionary.containsKey(COSName.TITLE)
+                        else if (dictionary.containsKey(COSName.MOD_DATE) && 
+                                (dictionary.containsKey(COSName.TITLE)
                                 || dictionary.containsKey(COSName.AUTHOR)
                                 || dictionary.containsKey(COSName.SUBJECT)
                                 || dictionary.containsKey(COSName.KEYWORDS)
                                 || dictionary.containsKey(COSName.CREATOR)
                                 || dictionary.containsKey(COSName.PRODUCER)
-                                || dictionary.containsKey(COSName.CREATION_DATE))
+                                || dictionary.containsKey(COSName.CREATION_DATE)))
                         {
                             trailer.setItem(COSName.INFO, document.getObjectFromPool(entry.getKey()));
                         }

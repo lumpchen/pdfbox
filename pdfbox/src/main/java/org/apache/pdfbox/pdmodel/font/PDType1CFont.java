@@ -64,6 +64,7 @@ public class PDType1CFont extends PDSimpleFont
     private final FontBoxFont genericFont; // embedded or system font for rendering
     private final boolean isEmbedded;
     private final boolean isDamaged;
+    private BoundingBox fontBBox;
 
     /**
      * Constructor.
@@ -185,6 +186,15 @@ public class PDType1CFont extends PDSimpleFont
     @Override
     public BoundingBox getBoundingBox() throws IOException
     {
+        if (fontBBox == null)
+        {
+            fontBBox = generateBoundingBox();
+        }
+        return fontBBox;
+    }
+
+    private BoundingBox generateBoundingBox() throws IOException
+    {
         if (getFontDescriptor() != null) {
             PDRectangle bbox = getFontDescriptor().getFontBoundingBox();
             if (bbox.getLowerLeftX() != 0 || bbox.getLowerLeftY() != 0 ||
@@ -304,10 +314,10 @@ public class PDType1CFont extends PDSimpleFont
         if (!encoding.contains(name))
         {
             throw new IllegalArgumentException(
-                    String.format("U+%04X is not available in this font's encoding: %s",
-                                  unicode, encoding.getEncodingName()));
+                    String.format("U+%04X ('%s') is not available in this font's encoding: %s",
+                                  unicode, name, encoding.getEncodingName()));
         }
-        
+
         String nameInFont = getNameInFont(name);
         
         Map<String, Integer> inverted = encoding.getNameToCodeMap();

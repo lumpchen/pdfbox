@@ -246,14 +246,6 @@ public class PDFMergerUtility
         {
             throw new IOException("Error: destination PDF is closed.");
         }
-        if (destination.isEncrypted())
-        {
-            throw new IOException("Error: destination PDF is encrypted, can't append encrypted PDF documents.");
-        }
-        if (source.isEncrypted())
-        {
-            throw new IOException("Error: source PDF is encrypted, can't append encrypted PDF documents.");
-        }
 
         PDDocumentCatalog destCatalog = destination.getDocumentCatalog();
         PDDocumentCatalog srcCatalog = source.getDocumentCatalog();
@@ -421,7 +413,7 @@ public class PDFMergerUtility
         if (destMetadata == null && srcMetadata != null)
         {
             PDStream newStream = new PDStream(destination, srcMetadata.createInputStream(), (COSName) null);
-            newStream.getStream().mergeInto(srcMetadata);
+            newStream.getCOSObject().mergeInto(srcMetadata);
             destCatalog.getCOSObject().setItem(COSName.METADATA, newStream);
         }
 
