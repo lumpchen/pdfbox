@@ -171,7 +171,9 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		PathContent content = new PathContent();
 		this.runtimePageContentStack.push(content);
 		this.markGraphicsState();
-		this.markPath((GeneralPath) this.getLinePath().clone());
+		
+		GeneralPath gpath = (GeneralPath) this.getLinePath().clone();
+		this.markPath(gpath.getBounds());
 		this.contentList.add(this.runtimePageContentStack.pop());
 	}
 
