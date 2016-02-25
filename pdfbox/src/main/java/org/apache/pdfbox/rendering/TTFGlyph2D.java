@@ -36,7 +36,7 @@ import org.apache.pdfbox.pdmodel.font.PDVectorFont;
 /**
  * This class provides a glyph to GeneralPath conversion for TrueType and OpenType fonts.
  */
-final class TTFGlyph2D implements Glyph2D
+public final class TTFGlyph2D implements Glyph2D
 {
     private static final Log LOG = LogFactory.getLog(TTFGlyph2D.class);
 
@@ -53,7 +53,7 @@ final class TTFGlyph2D implements Glyph2D
      *
      * @param ttfFont TrueType font
      */
-    TTFGlyph2D(PDTrueTypeFont ttfFont) throws IOException
+    public TTFGlyph2D(PDTrueTypeFont ttfFont) throws IOException
     {
         this(ttfFont.getTrueTypeFont(), ttfFont, false);
         vectorFont = ttfFont;
@@ -64,7 +64,7 @@ final class TTFGlyph2D implements Glyph2D
      *
      * @param type0Font Type0 font, with CIDFontType2 descendant
      */
-    TTFGlyph2D(PDType0Font type0Font) throws IOException
+    public TTFGlyph2D(PDType0Font type0Font) throws IOException
     {
         this(((PDCIDFontType2)type0Font.getDescendantFont()).getTrueTypeFont(), type0Font, true);
         vectorFont = type0Font;

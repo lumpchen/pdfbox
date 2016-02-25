@@ -115,6 +115,7 @@
                     <argLine>-Xmx768m</argLine>
                     <excludes>
                         <exclude>org/apache/pdfbox/rendering/TestPDFToImage.java</exclude>
+						<exclude>org/apache/pdfbox/pdmodel/TestPDDocumentInformation.java</exclude>
                     </excludes>
                     <systemPropertyVariables>
                         <java.util.logging.config.file>src/test/resources/logging.properties</java.util.logging.config.file>

@@ -27,7 +27,7 @@ import org.apache.pdfbox.pdmodel.font.PDSimpleFont;
 /**
  * Glyph to GeneralPath conversion for Type 1 PFB and CFF, and TrueType fonts with a 'post' table.
  */
-final class Type1Glyph2D implements Glyph2D
+public final class Type1Glyph2D implements Glyph2D
 {
     private static final Log LOG = LogFactory.getLog(Type1Glyph2D.class);
 
@@ -39,7 +39,7 @@ final class Type1Glyph2D implements Glyph2D
      *
      * @param font PDF Type1 font.
      */
-    Type1Glyph2D(PDSimpleFont font)
+    public Type1Glyph2D(PDSimpleFont font)
     {
         this.font = font;
     }
