@@ -31,7 +31,9 @@ import org.apache.pdfbox.rendering.CIDType0Glyph2D;
 import org.apache.pdfbox.rendering.Glyph2D;
 import org.apache.pdfbox.rendering.TTFGlyph2D;
 import org.apache.pdfbox.rendering.Type1Glyph2D;
+import org.apache.pdfbox.tools.diff.document.PageContent.AnnotContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
+import org.apache.pdfbox.tools.diff.document.PageContent.ImageContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.PathContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.apache.pdfbox.util.Matrix;
@@ -73,11 +75,20 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 	}
 
 	public void beginAnnot(PDAnnotation annot) {
+		AnnotContent content = new AnnotContent();
+		this.runtimePageContentStack.push(content);
+		this.markAnnot(annot, content);
 	}
 
 	public void endAnnot(PDAnnotation annot) {
+		if (this.runtimePageContentStack.isEmpty()) {
+			return;
+		}
+		
+		PageContent content = this.runtimePageContentStack.pop();
+		this.contentList.add(content);
 	}
-
+	
 	@Override
 	public void appendRectangle(Point2D p0, Point2D p1, Point2D p2, Point2D p3) throws IOException {
 		this.linePath.moveTo((float) p0.getX(), (float) p0.getY());
@@ -96,7 +107,7 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		AffineTransform imageTransform = new AffineTransform(at);
 		Rectangle rect = new Rectangle(0, 0, 1, 1);
 		Shape outline = imageTransform.createTransformedShape(rect);
-		this.markImage(new GeneralPath(outline));
+		this.markImage(pdImage, new GeneralPath(outline));
 	}
 
 	@Override
@@ -173,7 +184,7 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		this.markGraphicsState();
 		
 		GeneralPath gpath = (GeneralPath) this.getLinePath().clone();
-		this.markPath(gpath.getBounds());
+		this.markPath(gpath);
 		this.contentList.add(this.runtimePageContentStack.pop());
 	}
 
@@ -290,12 +301,31 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		textContent.appendText(unicode, cid);
 	}
 
-	private void markImage(Shape outline) {
-		if (this.runtimePageContentStack.isEmpty()) {
-			return;
+	private void markImage(PDImage pdImage, Shape outline) {
+		ImageContent content = new ImageContent();
+		this.runtimePageContentStack.push(content);
+		
+		content.bitsPerComponent = pdImage.getBitsPerComponent();
+		try {
+			if (pdImage.getColorSpace() != null) {
+				content.colorSpace = pdImage.getColorSpace().getName();
+			}
+		} catch (IOException e) {
 		}
-		PageContent content = this.runtimePageContentStack.peek();
-		content.addOutlineShape(outline);
+		if (pdImage.getDecode() != null) {
+			content.decode = pdImage.getDecode().toString();
+		}
+		content.height = pdImage.getHeight();
+		content.width = pdImage.getWidth();
+		content.suffix = pdImage.getSuffix();
+		try {
+			content.byteCount = pdImage.createInputStream().available();
+		} catch (IOException e) {
+		}
+		
+		this.markPath(outline);
+		this.contentList.add(this.runtimePageContentStack.pop());
+		
 	}
 
 	private void markPath(Shape gpath) {
@@ -347,6 +377,16 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
         }
         
         content.setGraphicsStateDesc(gstate);
+	}
+	
+	private void markAnnot(PDAnnotation annot, AnnotContent content) {
+		content.subType = annot.getSubtype();
+		
+		if (annot.getCOSObject().getCOSName(COSName.FT) != null) {
+			content.fieldType = annot.getCOSObject().getCOSName(COSName.FT).getName();			
+		}
+		content.annotName = annot.getCOSObject().getString(COSName.T);
+		content.annotContents = annot.getCOSObject().getString(COSName.TU);
 	}
 	
 	private static void toColorDesc(PDColor pdColor, ColorDesc colorDesc) {

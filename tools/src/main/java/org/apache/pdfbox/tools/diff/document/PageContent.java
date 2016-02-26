@@ -1,23 +1,12 @@
 package org.apache.pdfbox.tools.diff.document;
 
-import java.awt.BasicStroke;
 import java.awt.Shape;
 import java.awt.geom.Area;
+import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.pdfbox.cos.COSBase;
-import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.pdmodel.graphics.PDLineDashPattern;
-import org.apache.pdfbox.pdmodel.graphics.blend.BlendMode;
-import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
-import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
-import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceGray;
-import org.apache.pdfbox.pdmodel.graphics.state.PDSoftMask;
-import org.apache.pdfbox.pdmodel.graphics.state.PDTextState;
-import org.apache.pdfbox.pdmodel.graphics.state.RenderingIntent;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
-import org.apache.pdfbox.util.Matrix;
 
 public abstract class PageContent {
 
@@ -42,7 +31,6 @@ public abstract class PageContent {
 		public int lineJoin;
 		public float miterLimit;
 		
-
 //        private Matrix currentTransformationMatrix = new Matrix();
 //        private PDColor strokingColor = PDDeviceGray.INSTANCE.getInitialColor();
 //        private PDColor nonStrokingColor = PDDeviceGray.INSTANCE.getInitialColor();
@@ -103,8 +91,12 @@ public abstract class PageContent {
     	this.area = new Area();
     	if (this.outline != null) {
     		for (Shape s : this.outline) {
-        		this.area.add(new Area(s));
-        	}    		
+    			if (s instanceof GeneralPath) {
+    				this.area.add(new Area(((GeneralPath) s).getBounds()));
+    			} else {
+    				this.area.add(new Area(s));    				
+    			}
+        	}
     	}
     	return this.area;
     }
@@ -126,8 +118,6 @@ public abstract class PageContent {
 	
 	public static class TextContent extends PageContent {
 
-
-        
 		private StringBuilder text;
 		private List<Integer> cidArray;
 		
@@ -143,6 +133,10 @@ public abstract class PageContent {
 			this.cidArray.add(cid);
 		}
 
+		public String getText() {
+			return this.text.toString();
+		}
+		
 		@Override
 		public String showString() {
 			return this.text.toString();
@@ -177,6 +171,54 @@ public abstract class PageContent {
 		public String getTypeString() {
 			return "Path";
 		}
+	}
+	
+	public static class ImageContent extends PageContent {
 		
+		public int bitsPerComponent;
+		public int byteCount;
+		public String colorSpace;
+		public String decode;
+		public int height;
+		public int width;
+		public String suffix;
+		
+		public ImageContent() {
+			super();
+			this.type = Type.Image;
+		}
+		
+		@Override
+		public String showString() {
+			return "";
+		}
+
+		@Override
+		public String getTypeString() {
+			return "Image";
+		}
+	}
+	
+	public static class AnnotContent extends PageContent {
+		
+		public String subType;
+		public String fieldType;
+		public String annotName;
+		public String annotContents;
+		
+		public AnnotContent() {
+			super();
+			this.type = Type.Annot;
+		}
+		
+		@Override
+		public String showString() {
+			return "";
+		}
+
+		@Override
+		public String getTypeString() {
+			return "Annot";
+		}
 	}
 }

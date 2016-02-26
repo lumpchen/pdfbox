@@ -7,6 +7,8 @@ import java.util.List;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.tools.diff.document.PageContent;
+import org.apache.pdfbox.tools.diff.document.PageContent.AnnotContent;
+import org.apache.pdfbox.tools.diff.document.PageContent.ImageContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.PathContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.apache.pdfbox.tools.diff.document.PageContentExtractor;
@@ -64,7 +66,8 @@ public class PageContentExtractorTest {
 			TextContent text = (TextContent) content;
 			System.out.println(text.getTypeString() + ": " + text.showString());
 			
-			System.out.println("    FontName: " + text.getGraphicsStateDesc().textState.fontName);
+			System.out.println("    FontName: " + text.getGraphicsStateDesc().textState.fontName
+					+ " " + text.getGraphicsStateDesc().textState.fontSize);
 			System.out.println("    Outline: " + text.getOutlineArea().getBounds());
 		} else if (content.getType() == PageContent.Type.Path) {
 			PathContent text = (PathContent) content;
@@ -72,7 +75,25 @@ public class PageContentExtractorTest {
 			
 			System.out.println("    ColorSpace: " + text.getGraphicsStateDesc().strokingColor.colorSpace);
 			System.out.println("    Outline: " + text.getOutlineArea().getBounds());
-		}
+		} else if (content.getType() == PageContent.Type.Image) {
+			ImageContent image = (ImageContent) content;
+			System.out.println(image.getTypeString() + ": " + image.showString());
+			
+			System.out.println("    ColorSpace: " + image.colorSpace);
+			System.out.println("    Decode: " + image.decode);
+			System.out.println("    Height: " + image.height);
+			System.out.println("    Width: " + image.width);
+			System.out.println("    RasterSize: " + image.byteCount);
+			System.out.println("    Suffix: " + image.suffix);
+		} else if (content.getType() == PageContent.Type.Annot) {
+			AnnotContent annot = (AnnotContent) content;
+			System.out.println(annot.getTypeString() + ": " + annot.showString());
+			
+			System.out.println("    SubType: " + annot.subType);
+			System.out.println("    FieldType: " + annot.fieldType);
+			System.out.println("    Name: " + annot.annotName);
+			System.out.println("    Contents: " + annot.annotContents);
+		} 
 	}
 }
 
