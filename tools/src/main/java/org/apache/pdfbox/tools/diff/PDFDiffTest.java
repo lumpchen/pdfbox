@@ -1,6 +1,7 @@
 package org.apache.pdfbox.tools.diff;
 
 import java.io.File;
+import java.io.IOException;
 
 public class PDFDiffTest {
 
@@ -19,7 +20,11 @@ public class PDFDiffTest {
 			} else {
 				System.out.println("PDFs are same!");
 			}
+			
+			DiffReport.reportHtml(new File("C:/uatest"), result);
 		} catch (PDFDiffException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

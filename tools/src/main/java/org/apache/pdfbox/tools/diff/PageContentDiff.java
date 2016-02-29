@@ -19,8 +19,17 @@ public class PageContentDiff {
 	public PageDiffResult diff(PageContentSet page_1, PageContentSet page_2) {
 		PageDiffResult result = new PageDiffResult();
 
-		Set<Coordinate> coSet = page_1.getTextCoordinateSet();
-		for (Coordinate co : coSet) {
+		this.diffText(page_1, page_2, result);
+		this.diffImage(page_1, page_2, result);
+		this.diffPath(page_1, page_2, result);
+		return result;
+	}
+	
+	private void diffText(PageContentSet page_1, PageContentSet page_2, PageDiffResult result) {
+		Set<Coordinate> coSet_1 = page_1.getTextCoordinateSet();
+		Set<Coordinate> coSet_2 = page_2.getTextCoordinateSet();
+		
+		for (Coordinate co : coSet_1) {
 			TextContent textContent_1 = page_1.getTextContent(co);
 			TextContent textContent_2 = page_2.getTextContent(co);
 			
@@ -28,8 +37,19 @@ public class PageContentDiff {
 				result.append(textContent_1, textContent_2);	
 			}
 		}
-
-		return result;
+		
+		coSet_2.removeAll(coSet_1);
+		if (!coSet_2.isEmpty()) {
+			// not found text content in base			
+		}
+	}
+	
+	private void diffImage(PageContentSet page_1, PageContentSet page_2, PageDiffResult result) {
+		
+	}
+	
+	private void diffPath(PageContentSet page_1, PageContentSet page_2, PageDiffResult result) {
+		
 	}
 
 	private boolean diff(TextContent textContent_1, TextContent textContent_2) {

@@ -28,7 +28,13 @@ public class PDFDiff {
 		PDocDiffResult result = new PDocDiffResult();
 		try {
 			baselinePDF = PDDocument.load(this.base);
+			result.getBaseDocumentInfo().category = "baseline";
+			result.getBaseDocumentInfo().title = this.base.getName();
+					
 			testPDF = PDDocument.load(this.test);
+			result.getTestDocumentInfo().category = "test";
+			result.getTestDocumentInfo().title = this.test.getName();
+			
 			this.diffPDoc(baselinePDF, testPDF, result);
 		} catch (Exception e) {
 			throw new PDFDiffException("Diff error: ", e);
@@ -57,6 +63,8 @@ public class PDFDiff {
 		if (pageNum_1 != pageNum_2) {
 			throw new PDFDiffException("Page count is different: base=" + pageNum_1 + ", test=" + pageNum_2);
 		}
+		result.getBaseDocumentInfo().pageCount = pageNum_1;
+		result.getTestDocumentInfo().pageCount = pageNum_2;
 		
         for (int i = 0; i < pageNum_1; i++) {
             PDPage page_1 = base.getPage(i);

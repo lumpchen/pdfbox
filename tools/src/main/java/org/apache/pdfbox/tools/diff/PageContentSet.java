@@ -1,6 +1,7 @@
 package org.apache.pdfbox.tools.diff;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,11 +67,23 @@ public class PageContentSet {
 	}
 	
 	public Set<Coordinate> getTextCoordinateSet() {
-		return this.textContentSet.keySet();
+		Set<Coordinate> clone = new HashSet<Coordinate>(this.textContentSet.size());
+		clone.addAll(this.textContentSet.keySet());
+		return clone;
 	}
 	
 	public TextContent getTextContent(Coordinate co) {
 		return this.textContentSet.get(co);
+	}
+	
+	public Set<Coordinate> getImageCoordinateSet() {
+		Set<Coordinate> clone = new HashSet<Coordinate>(this.imageContentSet.size());
+		clone.addAll(this.imageContentSet.keySet());
+		return clone;
+	}
+	
+	public ImageContent getImageContent(Coordinate co) {
+		return this.imageContentSet.get(co);
 	}
 
 	static class Coordinate {
