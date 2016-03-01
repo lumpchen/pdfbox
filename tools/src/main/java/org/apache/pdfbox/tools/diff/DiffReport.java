@@ -229,15 +229,32 @@ public class DiffReport {
 		return "";
 	}
 	
-	private static String toJSon(PageInfo pageInfo) {
-		Map<String, String> map = new HashMap<String, String>();
-		map.put("pageNo", pageInfo.getPageNo() + "");
-		
-		map.put("width", pageInfo.getWidth() + "");
-		map.put("height", pageInfo.getHeight() + "");
-		
-		
+	private String writeImages(PageInfo pageInfo, String tagPrefix, String tagSuffix) throws IOException {
+		String path = pageInfo.getPreviewImage();
+		File image = new File(path);
+		if (image.exists()) {
+			String imageTag = tagPrefix + "-" + pageInfo.getPageNo() + tagSuffix;
+			File imageFile = new File(this.imageDir.getAbsolutePath() + "/" + imageTag);
+			if (!imageFile.exists()) {
+				if (!imageFile.createNewFile()) {
+					throw new IOException("Cannot create preview image file: " + imageFile.getAbsolutePath());						
+				}
+			}
+			writeTo(new FileInputStream(image), new FileOutputStream(imageFile));
+			return imageTag;
+		}
 		return "";
+	}
+	
+	private JSONObject toJSon(PageInfo pageInfo, String tagPrefix, String tagSuffix) throws IOException {
+		JSONObject map = new JSONObject();
+		map.put("pageNo", pageInfo.getPageNo());
+		map.put("width", pageInfo.getWidth());
+		map.put("height", pageInfo.getHeight());
+		String imageTag = this.writeImages(pageInfo, tagPrefix, tagSuffix);
+		map.put("imageTag", imageTag);
+		
+		return map;
 	}
 	
 	
