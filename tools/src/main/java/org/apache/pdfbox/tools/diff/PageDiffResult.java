@@ -18,11 +18,11 @@ public class PageDiffResult {
 		return this.entrySet.size();
 	}
 	
-	public void append(TextContent textContent_1, TextContent textContent_2) {
+	public void append(TextContent baseTextContent, TextContent testTextContent) {
 		PageDiffEntry entry = new PageDiffEntry();
 		entry.category = PageDiffEntry.Category.Text;
-		entry.content_1 = textContent_1;
-		entry.content_2 = textContent_2;
+		entry.baseContent = baseTextContent;
+		entry.testContent = testTextContent;
 		this.entrySet.add(entry);
 	}
 
@@ -33,7 +33,7 @@ public class PageDiffResult {
 		
 		Category category;
 
-		PageContent content_1;
-		PageContent content_2;
+		PageContent baseContent;
+		PageContent testContent;
 	}
 }

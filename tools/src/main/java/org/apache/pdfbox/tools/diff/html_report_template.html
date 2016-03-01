@@ -1,28 +1,46 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<title>PDF DIFF Report</title>
-	<script type="text/javascript" src="pdf_diff_viewer.js"></script>
+<title>PDF DIFF Report</title>
+<link rel="stylesheet" href="report_styles.css">
+<script type="text/javascript" src="pdf_diff_report.js"></script>
 </head>
-  
+
 <body onload="onload()">
-<h1>
-	<span>Baseline:</span>
-	<span id="baseline_pdf_name"></span> 
-</h1>
+	<h1>
+		<span>Baseline:</span> <span id="baseline_pdf_name"></span>
+	</h1>
 
-<h1>
-	<span>Test:</span>
-	<span id="test_pdf_name"></span> 
-</h1>
+	<h1>
+		<span>Test:</span> <span id="test_pdf_name"></span>
+	</h1>
 
-<h1>
-	<span id="diff_summary"></span> 
-</h1>
+	<h1>
+		<span>Page count:</span> <span id="page_count"></span>
+	</h1>
 
-<canvas id="myCanvas" width="200" height="100" style="border:1px solid #c3c3c3;">
-Your browser does not support the canvas element.
-</canvas>
+	<h1>
+		<span id="diff_summary"></span>
+	</h1>
 
+	<div>
+		<table id="page_list_table" class="flat-table">
+			<thead>
+				<tr>
+					<th>Pages</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</div>
+
+	<div>
+		<div style="float: left;">
+			<canvas id="baseline_page_canvas" width="230" height="400"></canvas>
+		</div>
+		<div style="float: right;">
+			<canvas id="test_page_canvas"></canvas>
+		</div>
+	</div>
 </body>
 </html>

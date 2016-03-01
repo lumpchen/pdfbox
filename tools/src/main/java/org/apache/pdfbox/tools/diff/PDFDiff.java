@@ -1,13 +1,18 @@
 package org.apache.pdfbox.tools.diff;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.tools.diff.PDocDiffResult.PageInfo;
 import org.apache.pdfbox.tools.diff.document.PageContent;
 import org.apache.pdfbox.tools.diff.document.PageContentExtractor;
+import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 
 public class PDFDiff {
 
@@ -28,12 +33,12 @@ public class PDFDiff {
 		PDocDiffResult result = new PDocDiffResult();
 		try {
 			baselinePDF = PDDocument.load(this.base);
-			result.getBaseDocumentInfo().category = "baseline";
-			result.getBaseDocumentInfo().title = this.base.getName();
+			result.getBaseDocumentInfo().setCategory("baseline");
+			result.getBaseDocumentInfo().setTitle(this.base.getName());
 					
 			testPDF = PDDocument.load(this.test);
-			result.getTestDocumentInfo().category = "test";
-			result.getTestDocumentInfo().title = this.test.getName();
+			result.getTestDocumentInfo().setCategory("test");
+			result.getTestDocumentInfo().setTitle(this.test.getName());
 			
 			this.diffPDoc(baselinePDF, testPDF, result);
 		} catch (Exception e) {
@@ -57,20 +62,45 @@ public class PDFDiff {
 		return result;
 	}
 	
+	
 	private void diffPDoc(PDDocument base, PDDocument test, PDocDiffResult result) throws PDFDiffException {
 		int pageNum_1 = base.getNumberOfPages();
 		int pageNum_2 = test.getNumberOfPages();
 		if (pageNum_1 != pageNum_2) {
 			throw new PDFDiffException("Page count is different: base=" + pageNum_1 + ", test=" + pageNum_2);
 		}
-		result.getBaseDocumentInfo().pageCount = pageNum_1;
-		result.getTestDocumentInfo().pageCount = pageNum_2;
+		result.getBaseDocumentInfo().setPageCount(pageNum_1);
+		result.getBaseDocumentInfo().setImageSuffix(setting.previewImageFormat);
 		
-        for (int i = 0; i < pageNum_1; i++) {
-            PDPage page_1 = base.getPage(i);
-            PDPage page_2 = test.getPage(i);
-            this.diffPage(i + 1, page_1, page_2, result);
+		result.getTestDocumentInfo().setPageCount(pageNum_2);
+		result.getTestDocumentInfo().setImageSuffix(setting.previewImageFormat);
+        try {
+            for (int i = 0; i < pageNum_1; i++) {
+                PDPage page_1 = base.getPage(i);
+                PDPage page_2 = test.getPage(i);
+                this.diffPage(i, page_1, page_2, result);
+                
+                PageInfo info = new PageInfo(i);
+                info.setPreviewImage(this.renderPage(i, base));
+        		result.getBaseDocumentInfo().setPageInfo(i, info);
+        		
+        		info = new PageInfo(i);
+        		info.setPreviewImage(this.renderPage(i, test));
+        		result.getTestDocumentInfo().setPageInfo(i, info);
+            }
+        } catch (Exception e) {
+        	throw new PDFDiffException("Can't render page: " + e);
         }
+	}
+	
+	private String renderPage(int pageNo, PDDocument pdoc) throws Exception {
+		PDFRenderer baseRenderer = new PDFRenderer(pdoc);
+        BufferedImage image = baseRenderer.renderImageWithDPI(pageNo, this.setting.resolution, ImageType.RGB);
+        File temp = File.createTempFile("pdf_diff", "." + setting.previewImageFormat);
+        if (ImageIOUtil.writeImage(image, temp.getAbsolutePath(), (int) this.setting.resolution)) {
+        	return temp.getAbsolutePath();
+        }
+        throw new PDFDiffException("Can't render page: " + pageNo);
 	}
 	
 	private void diffPage(int pageNo, PDPage base, PDPage test, PDocDiffResult result) throws PDFDiffException {

@@ -10,7 +10,7 @@ public class PDFDiffTest {
 	}
 	
 	private static void diff(String base, String test) {
-		PDFDiff differ = new PDFDiff(new File(base), new File(test), null);
+		PDFDiff differ = new PDFDiff(new File(base), new File(test), DiffSetting.getDefaultSetting());
 		try {
 			PDocDiffResult result = differ.diff();
 			
@@ -21,7 +21,8 @@ public class PDFDiffTest {
 				System.out.println("PDFs are same!");
 			}
 			
-			DiffReport.reportHtml(new File("C:/uatest"), result);
+			DiffReport report = new DiffReport(new File("C:/uatest/report"), "report", result);
+			report.toHtml();
 		} catch (PDFDiffException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

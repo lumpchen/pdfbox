@@ -1,0 +1,27 @@
+.flat-table {
+	display: block;
+	font-family: sans-serif;
+	-webkit-font-smoothing: antialiased;
+	font-size: 115%;
+	overflow: auto;
+	width: auto;
+}
+
+.flat-table th {
+	background-color: rgb(112, 196, 105);
+	color: white;
+	font-weight: normal;
+	padding: 10px 20px;
+	text-align: center;
+}
+
+.flat-table td {
+	background-color: rgb(238, 238, 238);
+	color: rgb(111, 111, 111);
+	padding: 5px 5px;
+}
+
+.flat-table td:hover {
+	background-color: #C0C0C0;
+	cursor:pointer;
+}
