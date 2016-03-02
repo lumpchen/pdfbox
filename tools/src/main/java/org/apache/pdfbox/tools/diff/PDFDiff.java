@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.PageInfo;
@@ -33,7 +34,7 @@ public class PDFDiff {
 		PDocDiffResult result = new PDocDiffResult();
 		try {
 			baselinePDF = PDDocument.load(this.base);
-			result.getBaseDocumentInfo().setCategory("baseline");
+			result.getBaseDocumentInfo().setCategory("base");
 			result.getBaseDocumentInfo().setTitle(this.base.getName());
 					
 			testPDF = PDDocument.load(this.test);
@@ -82,14 +83,36 @@ public class PDFDiff {
                 
                 PageInfo info = new PageInfo(i);
                 info.setPreviewImage(this.renderPage(i, base));
+                int[] size = this.getPageSize(page_1);
+                info.setWidth(size[0]);
+                info.setHeight(size[1]);
         		result.getBaseDocumentInfo().setPageInfo(i, info);
         		
         		info = new PageInfo(i);
         		info.setPreviewImage(this.renderPage(i, test));
+        		size = this.getPageSize(page_2);
+                info.setWidth(size[0]);
+                info.setHeight(size[1]);
         		result.getTestDocumentInfo().setPageInfo(i, info);
             }
         } catch (Exception e) {
         	throw new PDFDiffException("Can't render page: " + e);
+        }
+	}
+	
+	private int[] getPageSize(PDPage page) {
+        PDRectangle cropbBox = page.getCropBox();
+        float widthPt = cropbBox.getWidth();
+        float heightPt = cropbBox.getHeight();
+        float scale = this.setting.resolution / 72f;
+        int widthPx = Math.round(widthPt * scale);
+        int heightPx = Math.round(heightPt * scale);
+        int rotationAngle = page.getRotation();
+
+        if (rotationAngle == 90 || rotationAngle == 270) {
+            return new int[]{heightPx, widthPx};
+        } else{
+        	return new int[]{widthPx, heightPx};
         }
 	}
 	

@@ -3,6 +3,8 @@ package org.apache.pdfbox.tools.diff;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.pdfbox.tools.diff.report.DiffReport;
+
 public class PDFDiffTest {
 
 	public static void main(String[] args) {

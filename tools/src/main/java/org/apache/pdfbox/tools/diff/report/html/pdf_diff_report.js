@@ -1,22 +1,23 @@
 
-var baseline_pdf_name = &baseline_pdf_name&;
-var test_pdf_name = &test_pdf_name&;
 var diff_page_count = &diff_page_count&;
-var page_count = &page_count&;
 var diff_page_nums = &diff_page_nums&;
-var baseline_page_images = &baseline_page_images&;
-var test_page_images = &test_page_images&;
+
+var base_pdf_json = &base_pdf_json&;
+var test_pdf_json = &test_pdf_json&;
+
+var base_pdf_json_obj = JSON.parse(base_pdf_json);
+var test_pdf_json_obj = JSON.parse(test_pdf_json);
 
 function onload()
 {
-	var baseline_pdf_span = document.getElementById("baseline_pdf_name");
-	baseline_pdf_span.textContent = baseline_pdf_name;
+	var base_pdf_span = document.getElementById("base_pdf_name");
+	base_pdf_span.textContent = base_pdf_json_obj.title;
 	
 	var test_pdf_span = document.getElementById("test_pdf_name");
-	test_pdf_span.textContent = baseline_pdf_name;
+	test_pdf_span.textContent = test_pdf_json_obj.title;
 	
 	var page_count_span = document.getElementById("page_count");
-	page_count_span.textContent = page_count;
+	page_count_span.textContent = base_pdf_json_obj.pageCount;
 	
 	var sum = "";
 	if (diff_page_count == 0) {
@@ -30,7 +31,7 @@ function onload()
 	diff_summary_span.innerHTML = sum;
 	
 	var tableBody = document.getElementById("page_list_table").getElementsByTagName("tbody")[0];
-	for (i = 0; i < page_count; i++) {
+	for (i = 0; i < base_pdf_json_obj.pageCount; i++) {
 		var pageRow = tableBody.insertRow(tableBody.rows.length);
 		var cell = pageRow.insertCell(0);
 		var text = document.createTextNode("Page " + (i + 1));
@@ -46,15 +47,33 @@ function onload()
 
 function pageSelectHandler(pageNo, cell) {
 	return function() {
-		var imageTag = baseline_page_images[pageNo];
-		var c = document.getElementById("baseline_page_canvas");
+		var imageTag = base_pdf_json_obj.pages[pageNo].imageTag;
+		var c = document.getElementById("base_page_canvas");
+		c.width = base_pdf_json_obj.pages[pageNo].width + 2;
+		c.height = base_pdf_json_obj.pages[pageNo].height + 2;
 		var ctx = c.getContext("2d");
 		showPageImage(imageTag, ctx);
+		ctx.save();
+		ctx.beginPath();
+		ctx.lineWidth="3";
+		ctx.strokeStyle="red";
+		ctx.rect(1, 1, c.width, c.height);
+		ctx.stroke();
+		ctx.restore();
 		
-		imageTag = test_page_images[pageNo];
+		var imageTag = test_pdf_json_obj.pages[pageNo].imageTag;
 		c = document.getElementById("test_page_canvas");
+		c.width = test_pdf_json_obj.pages[pageNo].width + 2;
+		c.height = test_pdf_json_obj.pages[pageNo].height + 2;
 		ctx = c.getContext("2d");
 		showPageImage(imageTag, ctx);
+		ctx.save();
+		ctx.beginPath();
+		ctx.lineWidth="3";
+		ctx.strokeStyle="red";
+		ctx.rect(1, 1, c.width, c.height);
+		ctx.stroke();
+		ctx.restore();
 	};
 }
 

@@ -1,4 +1,4 @@
-package org.apache.pdfbox.tools.diff;
+package org.apache.pdfbox.tools.diff.report;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -7,11 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
+import org.apache.pdfbox.tools.diff.PDocDiffResult;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.DocumentInfo;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.PageInfo;
 import org.json.JSONArray;
@@ -19,13 +16,12 @@ import org.json.JSONObject;
 
 public class DiffReport {
 
-	private static final String baseline_pdf_name_placeholder = "&baseline_pdf_name&";
-	private static final String test_pdf_name_placeholder = "&test_pdf_name&";
+	private static final String ResourcePackage =  "org/apache/pdfbox/tools/diff/report/html/";
+	
 	private static final String diff_page_count_placeholder = "&diff_page_count&";
-	private static final String page_count_placeholder = "&page_count&";
 	private static final String diff_page_nums_placeholder = "&diff_page_nums&";
-	private static final String baseline_page_images_placeholder = "&baseline_page_images&";
-	private static final String test_page_images_placeholder = "&test_page_images&";
+	private static final String base_pdf_json_placeholder = "&base_pdf_json&";
+	private static final String test_pdf_json_placeholder = "&test_pdf_json&";
 	
 	private File imageDir;
 	private File baseDir;
@@ -66,7 +62,7 @@ public class DiffReport {
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(main);
-			htmlTemplate = loadHtmlTemplate();
+			htmlTemplate = loadTemplate("html_report_template.html");
 			writeTo(htmlTemplate, fos);
 		} finally {
 			if (htmlTemplate != null) {
@@ -79,24 +75,35 @@ public class DiffReport {
 	}
 	
 	private void writeCss() throws IOException {
-		String path = this.baseDir.getAbsolutePath() + "/" + "report_styles.css";
-		File css = new File(path);
-		if (!css.exists()) {
-			if (!css.createNewFile()) {
-				throw new IOException("Cannot create css file: " + path);
-			}
-		}
+		this.writeCss("report_styles.css");
+		this.writeCss("bootstrap.css");
+	}
+	
+	private void writeCss(String cssName) throws IOException {
 		InputStream cssTemplate = null;
-		FileOutputStream fos = null;
 		try {
-			fos = new FileOutputStream(css);
-			
-			cssTemplate = loadCssTemplate();
-			writeTo(cssTemplate, fos);
+			cssTemplate = loadTemplate(cssName);
+			copyFile(cssTemplate, cssName, this.baseDir);
 		} finally {
 			if (cssTemplate != null) {
 				cssTemplate.close();
 			}
+		}
+	}
+	
+	private static void copyFile(InputStream src, String fileName, File dstDir) throws IOException {
+		String dst = dstDir.getAbsolutePath() + "/" + fileName;
+		File dstFile = new File(dst);
+		if (!dstFile.exists()) {
+			if (!dstFile.createNewFile()) {
+				throw new IOException("Cannot create file: " + dst);
+			}
+		}
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(dstFile);
+			writeTo(src, fos);
+		} finally {
 			if (fos != null) {
 				fos.close();
 			}
@@ -104,6 +111,24 @@ public class DiffReport {
 	}
 	
 	private void writeJS() throws IOException {
+		this.writeJS("jquery.js");
+		this.writeJS("bootstrap-treeview.js");
+		this.writeReportJS();
+	}
+	
+	private void writeJS(String jsName) throws IOException {
+		InputStream jsTemplate = null;
+		try {
+			jsTemplate = loadTemplate(jsName);
+			copyFile(jsTemplate, jsName, this.baseDir);
+		} finally {
+			if (jsTemplate != null) {
+				jsTemplate.close();
+			}
+		}
+	}
+	
+	private void writeReportJS() throws IOException {
 		String path = this.baseDir.getAbsolutePath() + "/" + "pdf_diff_report.js";
 		File js = new File(path);
 		if (!js.exists()) {
@@ -116,7 +141,7 @@ public class DiffReport {
 		try {
 			fos = new FileOutputStream(js);
 			
-			jsTemplate = loadJSTemplate();
+			jsTemplate = loadTemplate("pdf_diff_report.js");
 			String rep = remplaceVariable(jsTemplate);
 			fos.write(rep.getBytes("UTF-8"));
 		} finally {
@@ -136,10 +161,7 @@ public class DiffReport {
 		
 		String s = new String(bytes, "UTF-8");
 		
-		s = s.replaceFirst(baseline_pdf_name_placeholder, "\"" + result.getBaseDocumentInfo().getTitle() + "\"");
-		s = s.replaceFirst(test_pdf_name_placeholder, "\"" + result.getTestDocumentInfo().getTitle() + "\"");
 		s = s.replaceFirst(diff_page_count_placeholder, result.countOfDiffPages() + "");
-		s = s.replaceFirst(page_count_placeholder, result.getBaseDocumentInfo().getPageCount() + "");
 		
 		Integer[] diffPageNums = result.getDiffPageNums();
 		StringBuilder buf = new StringBuilder();
@@ -153,41 +175,13 @@ public class DiffReport {
 		buf.append("]");
 		s = s.replaceFirst(diff_page_nums_placeholder, buf.toString());
 		
-		String baseline_page_images = writeImages(result.getBaseDocumentInfo(), "base", 
-				"." + result.getBaseDocumentInfo().getImageSuffix());
-		s = s.replaceFirst(baseline_page_images_placeholder, baseline_page_images);
+		String base_pdf_json = this.toJSon(result.getBaseDocumentInfo()).toString();
+		s = s.replaceFirst(base_pdf_json_placeholder, "\'" + base_pdf_json + "\'");
 		
-		String test_page_images = writeImages(result.getTestDocumentInfo(), "test", 
-				"." + result.getTestDocumentInfo().getImageSuffix());
-		s = s.replaceFirst(test_page_images_placeholder, test_page_images);
+		String test_pdf_json = this.toJSon(result.getTestDocumentInfo()).toString();
+		s = s.replaceFirst(test_pdf_json_placeholder, "\'" + test_pdf_json + "\'");
+		
 		return s;
-	}
-	
-	private String writeImages(DocumentInfo docInfo, String tagPrefix, String tagSuffix) throws IOException {
-		StringBuilder buf = new StringBuilder();
-		buf.append("[");
-		int n = docInfo.getPageCount();
-		for (int i = 0; i < n; i++) {
-			String path = docInfo.getPageInfo(i).getPreviewImage();
-			File image = new File(path);
-			if (image.exists()) {
-				String imageTag = tagPrefix + "-" + i + tagSuffix;
-				File imageFile = new File(this.imageDir.getAbsolutePath() + "/" + imageTag);
-				if (!imageFile.exists()) {
-					if (!imageFile.createNewFile()) {
-						throw new IOException("Cannot create preview image file: " + imageFile.getAbsolutePath());						
-					}
-				}
-				writeTo(new FileInputStream(image), new FileOutputStream(imageFile));
-				buf.append("\"" + imageTag + "\"");
-			}
-			
-			if (i != n - 1) {
-				buf.append(", ");
-			}
-		}
-		buf.append("]");
-		return buf.toString();
 	}
 	
 	private static void writeTo(InputStream is, OutputStream os) throws IOException {
@@ -198,42 +192,35 @@ public class DiffReport {
 		}
 	}
 	
-	private static InputStream loadHtmlTemplate() {
+	private static InputStream loadTemplate(String name) {
 		InputStream is = Thread.currentThread().getContextClassLoader()
-				.getResourceAsStream("org/apache/pdfbox/tools/diff/html_report_template.html");
+				.getResourceAsStream(ResourcePackage + name);
 		return is;
 	}
 
-	private static InputStream loadCssTemplate() {
-		InputStream is = Thread.currentThread().getContextClassLoader()
-				.getResourceAsStream("org/apache/pdfbox/tools/diff/report_styles.css");
-		return is;
-	}
-
-	private static InputStream loadJSTemplate() {
-		InputStream is = Thread.currentThread().getContextClassLoader()
-				.getResourceAsStream("org/apache/pdfbox/tools/diff/pdf_diff_report.js");
-		return is;
-	}
-	
-	private static String toJSon(PDocDiffResult result) {
-		DocumentInfo docInfo = result.getBaseDocumentInfo();
-		JSONObject jo = new JSONObject();
+	private JSONObject toJSon(DocumentInfo docInfo) throws IOException {
+		JSONObject docJson = new JSONObject();
+		docJson.put("pageCount", docInfo.getPageCount());
+		docJson.put("title", docInfo.getTitle());
 		
+		String tagPrefix = docInfo.getCategory();
+		String tagSuffix = docInfo.getImageSuffix();
 		
-		return "";
-	}
-	
-	private static String toJSon(DocumentInfo docInfo) {
-		
-		return "";
+		JSONArray pageArray = new JSONArray();
+		for (int i = 0; i < docInfo.getPageCount(); i++) {
+			PageInfo pageInfo = docInfo.getPageInfo(i);
+			JSONObject pageJson = this.toJSon(pageInfo, tagPrefix, tagSuffix);
+			pageArray.put(pageJson);
+		}
+		docJson.put("pages", pageArray);
+		return docJson;
 	}
 	
 	private String writeImages(PageInfo pageInfo, String tagPrefix, String tagSuffix) throws IOException {
 		String path = pageInfo.getPreviewImage();
 		File image = new File(path);
 		if (image.exists()) {
-			String imageTag = tagPrefix + "-" + pageInfo.getPageNo() + tagSuffix;
+			String imageTag = tagPrefix + "-" + pageInfo.getPageNo() + "." + tagSuffix;
 			File imageFile = new File(this.imageDir.getAbsolutePath() + "/" + imageTag);
 			if (!imageFile.exists()) {
 				if (!imageFile.createNewFile()) {
@@ -248,42 +235,12 @@ public class DiffReport {
 	
 	private JSONObject toJSon(PageInfo pageInfo, String tagPrefix, String tagSuffix) throws IOException {
 		JSONObject map = new JSONObject();
-		map.put("pageNo", pageInfo.getPageNo());
+		map.put("num", pageInfo.getPageNo());
 		map.put("width", pageInfo.getWidth());
 		map.put("height", pageInfo.getHeight());
 		String imageTag = this.writeImages(pageInfo, tagPrefix, tagSuffix);
 		map.put("imageTag", imageTag);
 		
 		return map;
-	}
-	
-	
-	static String toJson(PDocDiffResult result) {
-		JSONObject jo = new JSONObject();
-
-		Map<String, String> map1 = new HashMap<String, String>();
-		map1.put("name", "Alexia");
-		map1.put("sex", "female");
-		map1.put("age", "23");
-
-		Map<String, String> map2 = new HashMap<String, String>();
-		map2.put("name", "Edward");
-		map2.put("sex", "male");
-		map2.put("age", "24");
-
-		List<Map> list = new ArrayList<Map>();
-		list.add(map1);
-		list.add(map2);
-
-		JSONArray ja = new JSONArray();
-		ja.put(list);
-
-		System.out.println(ja.toString());
-
-		return jo.toString();
-	}
-
-	public static void main(String[] args) {
-		toJson(null);
 	}
 }

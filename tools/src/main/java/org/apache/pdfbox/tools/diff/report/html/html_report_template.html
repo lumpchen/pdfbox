@@ -1,0 +1,128 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>PDF DIFF Report</title>
+<meta charset='UTF-8' />
+<meta http-equiv='content-type' content='text/html; charset=utf-8' />
+<title>PDF DIFF Report</title>
+<link rel="stylesheet" href="bootstrap.css">
+<link rel="stylesheet" href="report_styles.css">
+
+<script type="text/javascript" src="pdf_diff_report.js"></script>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="bootstrap-treeview.js"></script>
+</head>
+
+<body onload="onload()">
+	<div id="header">
+		<h1>
+			<span>Baseline:</span> <span id="base_pdf_name"></span>
+		</h1>
+
+		<h1>
+			<span>Test:</span> <span id="test_pdf_name"></span>
+		</h1>
+
+		<h1>
+			<span>Page count:</span> <span id="page_count"></span>
+		</h1>
+
+		<h1>
+			<span id="diff_summary"></span>
+		</h1>
+	</div>
+
+	<div id="nav">
+		<div style="float: left;">
+			<table id="page_list_table" class="flat-table">
+				<thead>
+					<tr>
+						<th>Pages</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+	</div>
+
+	<div id="section">
+		<div style="float: left;">
+			<canvas id="base_page_canvas"></canvas>
+		</div>
+		<div style="float: left;">
+			<canvas id="test_page_canvas"></canvas>
+		</div>
+	</div>
+
+	<div class="footer">
+		<h1>Bootstrap Tree View - DOM Tree</h1>
+		<br />
+		<div class="row">
+			<div class="col-sm-12">
+				<label for="treeview"></label>
+				<div id="treeview" />
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+	  
+	  var tree = [
+  {
+    text: "Parent 1",
+	  color: "#000000",
+  backColor: "#FFFFFF",
+  href: "#node-1",
+  selectable: true,
+  state: {
+    checked: true,
+    disabled: false,
+    expanded: true,
+    selected: false
+  },
+  tags: ['available'],
+    nodes: [
+      {
+        text: "Child 1",
+
+        nodes: [
+          {
+            text: "Grandchild 1"
+          },
+          {
+            text: "Grandchild 2"
+          }
+        ]
+      },
+      {
+        text: "Child 2"
+      }
+    ]
+  },
+  {
+    text: "Parent 2"
+  },
+  {
+    text: "Parent 3"
+  },
+  {
+    text: "Parent 4"
+  },
+  {
+    text: "Parent 5"
+  }
+];
+
+  		$(function() {
+        var options = {
+          bootstrap2: false, 
+          showTags: true,
+          levels: 5,
+          data: tree
+        };
+  			$('#treeview').treeview(options);
+  		});
+
+  	</script>
+</body>
+</html>
