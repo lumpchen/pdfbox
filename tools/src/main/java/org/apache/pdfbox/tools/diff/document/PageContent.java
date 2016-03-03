@@ -5,6 +5,7 @@ import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 
@@ -116,6 +117,9 @@ public abstract class PageContent {
 	abstract public String showString();
 	abstract public String getTypeString();
 	
+	abstract public Map<String, String> getAttrMap();
+	abstract public boolean diff(PageContent content);
+	
 	public static class TextContent extends PageContent {
 
 		private StringBuilder text;
@@ -153,6 +157,17 @@ public abstract class PageContent {
 		public String getTypeString() {
 			return "Text";
 		}
+		
+		@Override
+		public Map<String, String> getAttrMap() {
+			return null;
+		}
+
+		@Override
+		public boolean diff(PageContent content) {
+			// TODO Auto-generated method stub
+			return false;
+		}
 	}
 	
 	public static class PathContent extends PageContent {
@@ -170,6 +185,17 @@ public abstract class PageContent {
 		@Override
 		public String getTypeString() {
 			return "Path";
+		}
+		
+		@Override
+		public Map<String, String> getAttrMap() {
+			return null;
+		}
+
+		@Override
+		public boolean diff(PageContent content) {
+			// TODO Auto-generated method stub
+			return false;
 		}
 	}
 	
@@ -197,6 +223,17 @@ public abstract class PageContent {
 		public String getTypeString() {
 			return "Image";
 		}
+		
+		@Override
+		public Map<String, String> getAttrMap() {
+			return null;
+		}
+
+		@Override
+		public boolean diff(PageContent content) {
+			// TODO Auto-generated method stub
+			return false;
+		}
 	}
 	
 	public static class AnnotContent extends PageContent {
@@ -219,6 +256,17 @@ public abstract class PageContent {
 		@Override
 		public String getTypeString() {
 			return "Annot";
+		}
+		
+		@Override
+		public Map<String, String> getAttrMap() {
+			return null;
+		}
+
+		@Override
+		public boolean diff(PageContent content) {
+			// TODO Auto-generated method stub
+			return false;
 		}
 	}
 }

@@ -8,10 +8,10 @@
 }
 
 .flat-table th {
-	background-color: rgb(112, 196, 105);
+	background-color: gray;
 	color: white;
-	font-weight: normal;
-	padding: 10px 20px;
+	font-weight: Bold;
+	padding: 10px 10px;
 	text-align: center;
 }
 
@@ -19,9 +19,79 @@
 	background-color: rgb(238, 238, 238);
 	color: rgb(111, 111, 111);
 	padding: 5px 5px;
+	text-align: left;
 }
 
 .flat-table td:hover {
 	background-color: #C0C0C0;
-	cursor:pointer;
+	cursor: pointer;
+}
+
+#header {
+	background-color: gray;
+	color: white;
+	text-align: center;
+	padding: 5px;
+}
+
+#nav {
+	line-height: 30px;
+	background-color: #eeeeee;
+	
+	width: 5%;
+	float: left;
+	padding: 10px;
+	text-align: center;
+}
+
+#section {
+	float: left;
+	padding: 10px;
+}
+
+#footer {
+	border: 1px solid;
+	background-color: gray;
+	width: 25%;
+	float: left;
+	text-align: left;
+}
+
+#contable {
+	border: 1px solid;
+	background-color: gray;
+	width: 75%;
+	clear: both;
+	float: right;
+	text-align: left;
+}
+.cont-table {
+	display: block;
+	font-family: sans-serif;
+	-webkit-font-smoothing: antialiased;
+	font-size: 130%;
+	overflow: auto;
+	width: 100%;
+}
+
+.cont-table th {
+	background-color: gray;
+	color: white;
+	font-weight: Bold;
+	font-size: 28px;
+	text-align: center;
+}
+
+.cont-table td {
+	border: 1px solid;
+	background-color: rgb(238, 238, 238);
+	color: rgb(111, 111, 111);
+	padding: 10px 10px 0px 10px;
+	font-size: 18px;
+	text-align: left;
+}
+
+.cont-table td:hover {
+	background-color: #C0C0C0;
+	cursor: pointer;
 }

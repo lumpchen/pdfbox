@@ -1,6 +1,8 @@
 package org.apache.pdfbox.tools.diff;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.pdfbox.tools.diff.document.PageContent;
@@ -26,14 +28,24 @@ public class PageDiffResult {
 		this.entrySet.add(entry);
 	}
 
-	static class PageDiffEntry {
-		static enum Category {
+	public List<PageDiffEntry> getDiffContents(PageDiffEntry.Category category) {
+		List<PageDiffEntry> ret = new ArrayList<PageDiffEntry>();
+		for (PageDiffEntry entry : this.entrySet) {
+			if (entry.category == category) {
+				ret.add(entry);
+			}
+		}
+		return ret;
+	}
+	
+	public static class PageDiffEntry {
+		public static enum Category {
 			Text, Image, Path, Annot
 		};
 		
-		Category category;
+		public Category category;
 
-		PageContent baseContent;
-		PageContent testContent;
+		public PageContent baseContent;
+		public PageContent testContent;
 	}
 }

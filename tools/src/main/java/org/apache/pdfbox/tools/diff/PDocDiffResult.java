@@ -41,6 +41,10 @@ public class PDocDiffResult {
 		}
 	}
 	
+	public PageDiffResult getPageDiffResult(int pageNo) {
+		return this.entryMap.get(pageNo);
+	}
+	
 	public int countOfDiffPages() {
 		return this.diffPageCount;
 	}

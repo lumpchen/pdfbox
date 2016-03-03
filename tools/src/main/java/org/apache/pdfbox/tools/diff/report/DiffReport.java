@@ -7,10 +7,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 import org.apache.pdfbox.tools.diff.PDocDiffResult;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.DocumentInfo;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.PageInfo;
+import org.apache.pdfbox.tools.diff.PageDiffResult;
+import org.apache.pdfbox.tools.diff.PageDiffResult.PageDiffEntry;
+import org.apache.pdfbox.tools.diff.document.PageContent;
+import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
+import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -22,6 +28,8 @@ public class DiffReport {
 	private static final String diff_page_nums_placeholder = "&diff_page_nums&";
 	private static final String base_pdf_json_placeholder = "&base_pdf_json&";
 	private static final String test_pdf_json_placeholder = "&test_pdf_json&";
+	
+	private static final String diff_content_json_placeholder = "&diff_content_json&";
 	
 	private File imageDir;
 	private File baseDir;
@@ -214,6 +222,62 @@ public class DiffReport {
 		}
 		docJson.put("pages", pageArray);
 		return docJson;
+	}
+	
+	private JSONObject toJSon(PageDiffResult pageResult) throws IOException {
+		JSONObject json = new JSONObject();
+		
+		List<PageDiffEntry> results = pageResult.getDiffContents(PageDiffEntry.Category.Text);
+		return json;
+	}
+	
+	private JSONObject toJSon(PageDiffEntry diffContent) throws IOException {
+		JSONObject json = new JSONObject();
+		
+		PageContent base = diffContent.baseContent;
+		json.put("showtext", base.showString());
+
+		
+		return json;
+	}
+	
+	private JSONObject toJson(PageContent baseContent, PageContent testContent) throws IOException {
+		JSONObject json = new JSONObject();
+		if (baseContent == null) {
+			return json;
+		}
+		
+		if (baseContent.getType() == PageContent.Type.Text) {
+			TextContent text = (TextContent) baseContent;
+			
+			putJson(json, "text", text.getText());
+			json.put("text", text.getText());
+			
+			putJson(json, "font", text.getGraphicsStateDesc().textState.fontName);
+			putJson(json, "fontSize", text.getGraphicsStateDesc().textState.fontSize);
+			
+			if (text.getGraphicsStateDesc().strokingColor != null) {
+			}
+			
+			putJson(json, "fillColor", text.getGraphicsStateDesc().nonStrokingColor);
+			
+		}
+		return json;
+	}
+	
+	private static JSONObject toJson(String key, boolean same, Object base, Object test) {
+		JSONObject attr = new JSONObject();
+		putJson(attr, "name", key);
+		putJson(attr, "same", same);
+		JSONArray val = new JSONArray();
+		val.put(base == null ? "" : base);
+		val.put(test == null ? "" : test);
+		attr.put("val", val);
+		return attr;
+	}
+	
+	private static void putJson(JSONObject json, String name, Object value) {
+		json.put(name, value == null ? "" : value);
 	}
 	
 	private String writeImages(PageInfo pageInfo, String tagPrefix, String tagSuffix) throws IOException {

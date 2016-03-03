@@ -40,7 +40,7 @@ public class PageContentDiff {
 		
 		coSet_2.removeAll(coSet_1);
 		if (!coSet_2.isEmpty()) {
-			// not found text content in base			
+			// not found text content in base
 		}
 	}
 	
@@ -75,7 +75,7 @@ public class PageContentDiff {
 			boolean b = this.diff(gstate_1.textState, gstate_2.textState);
 			b &= this.diff(gstate_1.nonStrokingColor, gstate_2.nonStrokingColor);
 			b &= this.diff(gstate_1.strokingColor, gstate_2.strokingColor);
-			return b;	
+			return b;
 		}
 		return false;
 	}
