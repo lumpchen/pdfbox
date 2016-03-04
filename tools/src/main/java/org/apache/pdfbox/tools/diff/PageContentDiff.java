@@ -3,6 +3,8 @@ package org.apache.pdfbox.tools.diff;
 import java.util.Set;
 
 import org.apache.pdfbox.tools.diff.PageContentSet.Coordinate;
+import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
+import org.apache.pdfbox.tools.diff.document.PageContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.GraphicsStateDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
@@ -33,8 +35,9 @@ public class PageContentDiff {
 			TextContent textContent_1 = page_1.getTextContent(co);
 			TextContent textContent_2 = page_2.getTextContent(co);
 			
+			DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
 			if (!this.diff(textContent_1, textContent_2)) {
-				result.append(textContent_1, textContent_2);	
+				result.append(diffContent);
 			}
 		}
 		
@@ -42,6 +45,37 @@ public class PageContentDiff {
 		if (!coSet_2.isEmpty()) {
 			// not found text content in base
 		}
+	}
+	
+	private void diff(TextContent textContent_1, TextContent textContent_2, DiffContent entry) {
+		String val_1 = this.getText(textContent_1);
+		String val_2 = this.getText(textContent_2);
+		boolean equals = this.diff(val_1, val_2);
+		entry.putAttr(DiffContent.Key.Attr_Text, equals, val_1, val_2);
+		
+		val_1 = this.getFontName(textContent_1);
+		val_2 = this.getFontName(textContent_2);
+		equals = this.diff(removeFontNameSuffix(val_1), removeFontNameSuffix(val_2));
+		entry.putAttr(DiffContent.Key.Attr_Font, equals, val_1, val_2);
+	}
+	
+	private String getText(TextContent content) {
+		return content == null ? null : content.getText();
+	}
+	
+	private String getFontName(PageContent content) {
+		if (content == null || content.getGraphicsStateDesc() == null 
+				|| content.getGraphicsStateDesc().textState == null) {
+			return null;
+		}
+		return content.getGraphicsStateDesc().textState.fontName;
+	}
+	
+	private String removeFontNameSuffix(String fontName) {
+		if (fontName == null) {
+			return null;
+		}
+		return fontName.substring(fontName.indexOf("+"));
 	}
 	
 	private void diffImage(PageContentSet page_1, PageContentSet page_2, PageDiffResult result) {

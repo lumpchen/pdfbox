@@ -13,7 +13,7 @@ import org.apache.pdfbox.tools.diff.PDocDiffResult;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.DocumentInfo;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.PageInfo;
 import org.apache.pdfbox.tools.diff.PageDiffResult;
-import org.apache.pdfbox.tools.diff.PageDiffResult.PageDiffEntry;
+import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
 import org.apache.pdfbox.tools.diff.document.PageContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
@@ -227,16 +227,12 @@ public class DiffReport {
 	private JSONObject toJSon(PageDiffResult pageResult) throws IOException {
 		JSONObject json = new JSONObject();
 		
-		List<PageDiffEntry> results = pageResult.getDiffContents(PageDiffEntry.Category.Text);
 		return json;
 	}
 	
-	private JSONObject toJSon(PageDiffEntry diffContent) throws IOException {
+	private JSONObject toJSon(DiffContent diffContent) throws IOException {
 		JSONObject json = new JSONObject();
 		
-		PageContent base = diffContent.baseContent;
-		json.put("showtext", base.showString());
-
 		
 		return json;
 	}

@@ -1,51 +1,63 @@
 package org.apache.pdfbox.tools.diff;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import org.apache.pdfbox.tools.diff.document.PageContent;
-import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 
 public class PageDiffResult {
-
-	private Set<PageDiffEntry> entrySet;
+	
+	private List<DiffContent> contentList;
 	
 	public PageDiffResult() {
-		this.entrySet = new HashSet<PageDiffEntry>();
+		this.contentList = new ArrayList<DiffContent>();
 	}
 
 	public int count() {
-		return this.entrySet.size();
+		return this.contentList.size();
 	}
 	
-	public void append(TextContent baseTextContent, TextContent testTextContent) {
-		PageDiffEntry entry = new PageDiffEntry();
-		entry.category = PageDiffEntry.Category.Text;
-		entry.baseContent = baseTextContent;
-		entry.testContent = testTextContent;
-		this.entrySet.add(entry);
+	public void append(DiffContent entry) {
+		this.contentList.add(entry);
 	}
 
-	public List<PageDiffEntry> getDiffContents(PageDiffEntry.Category category) {
-		List<PageDiffEntry> ret = new ArrayList<PageDiffEntry>();
-		for (PageDiffEntry entry : this.entrySet) {
-			if (entry.category == category) {
-				ret.add(entry);
-			}
-		}
-		return ret;
-	}
-	
-	public static class PageDiffEntry {
+	public static class DiffContent {
 		public static enum Category {
 			Text, Image, Path, Annot
 		};
 		
-		public Category category;
-
-		public PageContent baseContent;
-		public PageContent testContent;
+		public static class Key {
+			public static String Attr_Text ="Text";
+			public static String Attr_Font ="Font";
+			public static String Attr_Font_size ="Font size";
+			public static String Attr_Colorspace ="Colorspace";
+			public static String Attr_Color ="Color";
+		}
+				
+		private Category category;
+		private List<ContentAttr> contentAttrList;
+		
+		public DiffContent(Category category) {
+			this.category = category;
+		}
+		
+		public Category getCategory() {
+			return this.category;
+		}
+		
+		public void putAttr(String key, boolean equals, String baseVal, String testVal) {
+			ContentAttr attr = new ContentAttr();
+			attr.key = key;
+			attr.equals = equals;
+			attr.baseVal = baseVal;
+			attr.testVal = testVal;
+			this.contentAttrList.add(attr);
+		}
 	}
+	
+	public static class ContentAttr {
+		public String key;
+		public boolean equals;
+		public String baseVal;
+		public String testVal;
+	}
+	
 }
