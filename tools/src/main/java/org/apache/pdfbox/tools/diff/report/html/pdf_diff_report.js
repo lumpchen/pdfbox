@@ -82,6 +82,8 @@ function onload()
 		
 		if (diff_page_nums.indexOf(i) >= 0) {
 			cell.style.color = "#FF0000";
+		} else {
+			cell.style.color = "rgb(111, 111, 111)";
 		}
 	}
 	

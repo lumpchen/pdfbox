@@ -43,6 +43,7 @@ public class PDFDiff {
 			
 			this.diffPDoc(baselinePDF, testPDF, result);
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PDFDiffException("Diff error: ", e);
 		} finally {
 			if (baselinePDF != null) {

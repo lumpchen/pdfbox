@@ -113,6 +113,31 @@ public abstract class PageContent {
 	public GraphicsStateDesc getGraphicsStateDesc() {
 		return this.gstate;
 	}
+	
+	public String getNonStrokingColorspace() {
+		if (this.getGraphicsStateDesc() == null
+				|| this.getGraphicsStateDesc().nonStrokingColor == null) {
+			return null;
+		}
+		return this.getGraphicsStateDesc().nonStrokingColor.colorSpace;
+	}
+	
+	public String getFontName() {
+		if (this.getGraphicsStateDesc() == null 
+				|| this.getGraphicsStateDesc().textState == null) {
+			return null;
+		}
+		return this.getGraphicsStateDesc().textState.fontName;
+	}
+	
+	public Float getFontSize() {
+		if (this.getGraphicsStateDesc() == null 
+				|| this.getGraphicsStateDesc().textState == null) {
+			return null;
+		}
+		return this.getGraphicsStateDesc().textState.fontSize;
+	}
+	
 
 	abstract public String showString();
 	abstract public String getTypeString();

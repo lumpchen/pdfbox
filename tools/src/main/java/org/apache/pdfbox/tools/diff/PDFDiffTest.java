@@ -2,7 +2,9 @@ package org.apache.pdfbox.tools.diff;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
 import org.apache.pdfbox.tools.diff.report.DiffReport;
 
 public class PDFDiffTest {
@@ -22,7 +24,17 @@ public class PDFDiffTest {
 			} else {
 				System.out.println("PDFs are same!");
 			}
-			
+			Integer[] nums = result.getDiffPageNums();
+			for (int num : nums) {
+				PageDiffResult pageDiffResult = result.getPageDiffResult(num);
+				List<DiffContent> contentList = pageDiffResult.getContentList();
+				
+				if (contentList != null) {
+					for (DiffContent content : contentList) {
+						System.out.println(content);
+					}
+				}
+			}
 			DiffReport report = new DiffReport(new File("C:/uatest/report"), "report", result);
 			report.toHtml();
 		} catch (PDFDiffException e) {

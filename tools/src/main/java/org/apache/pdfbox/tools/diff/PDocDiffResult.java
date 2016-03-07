@@ -1,6 +1,8 @@
 package org.apache.pdfbox.tools.diff;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PDocDiffResult {
@@ -9,9 +11,11 @@ public class PDocDiffResult {
 	private DocumentInfo baseInfo;
 	private DocumentInfo testInfo;
 	private int diffPageCount;
+	private List<Integer> diffPageNumbs;
 
 	public PDocDiffResult() {
 		this.entryMap = new HashMap<Integer, PageDiffResult>();
+		this.diffPageNumbs = new ArrayList<Integer>();
 	}
 
 	public void setDocumentInfo(DocumentInfo baseInfo, DocumentInfo testInfo) {
@@ -38,6 +42,7 @@ public class PDocDiffResult {
 		
 		if (pageResult.count() > 0) {
 			this.diffPageCount++;
+			this.diffPageNumbs.add(pageNo);
 		}
 	}
 	
@@ -50,12 +55,8 @@ public class PDocDiffResult {
 	}
 	
 	public Integer[] getDiffPageNums() {
-		if (this.diffPageCount == 0) {
-			return new Integer[0];
-		}
-		
-		Integer[] ret = new Integer[this.entryMap.keySet().size()];
-		return this.entryMap.keySet().toArray(ret);
+		Integer[] ret = new Integer[this.diffPageNumbs.size()];
+		return this.diffPageNumbs.toArray(ret);
 	}
 	
 	public static class DocumentInfo {

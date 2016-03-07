@@ -18,6 +18,10 @@ public class PageDiffResult {
 	public void append(DiffContent entry) {
 		this.contentList.add(entry);
 	}
+	
+	public List<DiffContent> getContentList() {
+		return this.contentList;
+	}
 
 	public static class DiffContent {
 		public static enum Category {
@@ -25,11 +29,11 @@ public class PageDiffResult {
 		};
 		
 		public static class Key {
-			public static String Attr_Text ="Text";
-			public static String Attr_Font ="Font";
-			public static String Attr_Font_size ="Font size";
-			public static String Attr_Colorspace ="Colorspace";
-			public static String Attr_Color ="Color";
+			public static String Attr_Text = "Text";
+			public static String Attr_Font = "Font";
+			public static String Attr_Font_size = "Font size";
+			public static String Attr_Colorspace = "Colorspace";
+			public static String Attr_Color = "Color";
 		}
 				
 		private Category category;
@@ -37,10 +41,15 @@ public class PageDiffResult {
 		
 		public DiffContent(Category category) {
 			this.category = category;
+			this.contentAttrList = new ArrayList<ContentAttr>();
 		}
 		
 		public Category getCategory() {
 			return this.category;
+		}
+		
+		public List<ContentAttr> getAttrList() {
+			return this.contentAttrList;
 		}
 		
 		public void putAttr(String key, boolean equals, String baseVal, String testVal) {
@@ -50,6 +59,24 @@ public class PageDiffResult {
 			attr.baseVal = baseVal;
 			attr.testVal = testVal;
 			this.contentAttrList.add(attr);
+		}
+		
+		@Override
+		public String toString() {
+			StringBuilder buf = new StringBuilder();
+			for (ContentAttr attr : this.contentAttrList) {
+				buf.append(attr.key);
+				buf.append(" | ");
+				buf.append(attr.equals);
+				buf.append(" | ");
+				buf.append(attr.baseVal == null ? "null" : attr.baseVal);
+				buf.append(" | ");
+				buf.append(attr.testVal == null ? "null" : attr.testVal);
+				
+				buf.append("\n");
+			}
+			
+			return buf.toString();
 		}
 	}
 	

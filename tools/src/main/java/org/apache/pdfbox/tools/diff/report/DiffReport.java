@@ -13,9 +13,9 @@ import org.apache.pdfbox.tools.diff.PDocDiffResult;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.DocumentInfo;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.PageInfo;
 import org.apache.pdfbox.tools.diff.PageDiffResult;
+import org.apache.pdfbox.tools.diff.PageDiffResult.ContentAttr;
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
 import org.apache.pdfbox.tools.diff.document.PageContent;
-import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -226,14 +226,31 @@ public class DiffReport {
 	
 	private JSONObject toJSon(PageDiffResult pageResult) throws IOException {
 		JSONObject json = new JSONObject();
+		List<DiffContent> contentList = pageResult.getContentList();
+		for (DiffContent content : contentList) {
+			JSONObject obj = this.toJSon(content);
+			json.put("PageContent", obj);
+		}
 		
 		return json;
 	}
 	
 	private JSONObject toJSon(DiffContent diffContent) throws IOException {
 		JSONObject json = new JSONObject();
+		String category = diffContent.getCategory().toString();
+		json.put("Categroy", category);
 		
-		
+		List<ContentAttr> attrs = diffContent.getAttrList();
+		JSONObject attrMap = new JSONObject();
+		for (ContentAttr attr : attrs) {
+			attrMap.put("Key", DiffContent.Key.Attr_Font);
+			attrMap.put("Equals", attr.equals);
+			JSONArray arr = new JSONArray();
+			arr.put(attr.baseVal == null ? "" : attr.baseVal);
+			arr.put(attr.testVal == null ? "" : attr.testVal);
+			attrMap.put("Value", arr);
+		}
+		json.put("Attributes", attrMap);
 		return json;
 	}
 	

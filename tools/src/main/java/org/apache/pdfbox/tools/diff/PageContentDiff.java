@@ -4,7 +4,6 @@ import java.util.Set;
 
 import org.apache.pdfbox.tools.diff.PageContentSet.Coordinate;
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
-import org.apache.pdfbox.tools.diff.document.PageContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.GraphicsStateDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
@@ -36,46 +35,69 @@ public class PageContentDiff {
 			TextContent textContent_2 = page_2.getTextContent(co);
 			
 			DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
-			if (!this.diff(textContent_1, textContent_2)) {
+			if (!this.diff(textContent_1, textContent_2, diffContent)) {
 				result.append(diffContent);
 			}
+//			if (!this.diff(textContent_1, textContent_2)) {
+//				result.append(diffContent);
+//			}
 		}
 		
 		coSet_2.removeAll(coSet_1);
 		if (!coSet_2.isEmpty()) {
 			// not found text content in base
+			for (Coordinate co : coSet_2) {
+				TextContent textContent_2 = page_2.getTextContent(co);
+				DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
+				if (!this.diff(null, textContent_2, diffContent)) {
+					result.append(diffContent);
+				}	
+			}
 		}
 	}
 	
-	private void diff(TextContent textContent_1, TextContent textContent_2, DiffContent entry) {
-		String val_1 = this.getText(textContent_1);
-		String val_2 = this.getText(textContent_2);
+	private boolean diff(TextContent textContent_1, TextContent textContent_2, DiffContent entry) {
+		boolean result = true;
+		String val_1 = textContent_1 == null ? null : textContent_1.getText();
+		String val_2 = textContent_2 == null ? null : textContent_2.getText();
 		boolean equals = this.diff(val_1, val_2);
+		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Text, equals, val_1, val_2);
 		
-		val_1 = this.getFontName(textContent_1);
-		val_2 = this.getFontName(textContent_2);
+		val_1 = textContent_1 == null ? null : textContent_1.getFontName();
+		val_2 = textContent_2 == null ? null : textContent_2.getFontName();
 		equals = this.diff(removeFontNameSuffix(val_1), removeFontNameSuffix(val_2));
+		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Font, equals, val_1, val_2);
-	}
-	
-	private String getText(TextContent content) {
-		return content == null ? null : content.getText();
-	}
-	
-	private String getFontName(PageContent content) {
-		if (content == null || content.getGraphicsStateDesc() == null 
-				|| content.getGraphicsStateDesc().textState == null) {
-			return null;
-		}
-		return content.getGraphicsStateDesc().textState.fontName;
+		
+		Float size_1 = textContent_1 == null ? null : textContent_1.getFontSize();
+		Float size_2 = textContent_2 == null ? null : textContent_2.getFontSize();
+		equals = this.diff(size_1, size_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Font_size, equals, size_1 == null ? null : size_1.toString(), 
+				size_2 == null ? null : size_2.toString());
+		
+		val_1 = textContent_1 == null ? null : textContent_1.getNonStrokingColorspace();
+		val_2 = textContent_2 == null ? null : textContent_2.getNonStrokingColorspace();
+		equals = this.diff(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Colorspace, equals, val_1, val_2);
+		
+		return result;
 	}
 	
 	private String removeFontNameSuffix(String fontName) {
 		if (fontName == null) {
 			return null;
 		}
-		return fontName.substring(fontName.indexOf("+"));
+		return fontName.substring(fontName.indexOf("+"), fontName.length() - 1);
+	}
+	
+	private boolean diff(Float f1, Float f2) {
+		if (f1 == null || f2 == null) {
+			return false;
+		}
+		return f1 - f2 <= 0.00001;
 	}
 	
 	private void diffImage(PageContentSet page_1, PageContentSet page_2, PageDiffResult result) {
