@@ -97,6 +97,7 @@ public class PDFDiff {
         		result.getTestDocumentInfo().setPageInfo(i, info);
             }
         } catch (Exception e) {
+        	e.printStackTrace();
         	throw new PDFDiffException("Can't render page: " + e);
         }
 	}

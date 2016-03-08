@@ -1,5 +1,6 @@
 package org.apache.pdfbox.tools.diff;
 
+import java.awt.geom.Area;
 import java.util.Set;
 
 import org.apache.pdfbox.tools.diff.PageContentSet.Coordinate;
@@ -57,6 +58,9 @@ public class PageContentDiff {
 	}
 	
 	private boolean diff(TextContent textContent_1, TextContent textContent_2, DiffContent entry) {
+		Area outline_1 = textContent_1 == null ? null : textContent_1.getOutlineArea();
+		Area outline_2 = textContent_2 == null ? null : textContent_2.getOutlineArea();
+		entry.setOutline(outline_1, outline_2);
 		boolean result = true;
 		String val_1 = textContent_1 == null ? null : textContent_1.getText();
 		String val_2 = textContent_2 == null ? null : textContent_2.getText();
