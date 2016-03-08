@@ -1,5 +1,7 @@
 package org.apache.pdfbox.tools.diff;
 
+import java.awt.Rectangle;
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +27,13 @@ public class PageDiffResult {
 
 	public static class DiffContent {
 		public static enum Category {
-			Text, Image, Path, Annot
+			Text("Text"), Image("Image"), Path("Path"), Annot("Annot");
+			
+			public String text;
+			
+			private Category(String text) {
+				this.text = text;
+			}
 		};
 		
 		public static class Key {
@@ -50,6 +58,27 @@ public class PageDiffResult {
 		
 		public List<ContentAttr> getAttrList() {
 			return this.contentAttrList;
+		}
+		
+		private Area baseOutline;
+		private Area testOutline;
+		public void setOutline(Area baseOutline, Area testOutline) {
+			this.baseOutline = baseOutline;
+			this.testOutline = testOutline;
+		}
+		
+		public Rectangle getBaseOutlineRect() {
+			if (this.baseOutline != null) {
+				return this.baseOutline.getBounds();
+			}
+			return null;
+		}
+		
+		public Rectangle getTestOutlineRect() {
+			if (this.testOutline != null) {
+				return this.testOutline.getBounds();
+			}
+			return null;
 		}
 		
 		public void putAttr(String key, boolean equals, String baseVal, String testVal) {

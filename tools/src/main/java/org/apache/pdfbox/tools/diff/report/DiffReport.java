@@ -1,5 +1,6 @@
 package org.apache.pdfbox.tools.diff.report;
 
+import java.awt.Rectangle;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -189,6 +190,8 @@ public class DiffReport {
 		String test_pdf_json = this.toJSon(result.getTestDocumentInfo()).toString();
 		s = s.replaceFirst(test_pdf_json_placeholder, "\'" + test_pdf_json + "\'");
 		
+		String diff_content_json = this.toJSon(result).toString();
+		s = s.replaceFirst(diff_content_json_placeholder, "\'" + diff_content_json + "\'");
 		return s;
 	}
 	
@@ -224,73 +227,75 @@ public class DiffReport {
 		return docJson;
 	}
 	
+	private JSONArray toJSon(PDocDiffResult docResult) throws IOException {
+		JSONArray result = new JSONArray();
+		Integer[] nums = docResult.getDiffPageNums();
+		
+		for (int i : nums) {
+			JSONObject pageEntry = new JSONObject();
+			PageDiffResult pageResult = docResult.getPageDiffResult(i);
+			pageEntry.put("PageNo", i);
+			JSONObject obj = this.toJSon(pageResult);
+			pageEntry.put("Result", obj);	
+			result.put(pageEntry);
+		}
+		return result;
+	}
+	
 	private JSONObject toJSon(PageDiffResult pageResult) throws IOException {
 		JSONObject json = new JSONObject();
 		List<DiffContent> contentList = pageResult.getContentList();
+		
+		JSONArray textArr = new JSONArray();
 		for (DiffContent content : contentList) {
 			JSONObject obj = this.toJSon(content);
-			json.put("PageContent", obj);
+			if (content.getCategory() == DiffContent.Category.Text) {
+				textArr.put(obj);
+			}
 		}
-		
+		json.put(DiffContent.Category.Text.text, textArr);
 		return json;
 	}
 	
 	private JSONObject toJSon(DiffContent diffContent) throws IOException {
 		JSONObject json = new JSONObject();
-		String category = diffContent.getCategory().toString();
-		json.put("Categroy", category);
-		
 		List<ContentAttr> attrs = diffContent.getAttrList();
-		JSONObject attrMap = new JSONObject();
+		JSONArray attrArr = new JSONArray();
 		for (ContentAttr attr : attrs) {
-			attrMap.put("Key", DiffContent.Key.Attr_Font);
+			JSONObject attrMap = new JSONObject();
+			attrMap.put("Key", attr.key);
 			attrMap.put("Equals", attr.equals);
 			JSONArray arr = new JSONArray();
 			arr.put(attr.baseVal == null ? "" : attr.baseVal);
 			arr.put(attr.testVal == null ? "" : attr.testVal);
 			attrMap.put("Value", arr);
+			attrArr.put(attrMap);
 		}
-		json.put("Attributes", attrMap);
-		return json;
-	}
-	
-	private JSONObject toJson(PageContent baseContent, PageContent testContent) throws IOException {
-		JSONObject json = new JSONObject();
-		if (baseContent == null) {
-			return json;
-		}
+		json.put("Attributes", attrArr);
 		
-		if (baseContent.getType() == PageContent.Type.Text) {
-			TextContent text = (TextContent) baseContent;
-			
-			putJson(json, "text", text.getText());
-			json.put("text", text.getText());
-			
-			putJson(json, "font", text.getGraphicsStateDesc().textState.fontName);
-			putJson(json, "fontSize", text.getGraphicsStateDesc().textState.fontSize);
-			
-			if (text.getGraphicsStateDesc().strokingColor != null) {
-			}
-			
-			putJson(json, "fillColor", text.getGraphicsStateDesc().nonStrokingColor);
-			
+		JSONArray arr = new JSONArray();
+		JSONArray sRect = new JSONArray();
+		if (diffContent.getBaseOutlineRect() != null) {
+			Rectangle rect = diffContent.getBaseOutlineRect();
+			sRect.put(rect.x);
+			sRect.put(rect.y);
+			sRect.put(rect.width);
+			sRect.put(rect.height);
 		}
+		arr.put(sRect);
+		
+		sRect = new JSONArray();
+		if (diffContent.getTestOutlineRect() != null) {
+			Rectangle rect = diffContent.getTestOutlineRect();
+			sRect.put(rect.x);
+			sRect.put(rect.y);
+			sRect.put(rect.width);
+			sRect.put(rect.height);
+		}
+		arr.put(sRect);
+		
+		json.put("Outline", arr);
 		return json;
-	}
-	
-	private static JSONObject toJson(String key, boolean same, Object base, Object test) {
-		JSONObject attr = new JSONObject();
-		putJson(attr, "name", key);
-		putJson(attr, "same", same);
-		JSONArray val = new JSONArray();
-		val.put(base == null ? "" : base);
-		val.put(test == null ? "" : test);
-		attr.put("val", val);
-		return attr;
-	}
-	
-	private static void putJson(JSONObject json, String name, Object value) {
-		json.put(name, value == null ? "" : value);
 	}
 	
 	private String writeImages(PageInfo pageInfo, String tagPrefix, String tagSuffix) throws IOException {

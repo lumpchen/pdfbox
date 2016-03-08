@@ -4,9 +4,11 @@ var diff_page_nums = &diff_page_nums&;
 
 var base_pdf_json = &base_pdf_json&;
 var test_pdf_json = &test_pdf_json&;
+var diff_content_json = &diff_content_json&;
 
 var base_pdf_json_obj = JSON.parse(base_pdf_json);
 var test_pdf_json_obj = JSON.parse(test_pdf_json);
+var diff_content_json_obj = JSON.parse(diff_content_json);
 
 var tree = 
 	[
@@ -14,7 +16,6 @@ var tree =
 	 		text: "Page",
 	 		color: "#000000",
             backColor: "#FFFFFF",
-            href: "#node-1",
             selectable: true,
             state: {
             	checked: true,
@@ -27,23 +28,23 @@ var tree =
             nodes: [
                     	{
                     		text: "Text",
-                    		nodes: [
-                    		        	{
-                    		        		text: "Grandchild 1"
-                    		        	},
-                    		        	{
-                    		        		text: "Grandchild 2"
-                    		        	}
-                    		        ]
+                    		nodes: [],
+							tags: ['0'],
                     	},
                     	{
-                    		text: "Image"
+                    		text: "Image",
+							nodes: [],
+							tags: ['0'],
                     	},
 						{
-                    		text: "Path"
+                    		text: "Path",
+							nodes: [],
+							tags: ['0'],
                     	},
 						{
-                    		text: "Annot"
+                    		text: "Annot",
+							nodes: [],
+							tags: ['0'],
                     	},
                     ]
 	 	}
@@ -78,7 +79,7 @@ function onload()
 		var text = document.createTextNode("Page " + (i + 1));
 		cell.appendChild(text);
 		
-		cell.onclick = pageSelectHandler(i, cell);
+		cell.onclick = pageSelectHandler(i);
 		
 		if (diff_page_nums.indexOf(i) >= 0) {
 			cell.style.color = "#FF0000";
@@ -96,33 +97,118 @@ function onload()
 		$('#treeview').treeview(options);
 		
 		$('#treeview').on('nodeSelected', function(e, node) {
-			nodeId = node['text'];
-			alert(nodeId);
 		});
 	}
 	);		
 }
 
-function pageSelectHandler(pageNo, cell) {
+var page_view_paras = {};
+
+function pageSelectHandler(pageNo) {
 	return function() {
-		var imageTag = base_pdf_json_obj.pages[pageNo].imageTag;
-		var c = document.getElementById("base_page_canvas");
-		c.width = base_pdf_json_obj.pages[pageNo].width + 2;
-		c.height = base_pdf_json_obj.pages[pageNo].height + 2;
-		drawPage(imageTag, c);
-		
-		var imageTag = test_pdf_json_obj.pages[pageNo].imageTag;
-		c = document.getElementById("test_page_canvas");
-		c.width = test_pdf_json_obj.pages[pageNo].width + 2;
-		c.height = test_pdf_json_obj.pages[pageNo].height + 2;
-		drawPage(imageTag, c);
+		page_view_paras["PageNo"] = pageNo;
+		page_view_paras["DiffContent"] = null;
+		page_view_paras["BasePageWidth"] = base_pdf_json_obj.pages[pageNo].width;
+		page_view_paras["BasePageHeight"] = base_pdf_json_obj.pages[pageNo].height;
+		page_view_paras["TestPageWidth"] = test_pdf_json_obj.pages[pageNo].width;
+		page_view_paras["TestPageHeight"] = test_pdf_json_obj.pages[pageNo].height;
 		
 		drawTree(pageNo);
+		updatePageView();
 	};
 }
 
+function updatePageView() {
+	pageNo = page_view_paras["PageNo"];
+	var imageTag = base_pdf_json_obj.pages[pageNo].imageTag;
+	var c = document.getElementById("base_page_canvas");
+	c.width = page_view_paras["BasePageWidth"] + 2;
+	c.height = page_view_paras["BasePageHeight"] + 2;
+	drawPage(imageTag, c);
+	
+	var imageTag = test_pdf_json_obj.pages[pageNo].imageTag;
+	c = document.getElementById("test_page_canvas");
+	c.width = page_view_paras["TestPageWidth"] + 2;
+	c.height = page_view_paras["TestPageHeight"] + 2;
+	drawPage(imageTag, c);
+	
+	var item = page_view_paras["DiffContent"];
+	$("#attribute_table tbody tr").remove();
+	if ((typeof(item) !== 'undefined') && (item !== null)) {
+		updateAttributeTable(item);
+	}
+}
+
+function updateAttributeTable(item) {
+	$("#attribute_table tbody tr").remove();
+	var tableBody = document.getElementById("attribute_table").getElementsByTagName("tbody")[0];
+	for (i = 0; i < item.Attributes.length; i++) {
+		var attr = item.Attributes[i];
+		
+		var attrRow = tableBody.insertRow(tableBody.rows.length);
+		
+		var cell = attrRow.insertCell(0);
+		var text = document.createTextNode(attr.Key);
+		cell.appendChild(text);
+		if (!attr.Equals) {
+			cell.style.color = "#FF0000";
+		} else {
+		}
+		
+		var cell = attrRow.insertCell(1);
+		var text = document.createTextNode(attr.Value[0]);
+		cell.appendChild(text);
+		if (!attr.Equals) {
+			cell.style.color = "#FF0000";
+		} else {
+		}
+		
+		var cell = attrRow.insertCell(2);
+		var text = document.createTextNode(attr.Value[1]);
+		cell.appendChild(text);
+		if (!attr.Equals) {
+			cell.style.color = "#FF0000";
+		} else {
+		}
+	}
+}
+
+function findDiffReport(pageNo) {
+	for (i = 0; i < diff_content_json_obj.length; i++) {
+		var num = diff_content_json_obj[i].PageNo;
+		tree[0].nodes[0].nodes.length = 0;
+		if (pageNo == num) {
+			// update Text node
+			var result = diff_content_json_obj[i].Result;
+			tree[0].nodes[0].tags = [result.Text.length];
+			for (var j = 0; j < result.Text.length; j++) {
+				var item = result.Text[j];
+				var text = findShowText(item.Attributes);
+				
+				var treeNodes = tree[0].nodes[0].nodes;
+				var newItem = {"text" : text, "item" : item};
+				treeNodes.push(newItem);
+			}
+		}
+	}
+}
+
+function findShowText(attributes) {
+	var text;
+	for (i = 0; i < attributes.length; i++) {
+		if (attributes[i].Key == "Text") {
+			text = attributes[i].Value[0];
+			if (attributes[i].Value[0] == "") {
+				text = attributes[i].Value[1];
+			}
+		}
+	}
+	return text;
+}
+
 function drawTree(pageNo) {
-		tree[0].tags = [pageNo + 1];
+		tree[0].tags = ["Page " + (pageNo + 1)];
+		findDiffReport(pageNo);
 		$(function() {
 			var options = {
 					bootstrap2: false, 
@@ -132,8 +218,12 @@ function drawTree(pageNo) {
 			$('#treeview').treeview(options);
 			
 			$('#treeview').on('nodeSelected', function(e, node) {
-				nodeId = node['text'];
-				alert(nodeId);
+				nodeText = node['text'];
+				var item = node['item'];
+				
+				//drawDiffContentOutline(item.Outline);
+				page_view_paras["DiffContent"] = item;
+				updatePageView();
 			});
 		}
 		);
@@ -141,7 +231,8 @@ function drawTree(pageNo) {
 
 function drawPage(imageTag, canvas) {
 	ctx = canvas.getContext("2d");
-	showPageImage(imageTag, ctx);
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	drawPageImage(imageTag, ctx);
 	ctx.save();
 	ctx.beginPath();
 	ctx.lineWidth="3";
@@ -151,17 +242,54 @@ function drawPage(imageTag, canvas) {
 	ctx.restore();
 }
 
-function showPageImage(imageTag, ctx) {
+function drawPageImage(imageTag, ctx) {
 	ctx.save();
 	var img = new Image();
 	img.onload = function() {
-		ctx.drawImage(img, 1, 1);	
+		ctx.drawImage(img, 1, 1);
+		
+		var item = page_view_paras["DiffContent"];
+		if ((typeof(item) !== 'undefined') && (item !== null)) {
+			drawDiffContentOutline(item.Outline);
+		}
 	}
 	img.src = "images/" + imageTag;
 	ctx.restore();
 }
 
-function showPageContentsTree(pageNo) {
+function drawDiffContentOutline(outlineArr) { // arr[base, test]
+	var baseRect = outlineArr[0];
+	if (baseRect.length > 0) {
+		var baseCanvas = document.getElementById("base_page_canvas");
+		var baseCtx = baseCanvas.getContext("2d");
+		drawContentOutline(baseRect, baseCtx, page_view_paras["BasePageHeight"]);
+	}
+
+	var testRect = outlineArr[1];
+	if (testRect.length > 0) {
+		var testCanvas = document.getElementById("test_page_canvas");
+		var testCtx = testCanvas.getContext("2d");
+		drawContentOutline(testRect, testCtx, page_view_paras["TestPageHeight"]);
+	}
 }
 
+function drawContentOutline(outline, ctx, canvasHeight) {
+	if (outline.length == 0) {
+		return;
+	}
+	var x = toPixel(outline[0]) ;
+	var y = canvasHeight - toPixel(outline[1]);
+	var w = toPixel(outline[2]);
+	var h = toPixel(outline[3]);
+	ctx.save();
+	ctx.beginPath();
+	ctx.lineWidth="3";
+	ctx.strokeStyle="red";
+	ctx.rect(x, y - h, w, h);
+	ctx.stroke();
+	ctx.restore();
+}
 
+function toPixel(pt) {
+	return (pt / 72.0) * 96;
+}
