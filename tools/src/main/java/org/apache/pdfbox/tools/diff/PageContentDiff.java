@@ -94,7 +94,10 @@ public class PageContentDiff {
 		if (fontName == null) {
 			return null;
 		}
-		return fontName.substring(fontName.indexOf("+"), fontName.length() - 1);
+		if (fontName.indexOf("+") > 0) {
+			return fontName.substring(fontName.indexOf("+"), fontName.length() - 1);
+		} 
+		return fontName;
 	}
 	
 	private boolean diff(Float f1, Float f2) {
