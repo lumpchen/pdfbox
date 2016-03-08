@@ -1,5 +1,6 @@
 package org.apache.pdfbox.tools.diff;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +65,34 @@ public class PageContentSet {
 				this.annotContentSet.put(co, annot);
 			}
 		}
+	}
+	
+	private Map<Integer, List<TextContent>> textLineMap = new HashMap<Integer, List<TextContent>>();
+	private void linenize() {
+		if (this.contentList.isEmpty()) {
+			return;
+		}
+
+		for (int i = 0; i < this.contentList.size(); i++) {
+			PageContent content = this.contentList.get(i);
+			int y = content.getOutlineArea().getBounds().y;
+			
+			if (content.getType() == PageContent.Type.Text) {
+				TextContent text = (TextContent) content;
+				List<TextContent> textLine = this.textLineMap.get(y);
+				if (textLine == null) {
+					textLine = new ArrayList<TextContent>();
+				}
+				textLine.add(text);
+			} else if (content.getType() == PageContent.Type.Path) {
+				PathContent path = (PathContent) content;
+			} else if (content.getType() == PageContent.Type.Image) {
+				ImageContent image = (ImageContent) content;
+			} else if (content.getType() == PageContent.Type.Annot) {
+				AnnotContent annot = (AnnotContent) content;
+			}
+		}
+	
 	}
 	
 	public Set<Coordinate> getTextCoordinateSet() {
