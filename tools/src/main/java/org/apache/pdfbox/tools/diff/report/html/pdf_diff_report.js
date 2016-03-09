@@ -177,6 +177,7 @@ function findDiffReport(pageNo) {
 	for (i = 0; i < diff_content_json_obj.length; i++) {
 		var num = diff_content_json_obj[i].PageNo;
 		tree[0].nodes[0].nodes.length = 0;
+		tree[0].nodes[0].tags = [0];
 		if (pageNo == num) {
 			// update Text node
 			var result = diff_content_json_obj[i].Result;
@@ -259,21 +260,31 @@ function drawPageImage(imageTag, ctx) {
 
 function drawDiffContentOutline(outlineArr) { // arr[base, test]
 	var baseRect = outlineArr[0];
+	var testRect = outlineArr[1];
+	var strokeColor = "red";
+	if (baseRect.length == 0) {
+		baseRect = testRect;
+		strokeColor = "green";
+	}
 	if (baseRect.length > 0) {
 		var baseCanvas = document.getElementById("base_page_canvas");
 		var baseCtx = baseCanvas.getContext("2d");
-		drawContentOutline(baseRect, baseCtx, page_view_paras["BasePageHeight"]);
+		drawContentOutline(baseRect, baseCtx, page_view_paras["BasePageHeight"], strokeColor);
 	}
 
-	var testRect = outlineArr[1];
+	strokeColor = "red";
+	if (testRect.length == 0) {
+		testRect = baseRect;
+		strokeColor = "green";
+	}
 	if (testRect.length > 0) {
 		var testCanvas = document.getElementById("test_page_canvas");
 		var testCtx = testCanvas.getContext("2d");
-		drawContentOutline(testRect, testCtx, page_view_paras["TestPageHeight"]);
+		drawContentOutline(testRect, testCtx, page_view_paras["TestPageHeight"], strokeColor);
 	}
 }
 
-function drawContentOutline(outline, ctx, canvasHeight) {
+function drawContentOutline(outline, ctx, canvasHeight, color) {
 	if (outline.length == 0) {
 		return;
 	}
@@ -283,11 +294,22 @@ function drawContentOutline(outline, ctx, canvasHeight) {
 	var h = toPixel(outline[3]);
 	ctx.save();
 	ctx.beginPath();
-	ctx.lineWidth="3";
-	ctx.strokeStyle="red";
-	ctx.rect(x, y - h, w, h);
+	ctx.lineWidth = "2";
+	ctx.strokeStyle = color;
+	// ctx.rect(x, y - h, w, h);
+	canvas_arrow(ctx, x - 20, y - 20, x, y);
 	ctx.stroke();
 	ctx.restore();
+}
+
+function canvas_arrow(context, fromx, fromy, tox, toy) {
+    var headlen = 10;   // length of head in pixels
+    var angle = Math.atan2(toy-fromy,tox-fromx);
+    context.moveTo(fromx, fromy);
+    context.lineTo(tox, toy);
+    context.lineTo(tox-headlen*Math.cos(angle-Math.PI/6),toy-headlen*Math.sin(angle-Math.PI/6));
+    context.moveTo(tox, toy);
+    context.lineTo(tox-headlen*Math.cos(angle+Math.PI/6),toy-headlen*Math.sin(angle+Math.PI/6));
 }
 
 function toPixel(pt) {

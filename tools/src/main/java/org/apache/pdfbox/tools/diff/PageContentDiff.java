@@ -1,6 +1,7 @@
 package org.apache.pdfbox.tools.diff;
 
 import java.awt.geom.Area;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.pdfbox.tools.diff.PageContentSet.Coordinate;
@@ -27,6 +28,48 @@ public class PageContentDiff {
 		return result;
 	}
 	
+	private void diffText_1(List<TextContent> textLine_1, List<TextContent> textLine_2, PageDiffResult result) {
+		if (textLine_1.size() == textLine_2.size()) {
+			for (int i = 0; i < textLine_1.size(); i++) {
+				DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
+				if (!this.diff(textLine_1.get(i), textLine_2.get(i), diffContent)) {
+					result.append(diffContent);
+				}
+			}
+			return;
+		}
+		
+		int n1 = textLine_1.size();
+		int n2 = textLine_2.size();
+		int n = n1 > n2 ? n1 : n2;
+		for (int i = 0; i < n; i++) {
+			TextContent textContent_1 = this.nullGet(textLine_1, i);
+			TextContent textContent_2 = this.nullGet(textLine_2, i);
+			DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
+			if (!this.diff(textContent_1, textContent_2, diffContent)) {
+				result.append(diffContent);
+			}
+		}
+	}
+	
+	private TextContent nullGet(List<TextContent> list, int index) {
+		if (index < 0 || index >= list.size()) {
+			return null;
+		}
+		return list.get(index);
+	}
+	
+	private void diffText_1(PageContentSet page_1, PageContentSet page_2, PageDiffResult result) {
+		int lineCount_1 = page_1.countTextLine();
+		int lineCount_2 = page_2.countTextLine();
+		int lineCount = lineCount_1 >= lineCount_2 ? lineCount_1 : lineCount_2;
+		for (int i = 0; i < lineCount; i++) {
+			List<TextContent> textLine_1 = page_1.getTextLine(i);
+			List<TextContent> textLine_2 = page_2.getTextLine(i);
+			this.diffText_1(textLine_1, textLine_2, result);
+		}
+	}
+	
 	private void diffText(PageContentSet page_1, PageContentSet page_2, PageDiffResult result) {
 		Set<Coordinate> coSet_1 = page_1.getTextCoordinateSet();
 		Set<Coordinate> coSet_2 = page_2.getTextCoordinateSet();
@@ -39,9 +82,6 @@ public class PageContentDiff {
 			if (!this.diff(textContent_1, textContent_2, diffContent)) {
 				result.append(diffContent);
 			}
-//			if (!this.diff(textContent_1, textContent_2)) {
-//				result.append(diffContent);
-//			}
 		}
 		
 		coSet_2.removeAll(coSet_1);
