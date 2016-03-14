@@ -101,6 +101,14 @@ public abstract class PageContent {
     	}
     	return this.area;
     }
+    
+    public int getBaseLine() {
+    	Area area = this.getOutlineArea();
+    	if (area == null) {
+    		return 0;
+    	}
+    	return area.getBounds().x;
+    }
 
 	public Type getType() {
 		return this.type;
