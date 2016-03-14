@@ -134,6 +134,7 @@ class GlyphRenderer
                         quadTo(path, pnow, midValue(pnow, contour.get(j + 1)));
                     }
                 }
+                path.closePath();            
                 start = p + 1;
             }
         }
