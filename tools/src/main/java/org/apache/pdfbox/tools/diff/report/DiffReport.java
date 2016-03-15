@@ -247,13 +247,19 @@ public class DiffReport {
 		List<DiffContent> contentList = pageResult.getContentList();
 		
 		JSONArray textArr = new JSONArray();
+		JSONArray imageArr = new JSONArray();
 		for (DiffContent content : contentList) {
 			JSONObject obj = this.toJSon(content);
 			if (content.getCategory() == DiffContent.Category.Text) {
 				textArr.put(obj);
 			}
+			
+			if (content.getCategory() == DiffContent.Category.Image) {
+				imageArr.put(obj);
+			}
 		}
 		json.put(DiffContent.Category.Text.text, textArr);
+		json.put(DiffContent.Category.Image.text, imageArr);
 		return json;
 	}
 	

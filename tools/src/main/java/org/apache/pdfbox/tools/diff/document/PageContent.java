@@ -146,6 +146,10 @@ public abstract class PageContent {
 		return this.getGraphicsStateDesc().textState.fontSize;
 	}
 	
+	@Override
+	public String toString() {
+		return this.showString();
+	}
 
 	abstract public String showString();
 	abstract public String getTypeString();

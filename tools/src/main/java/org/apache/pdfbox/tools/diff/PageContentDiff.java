@@ -1,6 +1,7 @@
 package org.apache.pdfbox.tools.diff;
 
 import java.awt.geom.Area;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -8,6 +9,7 @@ import org.apache.pdfbox.tools.diff.PageContentSet.Coordinate;
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.GraphicsStateDesc;
+import org.apache.pdfbox.tools.diff.document.PageContent.ImageContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextStateDesc;
 
@@ -73,18 +75,44 @@ public class PageContentDiff {
 	private void diffText(PageContentSet page_1, PageContentSet page_2, PageDiffResult result) {
 		Set<Coordinate> coSet_1 = page_1.getTextCoordinateSet();
 		Set<Coordinate> coSet_2 = page_2.getTextCoordinateSet();
-		
+
+		Set<Coordinate> sharedContent = new HashSet<Coordinate>();
 		for (Coordinate co : coSet_1) {
 			TextContent textContent_1 = page_1.getTextContent(co);
 			TextContent textContent_2 = page_2.getTextContent(co);
-			
+
+			if (textContent_1 == null || textContent_2 == null) {
+				continue;
+			}
 			DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
 			if (!this.diff(textContent_1, textContent_2, diffContent)) {
 				result.append(diffContent);
 			}
+			sharedContent.add(co);
 		}
+
+		coSet_1.removeAll(sharedContent);
+		coSet_2.removeAll(sharedContent);
+		sharedContent.clear();
 		
-		coSet_2.removeAll(coSet_1);
+		if (!coSet_1.isEmpty()) {
+			for (Coordinate co : coSet_1) {
+				Coordinate find = findNearestContent(co, coSet_2);
+				TextContent textContent_1 = page_1.getTextContent(co);
+				TextContent textContent_2 = find != null ? page_2.getTextContent(find) : null;
+
+				DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
+				this.diff(textContent_1, textContent_2, diffContent);
+				result.append(diffContent);
+				sharedContent.add(co);
+				if (find != null) {
+					sharedContent.add(find);	
+				}
+			}
+		}
+		coSet_1.removeAll(sharedContent);
+		coSet_2.removeAll(sharedContent);
+		
 		if (!coSet_2.isEmpty()) {
 			// not found text content in base
 			for (Coordinate co : coSet_2) {
@@ -92,9 +120,28 @@ public class PageContentDiff {
 				DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
 				if (!this.diff(null, textContent_2, diffContent)) {
 					result.append(diffContent);
-				}	
+				}
 			}
 		}
+	}
+	
+	public static final int DELTA = 6;
+	private Coordinate findNearestContent(Coordinate coords, Set<Coordinate> coSet) {
+		if (coSet == null || coSet.isEmpty()) {
+			return null;
+		}
+		if (coSet.contains(coords)) {
+			return coords;
+		}
+		for (Coordinate co : coSet) {
+			int dx = Math.abs(co.x - coords.x);
+			int dy = Math.abs(co.y - coords.y);
+			
+			if (dx <= DELTA && dy <= DELTA) {
+				return co;
+			}
+		}
+		return null;
 	}
 	
 	private boolean diff(TextContent textContent_1, TextContent textContent_2, DiffContent entry) {
@@ -147,8 +194,98 @@ public class PageContentDiff {
 		return f1 - f2 <= 0.00001;
 	}
 	
+	private boolean diff(Integer f1, Integer f2) {
+		if (f1 == null || f2 == null) {
+			return false;
+		}
+		return f1.intValue() == f2.intValue();
+	}
+	
 	private void diffImage(PageContentSet page_1, PageContentSet page_2, PageDiffResult result) {
+		Set<Coordinate> coSet_1 = page_1.getImageCoordinateSet();
+		Set<Coordinate> coSet_2 = page_2.getImageCoordinateSet();
+		Set<Coordinate> sharedContent = new HashSet<Coordinate>();
 		
+		for (Coordinate co : coSet_1) {
+			ImageContent imageContent_1 = page_1.getImageContent(co);
+			ImageContent imageContent_2 = page_2.getImageContent(co);
+		
+			if (imageContent_1 == null || imageContent_2 == null) {
+				continue;
+			}
+			
+			DiffContent diffContent = new DiffContent(DiffContent.Category.Image);
+			if (!this.diff(imageContent_1, imageContent_2, diffContent)) {
+				result.append(diffContent);
+			}
+			sharedContent.add(co);
+		}
+		
+		coSet_1.removeAll(sharedContent);
+		coSet_2.removeAll(sharedContent);
+		sharedContent.clear();
+		
+		if (!coSet_1.isEmpty()) {
+			for (Coordinate co : coSet_1) {
+				Coordinate find = findNearestContent(co, coSet_2);
+				ImageContent imageContent_1 = page_1.getImageContent(co);
+				ImageContent imageContent_2 = find != null ? page_2.getImageContent(find) : null;
+
+				DiffContent diffContent = new DiffContent(DiffContent.Category.Image);
+				this.diff(imageContent_1, imageContent_2, diffContent);
+				result.append(diffContent);
+				sharedContent.add(co);
+				if (find != null) {
+					sharedContent.add(find);
+				}
+			}
+		}
+		coSet_1.removeAll(sharedContent);
+		coSet_2.removeAll(sharedContent);
+		
+		if (!coSet_2.isEmpty()) {
+			// not found text content in base
+			for (Coordinate co : coSet_2) {
+				ImageContent imageContent_2 = page_2.getImageContent(co);
+				DiffContent diffContent = new DiffContent(DiffContent.Category.Image);
+				if (!this.diff(null, imageContent_2, diffContent)) {
+					result.append(diffContent);
+				}
+			}
+		}
+	}
+	
+	private boolean diff(ImageContent imageContent_1, ImageContent imageContent_2, DiffContent entry) {
+		Area outline_1 = imageContent_1 == null ? null : imageContent_1.getOutlineArea();
+		Area outline_2 = imageContent_2 == null ? null : imageContent_2.getOutlineArea();
+		entry.setOutline(outline_1, outline_2);
+		boolean result = true;
+		
+		Integer val_1 = imageContent_1 == null ? null : imageContent_1.width;
+		Integer val_2 = imageContent_2 == null ? null : imageContent_2.width;
+		boolean equals = this.diff(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Width, equals, val_1, val_2);
+		
+		val_1 = imageContent_1 == null ? null : imageContent_1.height;
+		val_2 = imageContent_2 == null ? null : imageContent_2.height;
+		equals = this.diff(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Height, equals, val_1, val_2);
+		
+		val_1 = imageContent_1 == null ? null : imageContent_1.byteCount;
+		val_2 = imageContent_2 == null ? null : imageContent_2.byteCount;
+		equals = this.diff(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Byte_count, equals, val_1, val_2);
+		
+		val_1 = imageContent_1 == null ? null : imageContent_1.bitsPerComponent;
+		val_2 = imageContent_2 == null ? null : imageContent_2.bitsPerComponent;
+		equals = this.diff(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Bits_Per_Component, equals, val_1, val_2);
+		
+		return result;
 	}
 	
 	private void diffPath(PageContentSet page_1, PageContentSet page_2, PageDiffResult result) {

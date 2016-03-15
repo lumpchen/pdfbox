@@ -177,10 +177,12 @@ function findDiffReport(pageNo) {
 	for (i = 0; i < diff_content_json_obj.length; i++) {
 		var num = diff_content_json_obj[i].PageNo;
 		tree[0].nodes[0].nodes.length = 0;
-		tree[0].nodes[0].tags = [0];
+		tree[0].nodes[0].tags = [0]; //Text
+		tree[0].nodes[1].tags = [0]; //Image
 		if (pageNo == num) {
-			// update Text node
 			var result = diff_content_json_obj[i].Result;
+			
+			// update Text node
 			tree[0].nodes[0].tags = [result.Text.length];
 			for (var j = 0; j < result.Text.length; j++) {
 				var item = result.Text[j];
@@ -189,6 +191,17 @@ function findDiffReport(pageNo) {
 				var treeNodes = tree[0].nodes[0].nodes;
 				var newItem = {"text" : text, "item" : item};
 				treeNodes.push(newItem);
+			}
+			
+			// update Image node
+			tree[0].nodes[1].tags = [result.Image.length];
+			for (var j = 0; j < result.Image.length; j++) {
+				var item = result.Image[j];
+				var text = "image-" + j;
+				
+				var imageNodes = tree[0].nodes[1].nodes;
+				var newItem = {"text" : text, "item" : item};
+				imageNodes.push(newItem);
 			}
 		}
 	}
@@ -269,7 +282,7 @@ function drawDiffContentOutline(outlineArr) { // arr[base, test]
 	if (baseRect.length > 0) {
 		var baseCanvas = document.getElementById("base_page_canvas");
 		var baseCtx = baseCanvas.getContext("2d");
-		drawContentOutline(baseRect, baseCtx, page_view_paras["BasePageHeight"], strokeColor);
+		drawContentOutline(baseRect, baseCtx, page_view_paras["TestPageWidth"], page_view_paras["BasePageHeight"], strokeColor);
 	}
 
 	strokeColor = "red";
@@ -280,11 +293,11 @@ function drawDiffContentOutline(outlineArr) { // arr[base, test]
 	if (testRect.length > 0) {
 		var testCanvas = document.getElementById("test_page_canvas");
 		var testCtx = testCanvas.getContext("2d");
-		drawContentOutline(testRect, testCtx, page_view_paras["TestPageHeight"], strokeColor);
+		drawContentOutline(testRect, testCtx, page_view_paras["TestPageWidth"], page_view_paras["TestPageHeight"], strokeColor);
 	}
 }
 
-function drawContentOutline(outline, ctx, canvasHeight, color) {
+function drawContentOutline(outline, ctx, canvasWidth, canvasHeight, color) {
 	if (outline.length == 0) {
 		return;
 	}
@@ -294,16 +307,25 @@ function drawContentOutline(outline, ctx, canvasHeight, color) {
 	var h = toPixel(outline[3]);
 	ctx.save();
 	ctx.beginPath();
-	ctx.lineWidth = "2";
+	ctx.lineWidth = "5";
 	ctx.strokeStyle = color;
 	// ctx.rect(x, y - h, w, h);
-	canvas_arrow(ctx, x - 20, y - 20, x, y);
+	canvas_arrow(ctx, x - 40, y - 50, x, y - 10);
 	ctx.stroke();
+	
+	ctx.lineWidth = "1";
+	ctx.moveTo(0, y);
+	ctx.lineTo(canvasWidth, y);
+	ctx.font = "26pt Calibri";
+	ctx.fillStyle = 'red';
+	ctx.fillText("x:" + x + " y:" + y, 0, y);
+	ctx.stroke();
+	
 	ctx.restore();
 }
 
 function canvas_arrow(context, fromx, fromy, tox, toy) {
-    var headlen = 10;   // length of head in pixels
+    var headlen = 20;   // length of head in pixels
     var angle = Math.atan2(toy-fromy,tox-fromx);
     context.moveTo(fromx, fromy);
     context.lineTo(tox, toy);
@@ -313,5 +335,5 @@ function canvas_arrow(context, fromx, fromy, tox, toy) {
 }
 
 function toPixel(pt) {
-	return (pt / 72.0) * 96;
+	return parseInt((pt / 72.0) * 96);
 }

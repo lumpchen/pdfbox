@@ -173,5 +173,10 @@ public class PageContentSet {
 			}
 			return this.x == ((Coordinate) obj).x && this.y == ((Coordinate) obj).y;
 		}
+		
+		@Override 
+		public String toString() {
+			return x + "," + y;
+		}
 	}
 }

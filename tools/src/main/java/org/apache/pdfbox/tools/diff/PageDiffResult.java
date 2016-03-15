@@ -42,6 +42,11 @@ public class PageDiffResult {
 			public static String Attr_Font_size = "Font size";
 			public static String Attr_Colorspace = "Colorspace";
 			public static String Attr_Color = "Color";
+			
+			public static String Attr_Width = "Width";
+			public static String Attr_Height = "Height";
+			public static String Attr_Byte_count = "Byte count";
+			public static String Attr_Bits_Per_Component = "BitsPerComponent";
 		}
 				
 		private Category category;
@@ -81,13 +86,19 @@ public class PageDiffResult {
 			return null;
 		}
 		
-		public void putAttr(String key, boolean equals, String baseVal, String testVal) {
+		private void putAttr(String key, boolean equals, String baseVal, String testVal) {
 			ContentAttr attr = new ContentAttr();
 			attr.key = key;
 			attr.equals = equals;
 			attr.baseVal = baseVal;
 			attr.testVal = testVal;
 			this.contentAttrList.add(attr);
+		}
+		
+		public void putAttr(String key, boolean equals, Object baseVal, Object testVal) {
+			String baseStr = baseVal == null ? "" : baseVal.toString();
+			String testStr = testVal == null ? "" : testVal.toString();
+			this.putAttr(key, equals, baseStr, testStr);
 		}
 		
 		@Override
