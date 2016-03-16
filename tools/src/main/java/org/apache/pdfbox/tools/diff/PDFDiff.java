@@ -11,6 +11,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.PageInfo;
+import org.apache.pdfbox.tools.diff.document.GridPage;
 import org.apache.pdfbox.tools.diff.document.PageContent;
 import org.apache.pdfbox.tools.diff.document.PageContentExtractor;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
@@ -135,6 +136,7 @@ public class PDFDiff {
 			List<PageContent> basePageContents = extractor_1.getPageContentList();
 			PageContentSet basePageContentSet = new PageContentSet(pageNo, basePageContents);
 			
+			
 			PageContentExtractor extractor_2 = new PageContentExtractor(test);
 			extractor_2.extract();
 			List<PageContent> testPageContents = extractor_2.getPageContentList();
@@ -147,5 +149,31 @@ public class PDFDiff {
 		} catch (IOException e) {
 			throw new PDFDiffException("Page content extract failure: " + pageNo);
 		}
+	}
+	
+	private void diffPage_1(int pageNo, PDPage base, PDPage test, PDocDiffResult result) throws PDFDiffException {
+		try {
+
+			GridPage baseGridPage = this.createGridPage(base);
+			GridPage testGridPage = this.createGridPage(test);
+			
+			GridPageDiffer differ = new GridPageDiffer(this.setting);
+			PageDiffResult pageDiffResult = differ.diff(baseGridPage, testGridPage);
+			
+			result.add(pageNo, pageDiffResult);
+		} catch (IOException e) {
+			throw new PDFDiffException("Page content extract failure: " + pageNo);
+		}
+	}
+	
+	private GridPage createGridPage(PDPage pdPage) throws IOException {
+		PageContentExtractor extractor = new PageContentExtractor(pdPage);
+		extractor.extract();
+		List<PageContent> pageContents = extractor.getPageContentList();
+		GridPage gridPage = new GridPage();
+		for (PageContent content : pageContents) {
+			gridPage.addPageContent(content);
+		}
+		return gridPage; 
 	}
 }
