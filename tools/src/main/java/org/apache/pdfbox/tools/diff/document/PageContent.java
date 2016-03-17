@@ -1,5 +1,6 @@
 package org.apache.pdfbox.tools.diff.document;
 
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
@@ -220,6 +221,24 @@ public abstract class PageContent {
 		public boolean diff(PageContent content) {
 			// TODO Auto-generated method stub
 			return false;
+		}
+		
+		public Rectangle getBBox(int begin, int end) {
+			if (begin < 0 || end >= this.outline.size()) {
+				return new Rectangle(0, 0);
+			}
+			Area area = new Area();
+	    	if (this.outline != null) {
+	    		for (int i = begin; i < end; i++) {
+	    			Shape s = this.outline.get(i);
+	    			if (s instanceof GeneralPath) {
+	    				area.add(new Area(((GeneralPath) s).getBounds()));
+	    			} else {
+	    				area.add(new Area(s));    				
+	    			}
+	        	}
+	    	}
+	    	return area.getBounds();
 		}
 	}
 	
