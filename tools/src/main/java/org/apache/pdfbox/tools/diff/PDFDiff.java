@@ -13,6 +13,8 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.diff.PDocDiffResult.PageInfo;
 import org.apache.pdfbox.tools.diff.document.PageContent;
 import org.apache.pdfbox.tools.diff.document.PageContentExtractor;
+import org.apache.pdfbox.tools.diff.document.PageThread;
+import org.apache.pdfbox.tools.diff.document.PageThreadDiff;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 
 public class PDFDiff {
@@ -129,6 +131,27 @@ public class PDFDiff {
 	}
 	
 	private void diffPage(int pageNo, PDPage base, PDPage test, PDocDiffResult result) throws PDFDiffException {
+		try {
+			PageContentExtractor extractor_1 = new PageContentExtractor(base);
+			extractor_1.extract();
+			List<PageContent> basePageContents = extractor_1.getPageContentList();
+			PageThread basePageContentSet = new PageThread(pageNo, basePageContents);
+			
+			PageContentExtractor extractor_2 = new PageContentExtractor(test);
+			extractor_2.extract();
+			List<PageContent> testPageContents = extractor_2.getPageContentList();
+			PageThread testPageContentSet = new PageThread(pageNo, testPageContents);
+			
+			PageThreadDiff differ = new PageThreadDiff();
+			PageDiffResult pageDiffResult = differ.diff(basePageContentSet, testPageContentSet);
+			
+			result.add(pageNo, pageDiffResult);
+		} catch (IOException e) {
+			throw new PDFDiffException("Page content extract failure: " + pageNo);
+		}
+	}
+	
+	private void diffPage_old(int pageNo, PDPage base, PDPage test, PDocDiffResult result) throws PDFDiffException {
 		try {
 			PageContentExtractor extractor_1 = new PageContentExtractor(base);
 			extractor_1.extract();

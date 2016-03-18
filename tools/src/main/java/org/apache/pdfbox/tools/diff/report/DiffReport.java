@@ -281,8 +281,8 @@ public class DiffReport {
 		
 		JSONArray arr = new JSONArray();
 		JSONArray sRect = new JSONArray();
-		if (diffContent.getBaseOutlineRect() != null) {
-			Rectangle rect = diffContent.getBaseOutlineRect();
+		if (diffContent.getBaseBBox() != null) {
+			Rectangle rect = diffContent.getBaseBBox();
 			sRect.put(rect.x);
 			sRect.put(rect.y);
 			sRect.put(rect.width);
@@ -291,8 +291,8 @@ public class DiffReport {
 		arr.put(sRect);
 		
 		sRect = new JSONArray();
-		if (diffContent.getTestOutlineRect() != null) {
-			Rectangle rect = diffContent.getTestOutlineRect();
+		if (diffContent.getTestBBox() != null) {
+			Rectangle rect = diffContent.getTestBBox();
 			sRect.put(rect.x);
 			sRect.put(rect.y);
 			sRect.put(rect.width);

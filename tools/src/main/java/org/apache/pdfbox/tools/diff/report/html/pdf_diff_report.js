@@ -307,10 +307,14 @@ function drawContentOutline(outline, ctx, canvasWidth, canvasHeight, color) {
 	var h = toPixel(outline[3]);
 	ctx.save();
 	ctx.beginPath();
-	ctx.lineWidth = "5";
+	ctx.lineWidth = "2";
 	ctx.strokeStyle = color;
-	// ctx.rect(x, y - h, w, h);
-	canvas_arrow(ctx, x - 40, y - 50, x, y - 10);
+	if (color == "red") {
+		ctx.rect(x, y - h, w, h);	
+	} else {
+		canvas_arrow(ctx, x - 40, y - 50, x, y - 10);	
+	}
+	
 	ctx.stroke();
 	
 	ctx.lineWidth = "1";

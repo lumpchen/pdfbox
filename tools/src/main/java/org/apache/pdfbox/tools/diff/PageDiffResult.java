@@ -86,6 +86,21 @@ public class PageDiffResult {
 			return null;
 		}
 		
+		
+		private Rectangle baseBBox, testBBox;
+		public void setBBox(Rectangle baseBBox, Rectangle testBBox) {
+			this.baseBBox = baseBBox;
+			this.testBBox = testBBox;
+		}
+		
+		public Rectangle getBaseBBox() {
+			return this.baseBBox;
+		}
+		
+		public Rectangle getTestBBox() {
+			return this.testBBox;
+		}
+		
 		private void putAttr(String key, boolean equals, String baseVal, String testVal) {
 			ContentAttr attr = new ContentAttr();
 			attr.key = key;

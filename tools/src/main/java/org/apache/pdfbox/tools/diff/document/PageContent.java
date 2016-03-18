@@ -224,7 +224,7 @@ public abstract class PageContent {
 		}
 		
 		public Rectangle getBBox(int begin, int end) {
-			if (begin < 0 || end >= this.outline.size()) {
+			if (begin < 0 || end > this.outline.size()) {
 				return new Rectangle(0, 0);
 			}
 			Area area = new Area();

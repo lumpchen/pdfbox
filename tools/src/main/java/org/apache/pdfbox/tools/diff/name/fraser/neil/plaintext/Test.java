@@ -7,11 +7,11 @@ import org.apache.pdfbox.tools.diff.name.fraser.neil.plaintext.diff_match_patch.
 public class Test {
 
 	public static void main(String[] args) {
-		String s1 = "The difference algorithm in this library operates in character mode. "
-				+ "This produces the most detailed diff possible. However, "
+		String s1 = "The diffwarrence algorithm in this library operates in character mode. "
+				+ "This produces the most detailed diff possible.  However, "
 				+ "for some  one may wish to take a coarser approach.";
 		
-		String s2 = "applications The difference algorithm in this library operates in character mode. "
+		String s2 = "applications The diffeedrence algorithm in this library operates in character mode. "
 				+ "This produces the most detailed diff possible. However, "
 				+ "for some applications one may wish to take a coarser approach.";
 		
