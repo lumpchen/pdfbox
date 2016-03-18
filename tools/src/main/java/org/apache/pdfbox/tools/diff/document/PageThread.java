@@ -94,12 +94,12 @@ public class PageThread {
 			int endContentIndex = 0;
 			for (int i = 0; i < this.rangeList.size(); i++) {
 				int[] range = this.rangeList.get(i);
-				if (begin >= range[0] && begin < range[1]) {
+				if (begin >= range[0] && begin <= range[1]) {
 					beginContentOffset = begin - range[0];
 					beginContentIndex = i;
 				}
 
-				if (end >= range[0] && end < range[1]) {
+				if (end >= range[0] && end <= range[1]) {
 					endContentOffset = end - range[0];
 					endContentIndex = i;
 					break;
@@ -110,8 +110,8 @@ public class PageThread {
 				StringBuilder buf = new StringBuilder("");
 				TextContent run = this.textRunList.get(beginContentIndex);
 				String text = run.getText();
-				buf.append(text.substring(beginContentOffset, endContentOffset));
-				Rectangle bbox = run.getBBox(beginContentOffset, endContentOffset);
+				buf.append(text.substring(beginContentOffset, endContentOffset - 1));
+				Rectangle bbox = run.getBBox(beginContentOffset, endContentOffset - 1);
 				return new TextLob[]{new TextLob(buf.toString(), bbox, run)};
 			}
 
@@ -125,8 +125,8 @@ public class PageThread {
 					continue;
 				}
 				if (i == endContentIndex) {
-					String text = run.getText().substring(0, endContentOffset);
-					Rectangle rect = run.getBBox(0, endContentOffset);
+					String text = run.getText().substring(0, endContentOffset - 1);
+					Rectangle rect = run.getBBox(0, endContentOffset - 1);
 					list[i - beginContentIndex] = new TextLob(text, rect);
 					continue;
 				} else {

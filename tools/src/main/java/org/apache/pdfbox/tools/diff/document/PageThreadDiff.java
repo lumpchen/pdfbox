@@ -75,8 +75,8 @@ public class PageThreadDiff {
 						slot = diff.text.length() - baseBegin;
 					}
 					String text = diff.text.substring(baseBegin, baseBegin + slot);
-					TextLob baseLob = baseTextThread.getTextLob(baseBegin, baseBegin + slot - 1)[0];
-					TextLob testLob = testTextThread.getTextLob(testBegin, testBegin + slot - 1)[0];
+					TextLob baseLob = baseTextThread.getTextLob(baseBegin, baseBegin + slot)[0];
+					TextLob testLob = testTextThread.getTextLob(testBegin, testBegin + slot)[0];
 					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
 					diffContent.putAttr(DiffContent.Key.Attr_Text, true, text, text);
 					if (!this.diff(baseLob.getContent(), testLob.getContent(), diffContent)) {
