@@ -86,6 +86,10 @@ public abstract class PageContent {
 		this.outline.add(shape);
 	}
 	
+	public List<Shape> getOutlineShapeList() {
+		return this.outline;
+	}
+	
     public Area getOutlineArea() {
     	if (this.area != null) {
     		return this.area;

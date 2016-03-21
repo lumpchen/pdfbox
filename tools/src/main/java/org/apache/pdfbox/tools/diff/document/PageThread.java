@@ -1,6 +1,9 @@
 package org.apache.pdfbox.tools.diff.document;
 
 import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.Area;
+import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,7 +77,7 @@ public class PageThread {
 			return this.pageText.toString();
 		}
 		
-		public void addTextLob(TextContent textContent) {
+		public void addTextSpan(TextContent textContent) {
 			String text = textContent.getText() + " ";
 			this.pageText.append(text);
 
@@ -83,6 +86,11 @@ public class PageThread {
 			span.begin = this.nextBegin;
 			span.length = text.length();
 			span.textContent = textContent;
+			span.shapeArr = new Shape[span.length];
+			List<Shape> shapeList = textContent.getOutlineShapeList();
+			for (int i = 0; i < shapeList.size(); i++) {
+				span.shapeArr[i] = shapeList.get(i);
+			}
 			this.textSpanList.add(span);
 			
 			nextBegin += text.length();
@@ -116,7 +124,7 @@ public class PageThread {
 				}
 
 				if (end >= range[0] && end <= range[1]) {
-					endContentOffset = end - range[0] - 1;
+					endContentOffset = end - range[0];
 					endContentIndex = i;
 					break;
 				}
@@ -128,7 +136,7 @@ public class PageThread {
 				TextContent run = span.textContent;
 				String text = span.text;
 				buf.append(text.substring(beginContentOffset, endContentOffset));
-				Rectangle bbox = run.getBBox(beginContentOffset, endContentOffset);
+				Rectangle bbox = span.getBBox(beginContentOffset, endContentOffset);
 				return new TextLob[]{new TextLob(buf.toString(), bbox, run)};
 			}
 
@@ -138,18 +146,18 @@ public class PageThread {
 				TextContent run = span.textContent;
 				if (i == beginContentIndex) {
 					String text = span.text.substring(beginContentOffset);
-					Rectangle rect = run.getBBox(beginContentOffset, run.getText().length() - 1);
-					list[i - beginContentIndex] = new TextLob(text, rect);
+					Rectangle rect = span.getBBox(beginContentOffset);
+					list[i - beginContentIndex] = new TextLob(text, rect, run);
 					continue;
 				}
 				if (i == endContentIndex) {
 					String text = span.text.substring(0, endContentOffset);
-					Rectangle rect = run.getBBox(0, endContentOffset);
-					list[i - beginContentIndex] = new TextLob(text, rect);
+					Rectangle rect = span.getBBox(0, endContentOffset);
+					list[i - beginContentIndex] = new TextLob(text, rect, run);
 					continue;
 				} else {
-					Rectangle rect = run.getOutlineArea().getBounds();
-					list[i - beginContentIndex] = new TextLob(run.getText(), rect);
+					Rectangle rect = span.getBBox(0, span.length);
+					list[i - beginContentIndex] = new TextLob(run.getText(), rect, run);
 				}
 			}
 			return list;
@@ -159,108 +167,32 @@ public class PageThread {
 			String text;
 			int begin;
 			int length;
+			Shape[] shapeArr;
 			TextContent textContent;
+			
+			public Rectangle getBBox(int begin) {
+				return this.getBBox(begin, this.length);
+			}
+			public Rectangle getBBox(int begin, int end) {
+				Area area = new Area();
+		    	if (this.shapeArr != null) {
+		    		for (int i = begin; i <= end; i++) {
+		    			Shape s = this.shapeArr[i];
+		    			if (s == null) {
+		    				break;
+		    			}
+		    			if (s instanceof GeneralPath) {
+		    				area.add(new Area(((GeneralPath) s).getBounds()));
+		    			} else {
+		    				area.add(new Area(s));    				
+		    			}
+		        	}
+		    	}
+		    	return area.getBounds();
+			}
 		}
 	}
 	
-	public static class TextThread_2 {
-
-		private StringBuilder pageText;
-		private List<TextContent> textRunList;
-		private List<int[]> rangeList;
-
-		public TextThread_2() {
-			this.pageText = new StringBuilder();
-			this.textRunList = new ArrayList<TextContent>();
-			this.rangeList = new ArrayList<int[]>();
-		}
-		
-		@Override
-		public String toString() {
-			return this.getText();
-		}
-		
-		public String getText() {
-			return this.pageText.toString();
-		}
-
-		private int nextBegin = 0;
-		public void addTextLob(TextContent textContent) {
-			String text = textContent.getText();
-
-			int from = nextBegin;
-			this.pageText.append(text);
-			this.pageText.append(" ");
-			int len = text.length();
-			
-			int[] range = new int[] {from, len + from};
-			nextBegin += len + 1;
-			
-			this.textRunList.add(textContent);
-			this.rangeList.add(range);
-		}
-		
-		public TextLob[] getTextLob(int begin, int len) {
-			int end = begin + len - 1;
-			int beginContentOffset = 0;
-			int beginContentIndex = 0;
-			int endContentOffset = 0;
-			int endContentIndex = 0;
-			for (int i = 0; i < this.rangeList.size(); i++) {
-				int[] range = this.rangeList.get(i);
-				if (begin >= range[0] && begin <= range[1]) {
-					beginContentOffset = begin - range[0];
-					beginContentIndex = i;
-				}
-
-				if (end >= range[0] && end <= range[1]) {
-					endContentOffset = end - range[0];
-					endContentIndex = i;
-					break;
-				}
-			}
-
-			if (beginContentIndex == endContentIndex) {
-				StringBuilder buf = new StringBuilder("");
-				TextContent run = this.textRunList.get(beginContentIndex);
-				String text = run.getText() + " ";
-				buf.append(text.substring(beginContentOffset, endContentOffset));
-				Rectangle bbox = run.getBBox(beginContentOffset, endContentOffset);
-				return new TextLob[]{new TextLob(buf.toString(), bbox, run)};
-			}
-
-			TextLob[] list = new TextLob[endContentIndex - beginContentIndex + 1];
-			for (int i = beginContentIndex; i <= endContentIndex; i++) {
-				TextContent run = this.textRunList.get(i);
-				if (i == beginContentIndex) {
-					String text = run.getText().substring(beginContentOffset);
-					Rectangle rect = run.getBBox(beginContentOffset, run.getText().length() - 1);
-					list[i - beginContentIndex] = new TextLob(text, rect);
-					continue;
-				}
-				if (i == endContentIndex) {
-					String text = run.getText().substring(0, endContentOffset - 1);
-					Rectangle rect = run.getBBox(0, endContentOffset - 1);
-					list[i - beginContentIndex] = new TextLob(text, rect);
-					continue;
-				} else {
-					Rectangle rect = run.getOutlineArea().getBounds();
-					list[i - beginContentIndex] = new TextLob(run.getText(), rect);
-				}
-			}
-			return list;
-		}
-		
-		public int lenToContentEnd(int begin) {
-			for (int i = 0; i < this.rangeList.size(); i++) {
-				int[] range = this.rangeList.get(i);
-				if (begin >= range[0] && begin <= range[1]) {
-					return range[1] - begin + 1;
-				}
-			}
-			return 0;
-		}
-	}
 
 	private void analysis() {
 		if (this.contentList.isEmpty()) {
@@ -274,7 +206,7 @@ public class PageThread {
 
 			if (content.getType() == PageContent.Type.Text) {
 				TextContent textContent = (TextContent) content;
-				this.textThread.addTextLob(textContent);
+				this.textThread.addTextSpan(textContent);
 				
 			} else if (content.getType() == PageContent.Type.Path) {
 				PathContent path = (PathContent) content;

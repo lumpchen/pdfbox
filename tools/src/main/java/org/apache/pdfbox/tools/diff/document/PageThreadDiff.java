@@ -58,40 +58,37 @@ public class PageThreadDiff {
 					result.append(diffContent);					
 				}
 			} else {
-				ibase += diff.text.length();
-				itest += diff.text.length();
+				int baseBegin = 0;
+				int testBegin = 0;
+				int walk = 0;
+				while (true) {
+					if (walk >= diff.text.length()) {
+						ibase += baseBegin;
+						itest += testBegin;
+						break;
+					}
+					int baseLen = baseTextThread.lenToContentEnd(baseBegin + ibase);
+					int testLen = testTextThread.lenToContentEnd(testBegin + itest);
+					
+					int slot = baseLen <= testLen ? baseLen : testLen;
+					if (slot > diff.text.length() - walk) {
+						slot = diff.text.length() - walk;
+					}
+					String text = diff.text.substring(walk, walk + slot - 1);
+					TextLob baseLob = baseTextThread.getTextLob(baseBegin + ibase, slot)[0];
+					TextLob testLob = testTextThread.getTextLob(testBegin + itest, slot)[0];
+					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
+					diffContent.putAttr(DiffContent.Key.Attr_Text, true, text, text);
+					if (!this.diff(baseLob.getContent(), testLob.getContent(), diffContent)) {
+						diffContent.setBBox(baseLob.getBoundingBox(), testLob.getBoundingBox());
+						result.append(diffContent);
+					}
+					
+					baseBegin += slot;
+					testBegin += slot;
+					walk += slot;
+				}
 			}
-//			} else {
-//				int baseBegin = 0;
-//				int testBegin = 0;
-//				int walk = 0;
-//				while (true) {
-//					if (walk >= diff.text.length()) {
-//						ibase += baseBegin;
-//						itest += testBegin;
-//						break;
-//					}
-//					int baseLen = baseTextThread.lenToContentEnd(baseBegin + ibase);
-//					int testLen = testTextThread.lenToContentEnd(testBegin + itest);
-//					
-//					int slot = baseLen <= testLen ? baseLen : testLen;
-//					if (slot > diff.text.length() - walk) {
-//						slot = diff.text.length() - walk;
-//					}
-//					String text = diff.text.substring(walk, walk + slot);
-//					TextLob baseLob = baseTextThread.getTextLob(baseBegin + ibase, slot)[0];
-//					TextLob testLob = testTextThread.getTextLob(testBegin + itest, slot)[0];
-//					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
-//					diffContent.putAttr(DiffContent.Key.Attr_Text, false, text, text);
-//					diffContent.setBBox(baseLob.getBoundingBox(), testLob.getBoundingBox());
-//					result.append(diffContent);
-//					
-//					
-//					baseBegin += slot;
-//					testBegin += slot;
-//					walk += slot;
-//				}
-//			}
 		}
 	}
 	
