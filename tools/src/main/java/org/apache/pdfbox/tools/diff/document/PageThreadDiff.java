@@ -1,6 +1,5 @@
 package org.apache.pdfbox.tools.diff.document;
 
-import java.awt.geom.Area;
 import java.util.LinkedList;
 
 import org.apache.pdfbox.tools.diff.PageDiffResult;
@@ -38,56 +37,61 @@ public class PageThreadDiff {
 		for (Diff diff : diffs) {
 			if (diff.operation == Operation.INSERT) {
 				int from = itest;
+				TextLob[] lobs = testTextThread.getTextLob(from, diff.text.length());
 				itest += diff.text.length();
-				TextLob[] lobs = testTextThread.getTextLob(from, itest);
 				
 				for (TextLob lob : lobs) {
 					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
-					diffContent.putAttr(DiffContent.Key.Attr_Text, false, "#INSERT#", diff.text);
+					diffContent.putAttr(DiffContent.Key.Attr_Text, false, "#INSERT#", lob.getText());
 					diffContent.setBBox(null, lob.getBoundingBox());
 					result.append(diffContent);					
 				}
 			} else if (diff.operation == Operation.DELETE) {
 				int from = ibase;
+				TextLob[] lobs = baseTextThread.getTextLob(from, diff.text.length());
 				ibase += diff.text.length();
-				TextLob[] lobs = baseTextThread.getTextLob(from, ibase);
+				
 				for (TextLob lob : lobs) {
 					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
-					diffContent.putAttr(DiffContent.Key.Attr_Text, false, diff.text, "#DELETE#");
+					diffContent.putAttr(DiffContent.Key.Attr_Text, false, lob.getText(), "#DELETE#");
 					diffContent.setBBox(lob.getBoundingBox(), null);
 					result.append(diffContent);					
 				}
 			} else {
-				int baseBegin = 0;
-				int testBegin = 0;
-				int walk = 0;
-				while (true) {
-					if (walk >= diff.text.length()) {
-						ibase += diff.text.length();
-						itest += diff.text.length();
-						break;
-					}
-					int baseLen = baseTextThread.lenToContentEnd(baseBegin + ibase);
-					int testLen = testTextThread.lenToContentEnd(testBegin + itest);
-					
-					int slot = baseLen <= testLen ? baseLen : testLen;
-					if (slot > diff.text.length() - baseBegin) {
-						slot = diff.text.length() - baseBegin;
-					}
-					String text = diff.text.substring(baseBegin, baseBegin + slot);
-					TextLob baseLob = baseTextThread.getTextLob(baseBegin, baseBegin + slot)[0];
-					TextLob testLob = testTextThread.getTextLob(testBegin, testBegin + slot)[0];
-					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
-					diffContent.putAttr(DiffContent.Key.Attr_Text, true, text, text);
-					if (!this.diff(baseLob.getContent(), testLob.getContent(), diffContent)) {
-						diffContent.setBBox(baseLob.getBoundingBox(), testLob.getBoundingBox());
-						result.append(diffContent);
-					}
-					baseBegin += slot;
-					testBegin += slot;
-					walk += slot;
-				}
+				ibase += diff.text.length();
+				itest += diff.text.length();
 			}
+//			} else {
+//				int baseBegin = 0;
+//				int testBegin = 0;
+//				int walk = 0;
+//				while (true) {
+//					if (walk >= diff.text.length()) {
+//						ibase += baseBegin;
+//						itest += testBegin;
+//						break;
+//					}
+//					int baseLen = baseTextThread.lenToContentEnd(baseBegin + ibase);
+//					int testLen = testTextThread.lenToContentEnd(testBegin + itest);
+//					
+//					int slot = baseLen <= testLen ? baseLen : testLen;
+//					if (slot > diff.text.length() - walk) {
+//						slot = diff.text.length() - walk;
+//					}
+//					String text = diff.text.substring(walk, walk + slot);
+//					TextLob baseLob = baseTextThread.getTextLob(baseBegin + ibase, slot)[0];
+//					TextLob testLob = testTextThread.getTextLob(testBegin + itest, slot)[0];
+//					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
+//					diffContent.putAttr(DiffContent.Key.Attr_Text, false, text, text);
+//					diffContent.setBBox(baseLob.getBoundingBox(), testLob.getBoundingBox());
+//					result.append(diffContent);
+//					
+//					
+//					baseBegin += slot;
+//					testBegin += slot;
+//					walk += slot;
+//				}
+//			}
 		}
 	}
 	
@@ -112,6 +116,12 @@ public class PageThreadDiff {
 		equals = diff(val_1, val_2);
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Colorspace, equals, val_1, val_2);
+		
+		val_1 = textContent_1 == null ? null : textContent_1.getNonStrokingColorValue();
+		val_2 = textContent_2 == null ? null : textContent_2.getNonStrokingColorValue();
+		equals = diff(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Color, equals, val_1, val_2);
 		
 		return result;
 	}

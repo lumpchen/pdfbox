@@ -147,6 +147,21 @@ public abstract class PageContent {
 		return this.getGraphicsStateDesc().nonStrokingColor.colorSpace;
 	}
 	
+	public String getNonStrokingColorValue() {
+		if (this.getGraphicsStateDesc() == null
+				|| this.getGraphicsStateDesc().nonStrokingColor == null) {
+			return null;
+		}
+		float[] components = this.getGraphicsStateDesc().nonStrokingColor.components;
+		StringBuilder buf = new StringBuilder("");
+		if (components != null) {
+			for (float c : components) {
+				buf.append(c + " ");
+			}
+		}
+		return buf.toString();
+	}
+	
 	public String getFontName() {
 		if (this.getGraphicsStateDesc() == null 
 				|| this.getGraphicsStateDesc().textState == null) {
