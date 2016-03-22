@@ -240,8 +240,8 @@ function drawTree(pageNo) {
 				nodeText = node['text'];
 				var item = node['item'];
 				
-				// drawDiffContentOutline(item.Outline);
 				page_view_paras["DiffContent"] = item;
+				page_view_paras["text"] = node['text'];
 				updatePageView();
 			});
 		}
@@ -268,38 +268,42 @@ function drawPageImage(imageTag, ctx) {
 		ctx.drawImage(img, 1, 1);
 		
 		var item = page_view_paras["DiffContent"];
+		var category = page_view_paras["text"];
 		if ((typeof(item) !== 'undefined') && (item !== null)) {
-			drawDiffContentOutline(item.Outline);
+			drawDiffContentOutline(category, item.Outline);
 		}
 	}
 	img.src = "images/" + imageTag;
 	ctx.restore();
 }
 
-function drawDiffContentOutline(outlineArr) { // arr[base, test]
+function drawDiffContentOutline(category, outlineArr) { // arr[base, test]
 	var baseRect = outlineArr[0];
 	var testRect = outlineArr[1];
 	
 	if (baseRect.length > 0) {
 		var baseCanvas = document.getElementById("base_page_canvas");
 		var baseCtx = baseCanvas.getContext("2d");
-		drawContentOutline(baseRect, baseCtx, page_view_paras["TestPageWidth"], page_view_paras["BasePageHeight"], Base_Stroke_Color, Base_Fill_Color);
+		drawContentOutline(category, baseRect, baseCtx, page_view_paras["TestPageWidth"], page_view_paras["BasePageHeight"], Base_Stroke_Color, Base_Fill_Color);
 	}
 
 	if (testRect.length > 0) {
 		var testCanvas = document.getElementById("test_page_canvas");
 		var testCtx = testCanvas.getContext("2d");
-		drawContentOutline(testRect, testCtx, page_view_paras["TestPageWidth"], page_view_paras["TestPageHeight"], Test_Stroke_Color, Test_Fill_Color);
+		drawContentOutline(category, testRect, testCtx, page_view_paras["TestPageWidth"], page_view_paras["TestPageHeight"], Test_Stroke_Color, Test_Fill_Color);
 	}
 }
 
-function drawContentOutline(outline, ctx, canvasWidth, canvasHeight, strokeColor, fillColor) {
+function drawContentOutline(category, outline, ctx, canvasWidth, canvasHeight, strokeColor, fillColor) {
 	if (outline.length == 0) {
 		return;
 	}
 	var x = toPixel(outline[0]);
 	var h = toPixel(outline[3]);
-	var dh = parseInt(h / 4);
+	var dh = 0;
+	if (category == "text") {
+		dh = parseInt(h / 4);
+	}
 	var y = canvasHeight - toPixel(outline[1]) + dh;
 	var w = toPixel(outline[2]);
 	h += dh;
