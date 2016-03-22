@@ -1,6 +1,8 @@
 package org.apache.pdfbox.tools.diff.document;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.pdfbox.tools.diff.PageDiffResult;
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
@@ -40,18 +42,20 @@ public class PageThreadDiff {
 				TextLob[] lobs = testTextThread.getTextLob(from, diff.text.length());
 				itest += diff.text.length();
 				
-				for (TextLob lob : lobs) {
+				List<TextLob> lobList = mergeLobs(lobs);
+				for (TextLob lob : lobList) {
 					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
 					diffContent.putAttr(DiffContent.Key.Attr_Text, false, "#INSERT#", lob.getText());
 					diffContent.setBBox(null, lob.getBoundingBox());
-					result.append(diffContent);					
+					result.append(diffContent);
 				}
 			} else if (diff.operation == Operation.DELETE) {
 				int from = ibase;
 				TextLob[] lobs = baseTextThread.getTextLob(from, diff.text.length());
 				ibase += diff.text.length();
 				
-				for (TextLob lob : lobs) {
+				List<TextLob> lobList = mergeLobs(lobs);
+				for (TextLob lob : lobList) {
 					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
 					diffContent.putAttr(DiffContent.Key.Attr_Text, false, lob.getText(), "#DELETE#");
 					diffContent.setBBox(lob.getBoundingBox(), null);
@@ -74,7 +78,8 @@ public class PageThreadDiff {
 					if (slot > diff.text.length() - walk) {
 						slot = diff.text.length() - walk;
 					}
-					String text = diff.text.substring(walk, walk + slot - 1);
+					
+					String text = diff.text.substring(walk, walk + slot);
 					TextLob baseLob = baseTextThread.getTextLob(baseBegin + ibase, slot)[0];
 					TextLob testLob = testTextThread.getTextLob(testBegin + itest, slot)[0];
 					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
@@ -90,6 +95,23 @@ public class PageThreadDiff {
 				}
 			}
 		}
+	}
+	
+	private static List<TextLob> mergeLobs(TextLob[] lobs) {
+		List<TextLob> lobList = new ArrayList<TextLob>();
+		TextLob last = null;
+		for (int i = 0; i < lobs.length; i++) {
+			if (i == 0) {
+				last = lobs[i];
+				lobList.add(last);
+				continue;
+			}
+			if (!last.mergeLob(lobs[i])) {
+				last = lobs[i];
+				lobList.add(lobs[i]);
+			}
+		}
+		return lobList;
 	}
 	
 	private boolean diff(TextContent textContent_1, TextContent textContent_2, DiffContent entry) {

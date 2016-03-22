@@ -55,6 +55,21 @@ public class PageThread {
 		public TextContent getContent() {
 			return this.content;
 		}
+		
+		public boolean mergeLob(TextLob next) {
+			if (next == null) {
+				return false;
+			}
+			
+			Rectangle rect = next.getBoundingBox();
+			int dh = Math.abs(this.getBoundingBox().y - rect.y);
+			if (dh <= rect.height) {
+				this.text += next.text;
+				this.bBox = this.bBox.union(rect);
+				return true;
+			}
+			return false;
+		}
 	}
 
 	public static class TextThread {
@@ -100,8 +115,8 @@ public class PageThread {
 			for (int i = 0; i < this.textSpanList.size(); i++) {
 				TextSpan span = this.textSpanList.get(i);
 				int[] range = new int[]{span.begin, span.begin + span.length};
-				if (begin >= range[0] && begin <= range[1]) {
-					return range[1] - begin + 1;
+				if (begin >= range[0] && begin < range[1]) {
+					return range[1] - begin;
 				}
 			}
 			return 0;
@@ -118,12 +133,12 @@ public class PageThread {
 				TextSpan span = this.textSpanList.get(i);
 				
 				int[] range = new int[] {span.begin, span.begin + span.length};
-				if (begin >= range[0] && begin <= range[1]) {
+				if (begin >= range[0] && begin < range[1]) {
 					beginContentOffset = begin - range[0];
 					beginContentIndex = i;
 				}
 
-				if (end >= range[0] && end <= range[1]) {
+				if (end > range[0] && end <= range[1]) {
 					endContentOffset = end - range[0];
 					endContentIndex = i;
 					break;
@@ -176,7 +191,7 @@ public class PageThread {
 			public Rectangle getBBox(int begin, int end) {
 				Area area = new Area();
 		    	if (this.shapeArr != null) {
-		    		for (int i = begin; i <= end; i++) {
+		    		for (int i = begin; i < end; i++) {
 		    			Shape s = this.shapeArr[i];
 		    			if (s == null) {
 		    				break;
