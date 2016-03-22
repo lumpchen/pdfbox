@@ -1,5 +1,7 @@
 package org.apache.pdfbox.tools.diff.document;
 
+import java.awt.Rectangle;
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,8 +10,10 @@ import org.apache.pdfbox.tools.diff.PageDiffResult;
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.GraphicsStateDesc;
+import org.apache.pdfbox.tools.diff.document.PageContent.ImageContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextStateDesc;
+import org.apache.pdfbox.tools.diff.document.PageThread.ImageThread;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextThread;
 import org.apache.pdfbox.tools.diff.name.fraser.neil.plaintext.diff_match_patch.Diff;
@@ -23,10 +27,76 @@ public class PageThreadDiff {
 	public PageDiffResult diff(PageThread basePage, PageThread testPage) {
 		PageDiffResult result = new PageDiffResult();
 		this.diffText(basePage.getTextThread(), testPage.getTextThread(), result);
+		this.diffImage(basePage.getImageThread(), testPage.getImageThread(), result);
 		
 		return result;
 	}
 
+	private void diffImage(ImageThread baseImageThread, ImageThread testImageThread, PageDiffResult result) {
+		List<ImageContent> baseImageList = baseImageThread.getImageList();
+		List<ImageContent> testImageList = testImageThread.getImageList();
+		
+		List<ImageContent> testImageProcessed = new ArrayList<ImageContent>();
+		for (int i = 0; i < baseImageList.size(); i++) {
+			ImageContent baseImage = baseImageList.get(i);
+			if (i < testImageList.size()) {
+				ImageContent testImage = testImageList.get(i);
+				DiffContent diffContent = new DiffContent(DiffContent.Category.Image);
+				if (!this.diff(baseImage, testImage, diffContent)) {
+					diffContent.setBBox(baseImage.getOutlineArea().getBounds(), testImage.getOutlineArea().getBounds());
+					result.append(diffContent);
+				}
+				testImageProcessed.add(testImage);
+			} else {
+				DiffContent diffContent = new DiffContent(DiffContent.Category.Image);
+				if (!this.diff(baseImage, null, diffContent)) {
+					result.append(diffContent);
+				}
+			}
+		}
+		
+		// process remain images in test
+	}
+	
+	private boolean diff(ImageContent baseImage, ImageContent testImage, DiffContent entry) {
+		Area outline_1 = baseImage == null ? null : baseImage.getOutlineArea();
+		Area outline_2 = testImage == null ? null : testImage.getOutlineArea();
+		entry.setOutline(outline_1, outline_2);
+		boolean result = true;
+		
+		Integer val_1 = baseImage == null ? null : baseImage.width;
+		Integer val_2 = testImage == null ? null : testImage.width;
+		boolean equals = diff(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Width, equals, val_1, val_2);
+		
+		val_1 = baseImage == null ? null : baseImage.height;
+		val_2 = testImage == null ? null : testImage.height;
+		equals = diff(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Height, equals, val_1, val_2);
+		
+		val_1 = baseImage == null ? null : baseImage.byteCount;
+		val_2 = testImage == null ? null : testImage.byteCount;
+		equals = diff(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Byte_count, equals, val_1, val_2);
+		
+		val_1 = baseImage == null ? null : baseImage.bitsPerComponent;
+		val_2 = testImage == null ? null : testImage.bitsPerComponent;
+		equals = diff(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Bits_Per_Component, equals, val_1, val_2);
+		
+		Rectangle baseRect = baseImage.getOutlineArea().getBounds();
+		Rectangle testRect = testImage.getOutlineArea().getBounds();
+		equals = baseRect.equals(testRect);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Frame_size, equals, baseRect.toString(), testRect.toString());
+		
+		return result;
+	}
+	
 	private void diffText(TextThread baseTextThread, TextThread testTextThread, PageDiffResult result) {
 		String baseText = baseTextThread.getText();
 		String testText = testTextThread.getText();
@@ -167,7 +237,7 @@ public class PageThreadDiff {
 		if (f1 == null || f2 == null) {
 			return false;
 		}
-		return f1 - f2 <= 0.00001;
+		return Math.abs(f1 - f2) <= 0.00001;
 	}
 	
 	private static boolean diff(Integer f1, Integer f2) {

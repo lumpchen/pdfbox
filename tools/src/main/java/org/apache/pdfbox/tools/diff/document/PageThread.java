@@ -207,13 +207,36 @@ public class PageThread {
 			}
 		}
 	}
-	
 
+	
+	private ImageThread imageThread;
+	public static class ImageThread {
+
+		private List<ImageContent> imageList;
+		
+		public ImageThread() {
+			this.imageList = new ArrayList<ImageContent>();
+		}
+		
+		public void addImageContent(ImageContent imageContent) {
+			this.imageList.add(imageContent);
+		}
+		
+		public List<ImageContent> getImageList() {
+			return this.imageList;
+		}
+	}
+	
+	public ImageThread getImageThread() {
+		return this.imageThread;
+	}
+	
 	private void analysis() {
 		if (this.contentList.isEmpty()) {
 			return;
 		}
 		this.textThread = new TextThread();
+		this.imageThread = new ImageThread();
 		for (int i = 0; i < this.contentList.size(); i++) {
 			PageContent content = this.contentList.get(i);
 			int x = content.getOutlineArea().getBounds().x;
@@ -222,11 +245,11 @@ public class PageThread {
 			if (content.getType() == PageContent.Type.Text) {
 				TextContent textContent = (TextContent) content;
 				this.textThread.addTextSpan(textContent);
-				
 			} else if (content.getType() == PageContent.Type.Path) {
 				PathContent path = (PathContent) content;
 			} else if (content.getType() == PageContent.Type.Image) {
 				ImageContent image = (ImageContent) content;
+				this.imageThread.addImageContent(image);
 			} else if (content.getType() == PageContent.Type.Annot) {
 				AnnotContent annot = (AnnotContent) content;
 			}

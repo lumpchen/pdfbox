@@ -297,13 +297,15 @@ function drawContentOutline(outline, ctx, canvasWidth, canvasHeight, strokeColor
 	if (outline.length == 0) {
 		return;
 	}
-	var x = toPixel(outline[0]) ;
-	var y = canvasHeight - toPixel(outline[1]);
-	var w = toPixel(outline[2]);
+	var x = toPixel(outline[0]);
 	var h = toPixel(outline[3]);
+	var dh = parseInt(h / 4);
+	var y = canvasHeight - toPixel(outline[1]) + dh;
+	var w = toPixel(outline[2]);
+	h += dh;
 	ctx.save();
 	ctx.beginPath();
-	ctx.lineWidth = "2";
+	ctx.lineWidth = "1";
 	ctx.strokeStyle = strokeColor;
 	ctx.fillStyle = fillColor;
 	if (strokeColor == "red") {
@@ -317,7 +319,7 @@ function drawContentOutline(outline, ctx, canvasWidth, canvasHeight, strokeColor
 	ctx.lineWidth = "1";
 	ctx.moveTo(0, y);
 	ctx.lineTo(canvasWidth, y);
-	ctx.font = "26pt Calibri";
+	ctx.font = "12pt Calibri";
 	ctx.fillStyle = 'red';
 	ctx.fillText("x:" + x + " y:" + y, 0, y);
 	ctx.stroke();

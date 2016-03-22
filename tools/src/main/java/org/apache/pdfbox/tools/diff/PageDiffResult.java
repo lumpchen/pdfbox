@@ -47,6 +47,7 @@ public class PageDiffResult {
 			public static String Attr_Height = "Height";
 			public static String Attr_Byte_count = "Byte count";
 			public static String Attr_Bits_Per_Component = "BitsPerComponent";
+			public static String Attr_Frame_size = "Frame size";
 		}
 				
 		private Category category;
