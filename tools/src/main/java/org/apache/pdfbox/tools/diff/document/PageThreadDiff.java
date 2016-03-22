@@ -38,6 +38,10 @@ public class PageThreadDiff {
 		int ibase = 0, itest = 0;
 		for (Diff diff : diffs) {
 			if (diff.operation == Operation.INSERT) {
+				if (diff.text.length() == 1 && diff.text.charAt(0) == 0x20) {
+					itest += 1;
+					continue;
+				}
 				int from = itest;
 				TextLob[] lobs = testTextThread.getTextLob(from, diff.text.length());
 				itest += diff.text.length();
@@ -50,6 +54,10 @@ public class PageThreadDiff {
 					result.append(diffContent);
 				}
 			} else if (diff.operation == Operation.DELETE) {
+				if (diff.text.length() == 1 && diff.text.charAt(0) == 0x20) {
+					ibase += 1;
+					continue;
+				}
 				int from = ibase;
 				TextLob[] lobs = baseTextThread.getTextLob(from, diff.text.length());
 				ibase += diff.text.length();

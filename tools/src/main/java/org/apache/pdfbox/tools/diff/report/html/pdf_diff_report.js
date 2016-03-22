@@ -10,6 +10,11 @@ var base_pdf_json_obj = JSON.parse(base_pdf_json);
 var test_pdf_json_obj = JSON.parse(test_pdf_json);
 var diff_content_json_obj = JSON.parse(diff_content_json);
 
+var Base_Stroke_Color = "red";
+var Test_Stroke_Color = "red";
+var Test_Fill_Color = "rgba(138, 43, 226, 0.2)";
+var Base_Fill_Color = "rgba(138, 43, 226, 0.2)";
+
 var tree = 
 	[
 	 	{
@@ -177,8 +182,8 @@ function findDiffReport(pageNo) {
 	for (i = 0; i < diff_content_json_obj.length; i++) {
 		var num = diff_content_json_obj[i].PageNo;
 		tree[0].nodes[0].nodes.length = 0;
-		tree[0].nodes[0].tags = [0]; //Text
-		tree[0].nodes[1].tags = [0]; //Image
+		tree[0].nodes[0].tags = [0]; // Text
+		tree[0].nodes[1].tags = [0]; // Image
 		if (pageNo == num) {
 			var result = diff_content_json_obj[i].Result;
 			
@@ -235,7 +240,7 @@ function drawTree(pageNo) {
 				nodeText = node['text'];
 				var item = node['item'];
 				
-				//drawDiffContentOutline(item.Outline);
+				// drawDiffContentOutline(item.Outline);
 				page_view_paras["DiffContent"] = item;
 				updatePageView();
 			});
@@ -274,30 +279,21 @@ function drawPageImage(imageTag, ctx) {
 function drawDiffContentOutline(outlineArr) { // arr[base, test]
 	var baseRect = outlineArr[0];
 	var testRect = outlineArr[1];
-	var strokeColor = "red";
-	if (baseRect.length == 0) {
-		baseRect = testRect;
-		strokeColor = "green";
-	}
+	
 	if (baseRect.length > 0) {
 		var baseCanvas = document.getElementById("base_page_canvas");
 		var baseCtx = baseCanvas.getContext("2d");
-		drawContentOutline(baseRect, baseCtx, page_view_paras["TestPageWidth"], page_view_paras["BasePageHeight"], strokeColor);
+		drawContentOutline(baseRect, baseCtx, page_view_paras["TestPageWidth"], page_view_paras["BasePageHeight"], Base_Stroke_Color, Base_Fill_Color);
 	}
 
-	strokeColor = "red";
-	if (testRect.length == 0) {
-		testRect = baseRect;
-		strokeColor = "green";
-	}
 	if (testRect.length > 0) {
 		var testCanvas = document.getElementById("test_page_canvas");
 		var testCtx = testCanvas.getContext("2d");
-		drawContentOutline(testRect, testCtx, page_view_paras["TestPageWidth"], page_view_paras["TestPageHeight"], strokeColor);
+		drawContentOutline(testRect, testCtx, page_view_paras["TestPageWidth"], page_view_paras["TestPageHeight"], Test_Stroke_Color, Test_Fill_Color);
 	}
 }
 
-function drawContentOutline(outline, ctx, canvasWidth, canvasHeight, color) {
+function drawContentOutline(outline, ctx, canvasWidth, canvasHeight, strokeColor, fillColor) {
 	if (outline.length == 0) {
 		return;
 	}
@@ -308,14 +304,15 @@ function drawContentOutline(outline, ctx, canvasWidth, canvasHeight, color) {
 	ctx.save();
 	ctx.beginPath();
 	ctx.lineWidth = "2";
-	ctx.strokeStyle = color;
-	if (color == "red") {
+	ctx.strokeStyle = strokeColor;
+	ctx.fillStyle = fillColor;
+	if (strokeColor == "red") {
 		ctx.rect(x, y - h, w, h);	
 	} else {
 		canvas_arrow(ctx, x - 40, y - 50, x, y - 10);	
 	}
-	
 	ctx.stroke();
+	ctx.fill();
 	
 	ctx.lineWidth = "1";
 	ctx.moveTo(0, y);
