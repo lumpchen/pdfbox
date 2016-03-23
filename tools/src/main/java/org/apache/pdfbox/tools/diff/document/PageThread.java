@@ -18,6 +18,8 @@ public class PageThread {
 	private List<PageContent> contentList;
 	private TextThread textThread;
 	private ImageThread imageThread;
+	private PathThread pathThread;
+	private AnnotThread annotThread;
 
 	public PageThread(int pageNo, List<PageContent> contentList) {
 		this.pageNo = pageNo;
@@ -31,6 +33,9 @@ public class PageThread {
 		}
 		this.textThread = new TextThread();
 		this.imageThread = new ImageThread();
+		this.pathThread = new PathThread();
+		this.annotThread = new AnnotThread();
+		
 		for (int i = 0; i < this.contentList.size(); i++) {
 			PageContent content = this.contentList.get(i);
 
@@ -39,11 +44,13 @@ public class PageThread {
 				this.textThread.addTextSpan(textContent);
 			} else if (content.getType() == PageContent.Type.Path) {
 				PathContent path = (PathContent) content;
+				this.pathThread.addPathContent(path);
 			} else if (content.getType() == PageContent.Type.Image) {
 				ImageContent image = (ImageContent) content;
 				this.imageThread.addImageContent(image);
 			} else if (content.getType() == PageContent.Type.Annot) {
 				AnnotContent annot = (AnnotContent) content;
+				this.annotThread.addPathContent(annot);
 			}
 		}
 	}
@@ -58,6 +65,14 @@ public class PageThread {
 	
 	public ImageThread getImageThread() {
 		return this.imageThread;
+	}
+	
+	public PathThread getPathThread() {
+		return this.pathThread;
+	}
+	
+	public AnnotThread getAnnotThread() {
+		return this.annotThread;
 	}
 	
 	public static class TextThread {
@@ -295,4 +310,29 @@ public class PageThread {
 		}
 	}
 	
+	public static class PathThread {
+		
+		private List<PathContent> pathList;
+		
+		public PathThread() {
+			this.pathList = new ArrayList<PathContent>();
+		}
+		
+		public void addPathContent(PathContent pathContent) {
+			this.pathList.add(pathContent);
+		}
+	}
+	
+	public static class AnnotThread {
+		
+		private List<AnnotContent> annotList;
+		
+		public AnnotThread() {
+			this.annotList = new ArrayList<AnnotContent>();
+		}
+		
+		public void addPathContent(AnnotContent annotContent) {
+			this.annotList.add(annotContent);
+		}
+	}
 }

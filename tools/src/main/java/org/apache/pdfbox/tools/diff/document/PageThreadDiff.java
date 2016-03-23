@@ -11,8 +11,10 @@ import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.GraphicsStateDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextStateDesc;
+import org.apache.pdfbox.tools.diff.document.PageThread.AnnotThread;
 import org.apache.pdfbox.tools.diff.document.PageThread.ImageLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.ImageThread;
+import org.apache.pdfbox.tools.diff.document.PageThread.PathThread;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextThread;
 import org.apache.pdfbox.tools.diff.name.fraser.neil.plaintext.diff_match_patch.Diff;
@@ -27,10 +29,18 @@ public class PageThreadDiff {
 		PageDiffResult result = new PageDiffResult();
 		this.diffText(basePage.getTextThread(), testPage.getTextThread(), result);
 		this.diffImage(basePage.getImageThread(), testPage.getImageThread(), result);
+		this.diffPath(basePage.getPathThread(), testPage.getPathThread(), result);
+		this.diffAnnot(basePage.getAnnotThread(), testPage.getAnnotThread(), result);
 		
 		return result;
 	}
 
+	private void diffAnnot(AnnotThread baseAnnotThread, AnnotThread testAnnotThread, PageDiffResult result) {
+	}
+	
+	private void diffPath(PathThread basePathThread, PathThread testPathThread, PageDiffResult result) {
+	}
+	
 	private void diffImage(ImageThread baseImageThread, ImageThread testImageThread, PageDiffResult result) {
 		List<ImageLob> baseImageList = baseImageThread.getImageLobList();
 		List<ImageLob> testImageList = testImageThread.getImageLobList();
