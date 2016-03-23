@@ -37,7 +37,6 @@
 #nav {
 	line-height: 30px;
 	background-color: #eeeeee;
-	
 	width: 5%;
 	float: left;
 	padding: 10px;
@@ -46,6 +45,9 @@
 
 #section {
 	width: 1800px;
+	max-width: 1800px;
+	max-height: 800px;
+	overflow: auto;
 	float: left;
 	padding: 10px;
 }

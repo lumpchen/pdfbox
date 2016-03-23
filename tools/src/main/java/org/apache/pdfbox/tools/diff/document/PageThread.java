@@ -17,6 +17,7 @@ public class PageThread {
 	private int pageNo;
 	private List<PageContent> contentList;
 	private TextThread textThread;
+	private ImageThread imageThread;
 
 	public PageThread(int pageNo, List<PageContent> contentList) {
 		this.pageNo = pageNo;
@@ -24,54 +25,41 @@ public class PageThread {
 		this.analysis();
 	}
 
+	private void analysis() {
+		if (this.contentList.isEmpty()) {
+			return;
+		}
+		this.textThread = new TextThread();
+		this.imageThread = new ImageThread();
+		for (int i = 0; i < this.contentList.size(); i++) {
+			PageContent content = this.contentList.get(i);
+
+			if (content.getType() == PageContent.Type.Text) {
+				TextContent textContent = (TextContent) content;
+				this.textThread.addTextSpan(textContent);
+			} else if (content.getType() == PageContent.Type.Path) {
+				PathContent path = (PathContent) content;
+			} else if (content.getType() == PageContent.Type.Image) {
+				ImageContent image = (ImageContent) content;
+				this.imageThread.addImageContent(image);
+			} else if (content.getType() == PageContent.Type.Annot) {
+				AnnotContent annot = (AnnotContent) content;
+			}
+		}
+	}
+	
+	public int getPageNo() {
+		return this.pageNo;
+	}
+	
 	public TextThread getTextThread() {
 		return this.textThread;
 	}
 	
-	public static class TextLob {
-		private String text;
-		private Rectangle bBox;
-		private TextContent content;
-
-		public TextLob(String text, Rectangle bBox) {
-			this.text = text;
-			this.bBox = bBox;
-		}
-		
-		public TextLob(String text, Rectangle bBox, TextContent content) {
-			this(text, bBox);
-			this.content = content;
-		}
-
-
-		public String getText() {
-			return this.text == null ? "" : this.text;
-		}
-
-		public Rectangle getBoundingBox() {
-			return this.bBox;
-		}
-		
-		public TextContent getContent() {
-			return this.content;
-		}
-		
-		public boolean mergeLob(TextLob next) {
-			if (next == null) {
-				return false;
-			}
-			
-			Rectangle rect = next.getBoundingBox();
-			int dh = Math.abs(this.getBoundingBox().y - rect.y);
-			if (dh <= rect.height) {
-				this.text += next.text;
-				this.bBox = this.bBox.union(rect);
-				return true;
-			}
-			return false;
-		}
+	public ImageThread getImageThread() {
+		return this.imageThread;
 	}
-
+	
 	public static class TextThread {
 		
 		private StringBuilder pageText;
@@ -177,45 +165,125 @@ public class PageThread {
 			}
 			return list;
 		}
+	}
+	
+	public static class TextLob {
+		private String text;
+		private Rectangle bBox;
+		private TextContent content;
+
+		public TextLob(String text, Rectangle bBox) {
+			this.text = text;
+			this.bBox = bBox;
+		}
 		
-		public static class TextSpan{
-			String text;
-			int begin;
-			int length;
-			Shape[] shapeArr;
-			TextContent textContent;
+		public TextLob(String text, Rectangle bBox, TextContent content) {
+			this(text, bBox);
+			this.content = content;
+		}
+
+
+		public String getText() {
+			return this.text == null ? "" : this.text;
+		}
+
+		public Rectangle getBoundingBox() {
+			return this.bBox;
+		}
+		
+		public TextContent getContent() {
+			return this.content;
+		}
+		
+		public boolean mergeLob(TextLob next) {
+			if (next == null) {
+				return false;
+			}
 			
-			public Rectangle getBBox(int begin) {
-				return this.getBBox(begin, this.length);
+			Rectangle rect = next.getBoundingBox();
+			int dh = Math.abs(this.getBoundingBox().y - rect.y);
+			if (dh <= rect.height) {
+				this.text += next.text;
+				this.bBox = this.bBox.union(rect);
+				return true;
 			}
-			public Rectangle getBBox(int begin, int end) {
-				Area area = new Area();
-		    	if (this.shapeArr != null) {
-		    		for (int i = begin; i < end; i++) {
-		    			Shape s = this.shapeArr[i];
-		    			if (s == null) {
-		    				break;
-		    			}
-		    			if (s instanceof GeneralPath) {
-		    				area.add(new Area(((GeneralPath) s).getBounds()));
-		    			} else {
-		    				area.add(new Area(s));    				
-		    			}
-		        	}
-		    	}
-		    	return area.getBounds();
-			}
+			return false;
+		}
+	}
+	
+	public static class TextSpan {
+		String text;
+		int begin;
+		int length;
+		Shape[] shapeArr;
+		TextContent textContent;
+		
+		public Rectangle getBBox(int begin) {
+			return this.getBBox(begin, this.length);
+		}
+		
+		public Rectangle getBBox(int begin, int end) {
+			Area area = new Area();
+	    	if (this.shapeArr != null) {
+	    		for (int i = begin; i < end; i++) {
+	    			Shape s = this.shapeArr[i];
+	    			if (s == null) {
+	    				break;
+	    			}
+	    			if (s instanceof GeneralPath) {
+	    				area.add(new Area(((GeneralPath) s).getBounds()));
+	    			} else {
+	    				area.add(new Area(s));    				
+	    			}
+	        	}
+	    	}
+	    	return area.getBounds();
 		}
 	}
 
+	public static class ImageLob {
+		
+		public int bitsPerComponent;
+		public int byteCount;
+		public String colorSpace;
+		public String decode;
+		public int height;
+		public int width;
+		public String suffix;
+
+		private Rectangle bBox;
+		
+		public ImageLob(ImageContent img) {
+			this.bitsPerComponent = img.bitsPerComponent;
+			this.byteCount = img.byteCount;
+			this.colorSpace = img.colorSpace;
+			this.decode = img.decode;
+			this.height = img.height;
+			this.width = img.width;
+			this.suffix = img.suffix;
+			
+			this.bBox = img.getOutlineArea().getBounds();
+		}
+		
+		public Rectangle getBBox() {
+			return this.bBox;
+		}
+	}
 	
-	private ImageThread imageThread;
 	public static class ImageThread {
 
 		private List<ImageContent> imageList;
 		
 		public ImageThread() {
 			this.imageList = new ArrayList<ImageContent>();
+		}
+		
+		public List<ImageLob> getImageLobList() {
+			List<ImageLob> list = new ArrayList<ImageLob>(this.imageList.size());
+			for (ImageContent img : this.imageList) {
+				list.add(new ImageLob(img));
+			}
+			return list;
 		}
 		
 		public void addImageContent(ImageContent imageContent) {
@@ -227,37 +295,4 @@ public class PageThread {
 		}
 	}
 	
-	public ImageThread getImageThread() {
-		return this.imageThread;
-	}
-	
-	private void analysis() {
-		if (this.contentList.isEmpty()) {
-			return;
-		}
-		this.textThread = new TextThread();
-		this.imageThread = new ImageThread();
-		for (int i = 0; i < this.contentList.size(); i++) {
-			PageContent content = this.contentList.get(i);
-			int x = content.getOutlineArea().getBounds().x;
-			int y = content.getOutlineArea().getBounds().y;
-
-			if (content.getType() == PageContent.Type.Text) {
-				TextContent textContent = (TextContent) content;
-				this.textThread.addTextSpan(textContent);
-			} else if (content.getType() == PageContent.Type.Path) {
-				PathContent path = (PathContent) content;
-			} else if (content.getType() == PageContent.Type.Image) {
-				ImageContent image = (ImageContent) content;
-				this.imageThread.addImageContent(image);
-			} else if (content.getType() == PageContent.Type.Annot) {
-				AnnotContent annot = (AnnotContent) content;
-			}
-		}
-
-	}
-
-	public int getPageNo() {
-		return this.pageNo;
-	}
 }

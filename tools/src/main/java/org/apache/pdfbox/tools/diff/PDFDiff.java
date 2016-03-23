@@ -150,26 +150,4 @@ public class PDFDiff {
 			throw new PDFDiffException("Page content extract failure: " + pageNo);
 		}
 	}
-	
-	private void diffPage_old(int pageNo, PDPage base, PDPage test, PDocDiffResult result) throws PDFDiffException {
-		try {
-			PageContentExtractor extractor_1 = new PageContentExtractor(base);
-			extractor_1.extract();
-			List<PageContent> basePageContents = extractor_1.getPageContentList();
-			PageContentSet basePageContentSet = new PageContentSet(pageNo, basePageContents);
-			
-			PageContentExtractor extractor_2 = new PageContentExtractor(test);
-			extractor_2.extract();
-			List<PageContent> testPageContents = extractor_2.getPageContentList();
-			PageContentSet testPageContentSet = new PageContentSet(pageNo, testPageContents);
-			
-			PageContentDiff differ = new PageContentDiff(this.setting);
-			PageDiffResult pageDiffResult = differ.diff(basePageContentSet, testPageContentSet);
-			
-			result.add(pageNo, pageDiffResult);
-		} catch (IOException e) {
-			throw new PDFDiffException("Page content extract failure: " + pageNo);
-		}
-	}
-	
 }

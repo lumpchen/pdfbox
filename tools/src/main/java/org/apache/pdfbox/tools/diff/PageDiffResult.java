@@ -39,15 +39,17 @@ public class PageDiffResult {
 		public static class Key {
 			public static String Attr_Text = "Text";
 			public static String Attr_Font = "Font";
-			public static String Attr_Font_size = "Font size";
+			public static String Attr_Font_size = "Font Size";
 			public static String Attr_Colorspace = "Colorspace";
 			public static String Attr_Color = "Color";
 			
 			public static String Attr_Width = "Width";
 			public static String Attr_Height = "Height";
-			public static String Attr_Byte_count = "Byte count";
+			public static String Attr_Byte_count = "Byte Count";
 			public static String Attr_Bits_Per_Component = "BitsPerComponent";
-			public static String Attr_Frame_size = "Frame size";
+			public static String Attr_Frame_size = "Frame Size";
+			public static String Attr_Decode = "Decode";
+			public static String Attr_Suffix = "Suffix";
 		}
 				
 		private Category category;

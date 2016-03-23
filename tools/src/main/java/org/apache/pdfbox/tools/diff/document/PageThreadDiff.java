@@ -1,7 +1,6 @@
 package org.apache.pdfbox.tools.diff.document;
 
 import java.awt.Rectangle;
-import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,9 +9,9 @@ import org.apache.pdfbox.tools.diff.PageDiffResult;
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.GraphicsStateDesc;
-import org.apache.pdfbox.tools.diff.document.PageContent.ImageContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextStateDesc;
+import org.apache.pdfbox.tools.diff.document.PageThread.ImageLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.ImageThread;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextThread;
@@ -33,35 +32,44 @@ public class PageThreadDiff {
 	}
 
 	private void diffImage(ImageThread baseImageThread, ImageThread testImageThread, PageDiffResult result) {
-		List<ImageContent> baseImageList = baseImageThread.getImageList();
-		List<ImageContent> testImageList = testImageThread.getImageList();
+		List<ImageLob> baseImageList = baseImageThread.getImageLobList();
+		List<ImageLob> testImageList = testImageThread.getImageLobList();
 		
-		List<ImageContent> testImageProcessed = new ArrayList<ImageContent>();
 		for (int i = 0; i < baseImageList.size(); i++) {
-			ImageContent baseImage = baseImageList.get(i);
-			if (i < testImageList.size()) {
-				ImageContent testImage = testImageList.get(i);
-				DiffContent diffContent = new DiffContent(DiffContent.Category.Image);
-				if (!this.diff(baseImage, testImage, diffContent)) {
-					diffContent.setBBox(baseImage.getOutlineArea().getBounds(), testImage.getOutlineArea().getBounds());
-					result.append(diffContent);
-				}
-				testImageProcessed.add(testImage);
-			} else {
-				DiffContent diffContent = new DiffContent(DiffContent.Category.Image);
-				if (!this.diff(baseImage, null, diffContent)) {
-					result.append(diffContent);
-				}
+			ImageLob baseImage = baseImageList.get(i);
+			ImageLob testImage = this.findImageLob(baseImage, testImageList);
+	
+			DiffContent diffContent = new DiffContent(DiffContent.Category.Image);
+			if (!this.diff(baseImage, testImage, diffContent)) {
+				result.append(diffContent);
+			}
+			if (testImage != null) {
+				testImageList.remove(testImage);
 			}
 		}
 		
 		// process remain images in test
+		for (ImageLob image : testImageList) {
+			DiffContent diffContent = new DiffContent(DiffContent.Category.Image);
+			if (!this.diff(null, image, diffContent)) {
+				result.append(diffContent);
+			}
+		}
 	}
 	
-	private boolean diff(ImageContent baseImage, ImageContent testImage, DiffContent entry) {
-		Area outline_1 = baseImage == null ? null : baseImage.getOutlineArea();
-		Area outline_2 = testImage == null ? null : testImage.getOutlineArea();
-		entry.setOutline(outline_1, outline_2);
+	private ImageLob findImageLob(ImageLob base, List<ImageLob> testImageList) {
+		for (ImageLob test : testImageList) {
+			if (base.getBBox().intersects(test.getBBox())) {
+				return test;
+			}
+		}
+		return null;
+	}
+	
+	private boolean diff(ImageLob baseImage, ImageLob testImage, DiffContent entry) {
+		Rectangle bbox_1 = baseImage == null ? null : baseImage.getBBox();
+		Rectangle bbox_2 = testImage == null ? null : testImage.getBBox();
+		entry.setBBox(bbox_1, bbox_2);
 		boolean result = true;
 		
 		Integer val_1 = baseImage == null ? null : baseImage.width;
@@ -87,12 +95,28 @@ public class PageThreadDiff {
 		equals = diff(val_1, val_2);
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Bits_Per_Component, equals, val_1, val_2);
-		
-		Rectangle baseRect = baseImage.getOutlineArea().getBounds();
-		Rectangle testRect = testImage.getOutlineArea().getBounds();
-		equals = baseRect.equals(testRect);
+
+		String s_1 = baseImage == null ? null : baseImage.suffix;
+		String s_2 = testImage == null ? null : testImage.suffix;
+		equals = diff(s_1, s_2);
 		result &= equals;
-		entry.putAttr(DiffContent.Key.Attr_Frame_size, equals, baseRect.toString(), testRect.toString());
+		entry.putAttr(DiffContent.Key.Attr_Suffix, equals, s_1, s_2);
+		
+		s_1 = baseImage == null ? null : baseImage.decode;
+		s_2 = testImage == null ? null : testImage.decode;
+		equals = diff(s_1, s_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Decode, equals, s_1, s_2);
+		
+		Rectangle baseRect = baseImage == null ? null : baseImage.getBBox();
+		Rectangle testRect = testImage == null ? null : testImage.getBBox();
+		if (baseRect != null) {
+			equals = baseRect.equals(testRect);
+		} else {
+			equals = false;
+		}
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Frame_size, equals, asString(baseRect), asString(testRect));
 		
 		return result;
 	}
@@ -220,6 +244,7 @@ public class PageThreadDiff {
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Color, equals, val_1, val_2);
 		
+		
 		return result;
 	}
 	
@@ -318,5 +343,20 @@ public class PageThreadDiff {
 			return s2.equals(s1);
 		}
 		return true;
+	}
+	
+	private static String asString(Rectangle rect) {
+		if (rect == null) {
+			return "";
+		}
+		StringBuilder buf = new StringBuilder();
+		buf.append("x=" + rect.x);
+		buf.append(", ");
+		buf.append("y=" + rect.y);
+		buf.append(", ");
+		buf.append("width=" + rect.width);
+		buf.append(", ");
+		buf.append("height=" + rect.height);
+		return buf.toString();
 	}
 }

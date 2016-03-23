@@ -157,7 +157,6 @@ function updateAttributeTable(item) {
 		cell.appendChild(text);
 		if (!attr.Equals) {
 			cell.style.color = "#FF0000";
-		} else {
 		}
 		
 		var cell = attrRow.insertCell(1);
@@ -165,7 +164,6 @@ function updateAttributeTable(item) {
 		cell.appendChild(text);
 		if (!attr.Equals) {
 			cell.style.color = "#FF0000";
-		} else {
 		}
 		
 		var cell = attrRow.insertCell(2);
@@ -173,7 +171,6 @@ function updateAttributeTable(item) {
 		cell.appendChild(text);
 		if (!attr.Equals) {
 			cell.style.color = "#FF0000";
-		} else {
 		}
 	}
 }
@@ -323,9 +320,9 @@ function drawContentOutline(category, outline, ctx, canvasWidth, canvasHeight, s
 	ctx.lineWidth = "1";
 	ctx.moveTo(0, y);
 	ctx.lineTo(canvasWidth, y);
-	ctx.font = "12pt Calibri";
+	ctx.font = "16pt Calibri";
 	ctx.fillStyle = 'red';
-	ctx.fillText("x:" + x + " y:" + y, 0, y);
+	ctx.fillText("x:" + outline[0] + " y:" + outline[1], 0, y);
 	ctx.stroke();
 	
 	ctx.restore();
