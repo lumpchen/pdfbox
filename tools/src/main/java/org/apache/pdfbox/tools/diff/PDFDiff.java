@@ -45,7 +45,6 @@ public class PDFDiff {
 			
 			this.diffPDoc(baselinePDF, testPDF, result);
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new PDFDiffException("Diff error: ", e);
 		} finally {
 			if (baselinePDF != null) {
@@ -80,6 +79,8 @@ public class PDFDiff {
 		result.getTestDocumentInfo().setImageSuffix(setting.previewImageFormat);
         try {
             for (int i = 0; i < pageNum_1; i++) {
+            	DiffLogger.getInstance().info("Compare page " + (i + 1) + " in " + pageNum_1);
+            	
                 PDPage page_1 = base.getPage(i);
                 PDPage page_2 = test.getPage(i);
                 this.diffPage(i, page_1, page_2, result);

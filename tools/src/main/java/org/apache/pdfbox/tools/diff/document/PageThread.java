@@ -106,8 +106,10 @@ public class PageThread {
 			span.textContent = textContent;
 			span.shapeArr = new Shape[span.length];
 			List<Shape> shapeList = textContent.getOutlineShapeList();
-			for (int i = 0; i < shapeList.size(); i++) {
-				span.shapeArr[i] = shapeList.get(i);
+			if (shapeList != null) {
+				for (int i = 0; i < shapeList.size(); i++) {
+					span.shapeArr[i] = shapeList.get(i);
+				}	
 			}
 			this.textSpanList.add(span);
 			
