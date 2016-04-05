@@ -8,14 +8,12 @@ import org.apache.pdfbox.tools.diff.name.fraser.neil.plaintext.diff_match_patch.
 public class TextDiffUtil {
 
 	public static LinkedList<Diff> diffText(String s1, String s2) {
-		System.out.println(s1);
-		System.out.println(s2);
 		diff_match_patch textDiff = new diff_match_patch();
 		LinkedList<Diff> diffs = textDiff.diff_main(s1, s2);
 		textDiff.diff_cleanupEfficiency(diffs);
-		for (Diff diff : diffs) {
-			System.out.println(diff);
-		}
+//		for (Diff diff : diffs) {
+//			System.out.println(diff);
+//		}
 		return diffs;
 	}
 

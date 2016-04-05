@@ -11,11 +11,11 @@ public class DiffLogger {
 	}
 	
 	public void error(String msg) {
-		System.out.println(msg);
+		System.err.println(msg);
 	}
 	
 	public void warn(String msg) {
-		System.out.println(msg);
+		System.err.println(msg);
 	}
 	
 	public void error(Throwable t) {

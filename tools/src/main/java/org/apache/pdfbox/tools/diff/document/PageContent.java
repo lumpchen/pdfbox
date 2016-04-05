@@ -334,9 +334,20 @@ public abstract class PageContent {
 		public String annotName;
 		public String annotContents;
 		
+		private List<PageContent> appearenceContents;
+		
 		public AnnotContent() {
 			super();
 			this.type = Type.Annot;
+			this.appearenceContents = new ArrayList<PageContent>();
+		}
+		
+		public void addAppearanceContent(PageContent content) {
+			this.appearenceContents.add(content);
+		}
+		
+		public PageContent[] getAppearanceContents() {
+			return this.appearenceContents.toArray(new PageContent[this.appearenceContents.size()]);
 		}
 		
 		@Override

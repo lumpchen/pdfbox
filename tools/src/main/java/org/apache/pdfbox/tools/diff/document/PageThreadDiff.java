@@ -11,6 +11,7 @@ import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.GraphicsStateDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextStateDesc;
+import org.apache.pdfbox.tools.diff.document.PageThread.AnnotLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.AnnotThread;
 import org.apache.pdfbox.tools.diff.document.PageThread.ImageLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.ImageThread;
@@ -36,6 +37,84 @@ public class PageThreadDiff {
 	}
 
 	private void diffAnnot(AnnotThread baseAnnotThread, AnnotThread testAnnotThread, PageDiffResult result) {
+		List<AnnotLob> baseAnnotList = baseAnnotThread.getAnnotLobList();
+		List<AnnotLob> testAnnotList = testAnnotThread.getAnnotLobList();
+		
+		for (int i = 0; i < baseAnnotList.size(); i++) {
+			AnnotLob baseAnnot = baseAnnotList.get(i);
+			AnnotLob testAnnot = this.findAnnotLob(baseAnnot, testAnnotList);
+			
+			DiffContent diffContent = new DiffContent(DiffContent.Category.Annot);
+			if (!this.diff(baseAnnot, testAnnot, diffContent)) {
+				result.append(diffContent);
+			}
+			if (testAnnot != null) {
+				testAnnotList.remove(testAnnot);
+			}
+		}
+		
+		// process remain annots in test
+		for (AnnotLob annot : testAnnotList) {
+			DiffContent diffContent = new DiffContent(DiffContent.Category.Annot);
+			if (!this.diff(null, annot, diffContent)) {
+				result.append(diffContent);
+			}
+		}
+	}
+	
+	private AnnotLob findAnnotLob(AnnotLob base, List<AnnotLob> testAnnotList) {
+		for (AnnotLob test : testAnnotList) {
+			if (diff(base.fieldType, test.fieldType) 
+					&& diff(base.subType, test.subType)
+					//&& base.getBBox().intersects(test.getBBox())
+					) {
+				return test;
+			}
+		}
+		return null;
+	}
+	
+	private boolean diff(AnnotLob baseAnnot, AnnotLob testAnnot, DiffContent entry) {
+		Rectangle bbox_1 = baseAnnot == null ? null : baseAnnot.getBBox();
+		Rectangle bbox_2 = testAnnot == null ? null : testAnnot.getBBox();
+		entry.setBBox(bbox_1, bbox_2);
+		boolean result = true;
+		
+		String s_1 = baseAnnot == null ? null : baseAnnot.fieldType;
+		String s_2 = testAnnot == null ? null : testAnnot.fieldType;
+		boolean equals = diff(s_1, s_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_FieldType, equals, s_1, s_2);
+		
+		s_1 = baseAnnot == null ? null : baseAnnot.subType;
+		s_2 = testAnnot == null ? null : testAnnot.subType;
+		equals = diff(s_1, s_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_SubType, equals, s_1, s_2);
+		
+		s_1 = baseAnnot == null ? null : baseAnnot.annotName;
+		s_2 = testAnnot == null ? null : testAnnot.annotName;
+		equals = diff(s_1, s_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_AnnotName, equals, s_1, s_2);
+		
+		s_1 = baseAnnot == null ? null : baseAnnot.annotContents;
+		s_2 = testAnnot == null ? null : testAnnot.annotContents;
+		equals = diff(s_1, s_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_AnnotContents, equals, s_1, s_2);
+		
+		Rectangle baseRect = baseAnnot == null ? null : baseAnnot.getBBox();
+		Rectangle testRect = testAnnot == null ? null : testAnnot.getBBox();
+		if (baseRect != null) {
+			equals = baseRect.equals(testRect);
+		} else {
+			equals = false;
+		}
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Frame_size, equals, asString(baseRect), asString(testRect));
+		
+		return result;
 	}
 	
 	private void diffPath(PathThread basePathThread, PathThread testPathThread, PageDiffResult result) {

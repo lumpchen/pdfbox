@@ -50,7 +50,7 @@ public class PageThread {
 				this.imageThread.addImageContent(image);
 			} else if (content.getType() == PageContent.Type.Annot) {
 				AnnotContent annot = (AnnotContent) content;
-				this.annotThread.addPathContent(annot);
+				this.annotThread.addAnnotContent(annot);
 			}
 		}
 	}
@@ -325,6 +325,28 @@ public class PageThread {
 		}
 	}
 	
+	public static class AnnotLob {
+		public String subType;
+		public String fieldType;
+		public String annotName;
+		public String annotContents;
+		
+		private Rectangle bBox;
+		
+		public AnnotLob(AnnotContent annot) {
+			this.subType = annot.subType;
+			this.fieldType = annot.fieldType;
+			this.annotName = annot.annotName;
+			this.annotContents = annot.annotContents;
+			
+			this.bBox = annot.getOutlineArea().getBounds();
+		}
+		
+		public Rectangle getBBox() {
+			return this.bBox;
+		}
+	}
+	
 	public static class AnnotThread {
 		
 		private List<AnnotContent> annotList;
@@ -332,8 +354,17 @@ public class PageThread {
 		public AnnotThread() {
 			this.annotList = new ArrayList<AnnotContent>();
 		}
+
+		public List<AnnotLob> getAnnotLobList() {
+			List<AnnotLob> list = new ArrayList<AnnotLob>(this.annotList.size());
+			for (AnnotContent content : this.annotList) {
+				AnnotLob lob = new AnnotLob(content);
+				list.add(lob);
+			}
+			return list;
+		}
 		
-		public void addPathContent(AnnotContent annotContent) {
+		public void addAnnotContent(AnnotContent annotContent) {
 			this.annotList.add(annotContent);
 		}
 	}

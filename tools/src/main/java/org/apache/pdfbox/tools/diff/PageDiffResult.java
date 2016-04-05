@@ -50,6 +50,11 @@ public class PageDiffResult {
 			public static String Attr_Frame_size = "Frame Size";
 			public static String Attr_Decode = "Decode";
 			public static String Attr_Suffix = "Suffix";
+			
+			public static String Attr_SubType = "SubType";
+			public static String Attr_FieldType = "FieldType";
+			public static String Attr_AnnotName = "AnnotName";
+			public static String Attr_AnnotContents = "AnnotContents";
 		}
 				
 		private Category category;

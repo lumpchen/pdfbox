@@ -36,6 +36,7 @@ import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.ImageContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.PathContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
+import org.apache.pdfbox.tools.diff.document.PageContent.Type;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.Vector;
 
@@ -62,11 +63,23 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 			showAnnotation(annotation);
 		}
 	}
-	
+
 	public List<PageContent> getPageContentList() {
 		return this.contentList;
 	}
 
+	private void addToContentList(PageContent content) {
+		if (!this.runtimePageContentStack.isEmpty()) {
+			PageContent last = this.runtimePageContentStack.peek();
+			if (last.getType() == Type.Annot) {
+				((AnnotContent) last).addAppearanceContent(content);
+				return;
+			}
+		}
+		
+		this.contentList.add(content);
+	}
+	
 	@Override
 	public void showAnnotation(PDAnnotation annotation) throws IOException {
 		this.beginAnnot(annotation);
@@ -171,7 +184,7 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		this.fillPath((GeneralPath) this.getLinePath().clone(), true, windingRule);
 	}
 
-	void fillPath(GeneralPath path, boolean mark, int windingRule) throws IOException {
+	private void fillPath(GeneralPath path, boolean mark, int windingRule) throws IOException {
 		if (mark) {
 			this.markPathContent();
 		}
@@ -185,7 +198,8 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		
 		GeneralPath gpath = (GeneralPath) this.getLinePath().clone();
 		this.markPath(gpath);
-		this.contentList.add(this.runtimePageContentStack.pop());
+//		this.contentList.add(this.runtimePageContentStack.pop());
+		this.addToContentList(this.runtimePageContentStack.pop());
 	}
 
 	@Override
@@ -209,7 +223,8 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
     		return;
     	}
     	PageContent content = this.runtimePageContentStack.pop();
-    	this.contentList.add(content);
+    	//this.contentList.add(content);
+    	this.addToContentList(content);
     }
     
 	@Override
@@ -324,7 +339,8 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		}
 		
 		this.markPath(outline);
-		this.contentList.add(this.runtimePageContentStack.pop());
+//		this.contentList.add(this.runtimePageContentStack.pop());
+		this.addToContentList(this.runtimePageContentStack.pop());
 		
 	}
 
