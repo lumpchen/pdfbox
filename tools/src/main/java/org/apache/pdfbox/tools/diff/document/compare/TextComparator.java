@@ -8,9 +8,8 @@ import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextThread;
-import org.apache.pdfbox.tools.diff.document.TextDiffUtil;
-import org.apache.pdfbox.tools.diff.name.fraser.neil.plaintext.diff_match_patch.Diff;
-import org.apache.pdfbox.tools.diff.name.fraser.neil.plaintext.diff_match_patch.Operation;
+import org.apache.pdfbox.tools.diff.document.compare.name.fraser.neil.plaintext.diff_match_patch.Diff;
+import org.apache.pdfbox.tools.diff.document.compare.name.fraser.neil.plaintext.diff_match_patch.Operation;
 
 public class TextComparator extends BaseObjectComparator {
 	

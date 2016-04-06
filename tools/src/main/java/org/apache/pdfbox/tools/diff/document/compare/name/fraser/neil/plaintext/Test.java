@@ -1,8 +1,8 @@
-package org.apache.pdfbox.tools.diff.name.fraser.neil.plaintext;
+package org.apache.pdfbox.tools.diff.document.compare.name.fraser.neil.plaintext;
 
 import java.util.LinkedList;
 
-import org.apache.pdfbox.tools.diff.name.fraser.neil.plaintext.diff_match_patch.Diff;
+import org.apache.pdfbox.tools.diff.document.compare.name.fraser.neil.plaintext.diff_match_patch.Diff;
 
 public class Test {
 

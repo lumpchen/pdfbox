@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package org.apache.pdfbox.tools.diff.name.fraser.neil.plaintext;
+package org.apache.pdfbox.tools.diff.document.compare.name.fraser.neil.plaintext;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
