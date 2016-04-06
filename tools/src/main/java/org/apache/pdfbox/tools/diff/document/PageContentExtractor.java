@@ -401,6 +401,11 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		if (annot.getCOSObject().getCOSName(COSName.FT) != null) {
 			content.fieldType = annot.getCOSObject().getCOSName(COSName.FT).getName();			
 		}
+		
+		if (annot.getRectangle() != null) {
+			GeneralPath rect = annot.getRectangle().toGeneralPath();
+			content.addOutlineShape(rect);
+		}
 		content.annotName = annot.getCOSObject().getString(COSName.T);
 		content.annotContents = annot.getCOSObject().getString(COSName.TU);
 	}

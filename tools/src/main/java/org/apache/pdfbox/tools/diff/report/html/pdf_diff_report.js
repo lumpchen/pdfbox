@@ -205,6 +205,28 @@ function findDiffReport(pageNo) {
 				var newItem = {"text" : text, "item" : item};
 				imageNodes.push(newItem);
 			}
+			
+			// update Path node
+			tree[0].nodes[2].tags = [result.Path.length];
+			for (var j = 0; j < result.Path.length; j++) {
+				var item = result.Path[j];
+				var text = "Path-" + j;
+				
+				var annotNodes = tree[0].nodes[3].nodes;
+				var newItem = {"text" : text, "item" : item};
+				pathNodes.push(newItem);
+			}
+			
+			// update Image node
+			tree[0].nodes[3].tags = [result.Annot.length];
+			for (var j = 0; j < result.Annot.length; j++) {
+				var item = result.Annot[j];
+				var text = "Annot-" + j;
+				
+				var annotNodes = tree[0].nodes[3].nodes;
+				var newItem = {"text" : text, "item" : item};
+				annotNodes.push(newItem);
+			}
 		}
 	}
 }

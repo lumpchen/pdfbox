@@ -189,6 +189,12 @@ public class PageThread {
 		private Rectangle bBox;
 		private TextContent content;
 
+		public TextLob(TextContent content) {
+			this.content = content;
+			this.text = content.getText();
+			this.bBox = content.getOutlineArea().getBounds();
+		}
+		
 		public TextLob(String text, Rectangle bBox) {
 			this.text = text;
 			this.bBox = bBox;
@@ -332,6 +338,7 @@ public class PageThread {
 		public String annotContents;
 		
 		private Rectangle bBox;
+		private List<Object> appearanceLobs;
 		
 		public AnnotLob(AnnotContent annot) {
 			this.subType = annot.subType;
@@ -340,11 +347,24 @@ public class PageThread {
 			this.annotContents = annot.annotContents;
 			
 			this.bBox = annot.getOutlineArea().getBounds();
+			PageContent[] children = annot.getAppearanceContents();
+			this.appearanceLobs = new ArrayList<Object>(children.length);
+			
+			for (PageContent content : children) {
+				if (content.type == PageContent.Type.Text) {
+					TextLob textLob = new TextLob((TextContent) content);
+					this.appearanceLobs.add(textLob);
+				} else if (content.type == PageContent.Type.Image) {
+					ImageLob imageLob = new ImageLob((ImageContent) content);
+					this.appearanceLobs.add(imageLob);
+				}
+			}
 		}
 		
 		public Rectangle getBBox() {
 			return this.bBox;
 		}
+		
 	}
 	
 	public static class AnnotThread {
@@ -369,3 +389,4 @@ public class PageThread {
 		}
 	}
 }
+

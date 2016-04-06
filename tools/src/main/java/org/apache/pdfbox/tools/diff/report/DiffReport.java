@@ -248,6 +248,8 @@ public class DiffReport {
 		
 		JSONArray textArr = new JSONArray();
 		JSONArray imageArr = new JSONArray();
+		JSONArray pathArr = new JSONArray();
+		JSONArray annotArr = new JSONArray();
 		for (DiffContent content : contentList) {
 			JSONObject obj = this.toJSon(content);
 			if (content.getCategory() == DiffContent.Category.Text) {
@@ -257,9 +259,19 @@ public class DiffReport {
 			if (content.getCategory() == DiffContent.Category.Image) {
 				imageArr.put(obj);
 			}
+			
+			if (content.getCategory() == DiffContent.Category.Path) {
+				pathArr.put(obj);
+			}
+			
+			if (content.getCategory() == DiffContent.Category.Annot) {
+				annotArr.put(obj);
+			}
 		}
 		json.put(DiffContent.Category.Text.text, textArr);
 		json.put(DiffContent.Category.Image.text, imageArr);
+		json.put(DiffContent.Category.Path.text, imageArr);
+		json.put(DiffContent.Category.Annot.text, annotArr);
 		return json;
 	}
 	
