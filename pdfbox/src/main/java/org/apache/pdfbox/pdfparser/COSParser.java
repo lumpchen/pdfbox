@@ -836,15 +836,12 @@ public class COSParser extends BaseParser
                     throw exception;
                 }
             }
-
-            // get set of object numbers referenced for this object stream
-            final Set<Long> refObjNrs = xrefTrailerResolver.getContainedObjectNumbers(objstmObjNr);
-
             // register all objects which are referenced to be contained in object stream
             for (COSObject next : parser.getObjects())
             {
                 COSObjectKey stmObjKey = new COSObjectKey(next);
-                if (refObjNrs.contains(stmObjKey.getNumber()))
+                Long offset = xrefTrailerResolver.getXrefTable().get(stmObjKey); 
+                if (offset != null && offset == -objstmObjNr)
                 {
                     COSObject stmObj = document.getObjectFromPool(stmObjKey);
                     stmObj.setObject(next.getObject());
