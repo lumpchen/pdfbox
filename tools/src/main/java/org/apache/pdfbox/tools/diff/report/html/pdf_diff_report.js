@@ -212,7 +212,7 @@ function findDiffReport(pageNo) {
 				var item = result.Path[j];
 				var text = "Path-" + j;
 				
-				var annotNodes = tree[0].nodes[3].nodes;
+				var pathNodes = tree[0].nodes[2].nodes;
 				var newItem = {"text" : text, "item" : item};
 				pathNodes.push(newItem);
 			}
