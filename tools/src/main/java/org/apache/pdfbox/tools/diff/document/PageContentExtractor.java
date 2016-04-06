@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Stack;
 
 import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
+import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDCIDFontType0;
@@ -398,16 +399,37 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 	private void markAnnot(PDAnnotation annot, AnnotContent content) {
 		content.subType = annot.getSubtype();
 		
-		if (annot.getCOSObject().getCOSName(COSName.FT) != null) {
-			content.fieldType = annot.getCOSObject().getCOSName(COSName.FT).getName();			
+		COSDictionary parent = null;
+		if (annot.getCOSObject().getDictionaryObject(COSName.PARENT) != null) {
+			parent = (COSDictionary) annot.getCOSObject().getDictionaryObject(COSName.PARENT);			
+		}
+		
+		if (annot.getCOSObject().getCOSName(COSName.FT) == null) {
+			if (parent != null) {
+				content.fieldType = parent.getCOSName(COSName.FT).getName();	
+			}
+		} else {
+			content.fieldType = annot.getCOSObject().getCOSName(COSName.FT).getName();
 		}
 		
 		if (annot.getRectangle() != null) {
 			GeneralPath rect = annot.getRectangle().toGeneralPath();
 			content.addOutlineShape(rect);
 		}
+		
 		content.annotName = annot.getCOSObject().getString(COSName.T);
+		if (content.annotName == null) {
+			if (parent != null) {
+				content.annotName = parent.getString(COSName.T);	
+			}
+		}
+		
 		content.annotContents = annot.getCOSObject().getString(COSName.TU);
+		if (content.annotContents == null) {
+			if (parent != null) {
+				content.annotContents = parent.getString(COSName.TU);	
+			}
+		}
 	}
 	
 	private static void toColorDesc(PDColor pdColor, ColorDesc colorDesc) {

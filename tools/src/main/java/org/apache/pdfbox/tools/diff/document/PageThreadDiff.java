@@ -12,10 +12,10 @@ import org.apache.pdfbox.tools.diff.document.PageContent.GraphicsStateDesc;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextStateDesc;
 import org.apache.pdfbox.tools.diff.document.PageThread.AnnotLob;
-import org.apache.pdfbox.tools.diff.document.PageThread.AnnotThread;
+import org.apache.pdfbox.tools.diff.document.PageThread.AnnotSet;
 import org.apache.pdfbox.tools.diff.document.PageThread.ImageLob;
-import org.apache.pdfbox.tools.diff.document.PageThread.ImageThread;
-import org.apache.pdfbox.tools.diff.document.PageThread.PathThread;
+import org.apache.pdfbox.tools.diff.document.PageThread.ImageSet;
+import org.apache.pdfbox.tools.diff.document.PageThread.PathSet;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextThread;
 import org.apache.pdfbox.tools.diff.name.fraser.neil.plaintext.diff_match_patch.Diff;
@@ -29,16 +29,16 @@ public class PageThreadDiff {
 	public PageDiffResult diff(PageThread basePage, PageThread testPage) {
 		PageDiffResult result = new PageDiffResult();
 		this.diffText(basePage.getTextThread(), testPage.getTextThread(), result);
-		this.diffImage(basePage.getImageThread(), testPage.getImageThread(), result);
-		this.diffPath(basePage.getPathThread(), testPage.getPathThread(), result);
-		this.diffAnnot(basePage.getAnnotThread(), testPage.getAnnotThread(), result);
+		this.diffImage(basePage.getImageSet(), testPage.getImageSet(), result);
+		this.diffPath(basePage.getPathSet(), testPage.getPathSet(), result);
+		this.diffAnnot(basePage.getAnnotSet(), testPage.getAnnotSet(), result);
 		
 		return result;
 	}
 
-	private void diffAnnot(AnnotThread baseAnnotThread, AnnotThread testAnnotThread, PageDiffResult result) {
-		List<AnnotLob> baseAnnotList = baseAnnotThread.getAnnotLobList();
-		List<AnnotLob> testAnnotList = testAnnotThread.getAnnotLobList();
+	private void diffAnnot(AnnotSet baseAnnotSet, AnnotSet testAnnotSet, PageDiffResult result) {
+		List<AnnotLob> baseAnnotList = baseAnnotSet.getAnnotLobList();
+		List<AnnotLob> testAnnotList = testAnnotSet.getAnnotLobList();
 		
 		for (int i = 0; i < baseAnnotList.size(); i++) {
 			AnnotLob baseAnnot = baseAnnotList.get(i);
@@ -66,7 +66,7 @@ public class PageThreadDiff {
 		for (AnnotLob test : testAnnotList) {
 			if (diff(base.fieldType, test.fieldType) 
 					&& diff(base.subType, test.subType)
-					//&& base.getBBox().intersects(test.getBBox())
+					&& base.getBBox().intersects(test.getBBox())
 					) {
 				return test;
 			}
@@ -114,15 +114,16 @@ public class PageThreadDiff {
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Frame_size, equals, asString(baseRect), asString(testRect));
 		
+		
 		return result;
 	}
 	
-	private void diffPath(PathThread basePathThread, PathThread testPathThread, PageDiffResult result) {
+	private void diffPath(PathSet basePathSet, PathSet testPathSet, PageDiffResult result) {
 	}
 	
-	private void diffImage(ImageThread baseImageThread, ImageThread testImageThread, PageDiffResult result) {
-		List<ImageLob> baseImageList = baseImageThread.getImageLobList();
-		List<ImageLob> testImageList = testImageThread.getImageLobList();
+	private void diffImage(ImageSet baseImageSet, ImageSet testImageSet, PageDiffResult result) {
+		List<ImageLob> baseImageList = baseImageSet.getImageLobList();
+		List<ImageLob> testImageList = testImageSet.getImageLobList();
 		
 		for (int i = 0; i < baseImageList.size(); i++) {
 			ImageLob baseImage = baseImageList.get(i);

@@ -21,6 +21,15 @@ public class PageDiffResult {
 		this.contentList.add(entry);
 	}
 	
+	public void append(DiffContent[] entries) {
+		if (entries == null || entries.length == 0) {
+			return;
+		}
+		for (DiffContent entry : entries) {
+			this.append(entry);
+		}
+	}
+	
 	public List<DiffContent> getContentList() {
 		return this.contentList;
 	}
@@ -55,10 +64,15 @@ public class PageDiffResult {
 			public static String Attr_FieldType = "FieldType";
 			public static String Attr_AnnotName = "AnnotName";
 			public static String Attr_AnnotContents = "AnnotContents";
+			public static String Attr_Annot_Rect = "Rectangle";
+			public static String Attr_Annot_Appearance = "Appearance";
 		}
 				
 		private Category category;
 		private List<ContentAttr> contentAttrList;
+		private Area baseOutline;
+		private Area testOutline;
+		private Rectangle baseBBox, testBBox;
 		
 		public DiffContent(Category category) {
 			this.category = category;
@@ -73,8 +87,6 @@ public class PageDiffResult {
 			return this.contentAttrList;
 		}
 		
-		private Area baseOutline;
-		private Area testOutline;
 		public void setOutline(Area baseOutline, Area testOutline) {
 			this.baseOutline = baseOutline;
 			this.testOutline = testOutline;
@@ -94,8 +106,6 @@ public class PageDiffResult {
 			return null;
 		}
 		
-		
-		private Rectangle baseBBox, testBBox;
 		public void setBBox(Rectangle baseBBox, Rectangle testBBox) {
 			this.baseBBox = baseBBox;
 			this.testBBox = testBBox;

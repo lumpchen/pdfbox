@@ -14,28 +14,26 @@ import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 
 public class PageThread {
 
-	private int pageNo;
 	private List<PageContent> contentList;
 	private TextThread textThread;
-	private ImageThread imageThread;
-	private PathThread pathThread;
-	private AnnotThread annotThread;
+	private ImageSet imageSet;
+	private PathSet pathSet;
+	private AnnotSet annotSet;
 
-	public PageThread(int pageNo, List<PageContent> contentList) {
-		this.pageNo = pageNo;
+	public PageThread(List<PageContent> contentList) {
 		this.contentList = contentList;
 		this.analysis();
 	}
 
 	private void analysis() {
+		this.textThread = new TextThread();
+		this.imageSet = new ImageSet();
+		this.pathSet = new PathSet();
+		this.annotSet = new AnnotSet();
+		
 		if (this.contentList.isEmpty()) {
 			return;
 		}
-		this.textThread = new TextThread();
-		this.imageThread = new ImageThread();
-		this.pathThread = new PathThread();
-		this.annotThread = new AnnotThread();
-		
 		for (int i = 0; i < this.contentList.size(); i++) {
 			PageContent content = this.contentList.get(i);
 
@@ -44,35 +42,31 @@ public class PageThread {
 				this.textThread.addTextSpan(textContent);
 			} else if (content.getType() == PageContent.Type.Path) {
 				PathContent path = (PathContent) content;
-				this.pathThread.addPathContent(path);
+				this.pathSet.addPathContent(path);
 			} else if (content.getType() == PageContent.Type.Image) {
 				ImageContent image = (ImageContent) content;
-				this.imageThread.addImageContent(image);
+				this.imageSet.addImageContent(image);
 			} else if (content.getType() == PageContent.Type.Annot) {
 				AnnotContent annot = (AnnotContent) content;
-				this.annotThread.addAnnotContent(annot);
+				this.annotSet.addAnnotContent(annot);
 			}
 		}
-	}
-	
-	public int getPageNo() {
-		return this.pageNo;
 	}
 	
 	public TextThread getTextThread() {
 		return this.textThread;
 	}
 	
-	public ImageThread getImageThread() {
-		return this.imageThread;
+	public ImageSet getImageSet() {
+		return this.imageSet;
 	}
 	
-	public PathThread getPathThread() {
-		return this.pathThread;
+	public PathSet getPathSet() {
+		return this.pathSet;
 	}
 	
-	public AnnotThread getAnnotThread() {
-		return this.annotThread;
+	public AnnotSet getAnnotSet() {
+		return this.annotSet;
 	}
 	
 	public static class TextThread {
@@ -293,11 +287,11 @@ public class PageThread {
 		}
 	}
 	
-	public static class ImageThread {
+	public static class ImageSet {
 
 		private List<ImageContent> imageList;
 		
-		public ImageThread() {
+		public ImageSet() {
 			this.imageList = new ArrayList<ImageContent>();
 		}
 		
@@ -318,11 +312,11 @@ public class PageThread {
 		}
 	}
 	
-	public static class PathThread {
+	public static class PathSet {
 		
 		private List<PathContent> pathList;
 		
-		public PathThread() {
+		public PathSet() {
 			this.pathList = new ArrayList<PathContent>();
 		}
 		
@@ -338,7 +332,7 @@ public class PageThread {
 		public String annotContents;
 		
 		private Rectangle bBox;
-		private List<Object> appearanceLobs;
+		private PageContent[] appearance;
 		
 		public AnnotLob(AnnotContent annot) {
 			this.subType = annot.subType;
@@ -347,31 +341,27 @@ public class PageThread {
 			this.annotContents = annot.annotContents;
 			
 			this.bBox = annot.getOutlineArea().getBounds();
-			PageContent[] children = annot.getAppearanceContents();
-			this.appearanceLobs = new ArrayList<Object>(children.length);
-			
-			for (PageContent content : children) {
-				if (content.type == PageContent.Type.Text) {
-					TextLob textLob = new TextLob((TextContent) content);
-					this.appearanceLobs.add(textLob);
-				} else if (content.type == PageContent.Type.Image) {
-					ImageLob imageLob = new ImageLob((ImageContent) content);
-					this.appearanceLobs.add(imageLob);
-				}
-			}
+			this.appearance = annot.getAppearanceContents();
 		}
 		
 		public Rectangle getBBox() {
 			return this.bBox;
 		}
-		
+
+		public List<PageContent> getAppearance() {
+			List<PageContent> contentList = new ArrayList<PageContent>(this.appearance.length);
+			for (PageContent content : this.appearance) {
+				contentList.add(content);
+			}
+			return contentList;
+		}
 	}
 	
-	public static class AnnotThread {
+	public static class AnnotSet {
 		
 		private List<AnnotContent> annotList;
 		
-		public AnnotThread() {
+		public AnnotSet() {
 			this.annotList = new ArrayList<AnnotContent>();
 		}
 
