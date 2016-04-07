@@ -16,8 +16,6 @@ import org.apache.pdfbox.tools.diff.PDocDiffResult.PageInfo;
 import org.apache.pdfbox.tools.diff.PageDiffResult;
 import org.apache.pdfbox.tools.diff.PageDiffResult.ContentAttr;
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
-import org.apache.pdfbox.tools.diff.document.PageContent;
-import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -27,10 +25,9 @@ public class DiffReport {
 	
 	private static final String diff_page_count_placeholder = "&diff_page_count&";
 	private static final String diff_page_nums_placeholder = "&diff_page_nums&";
-	private static final String base_pdf_json_placeholder = "&base_pdf_json&";
-	private static final String test_pdf_json_placeholder = "&test_pdf_json&";
-	
-	private static final String diff_content_json_placeholder = "&diff_content_json&";
+	private static final String base_pdf_json_obj_placeholder = "&base_pdf_json_obj&";
+	private static final String test_pdf_json_obj_placeholder = "&test_pdf_json_obj&";
+	private static final String diff_content_json_obj_placeholder = "&diff_content_json_obj&";
 	
 	private File imageDir;
 	private File baseDir;
@@ -184,14 +181,15 @@ public class DiffReport {
 		buf.append("]");
 		s = s.replaceFirst(diff_page_nums_placeholder, buf.toString());
 		
-		String base_pdf_json = this.toJSon(result.getBaseDocumentInfo()).toString();
-		s = s.replaceFirst(base_pdf_json_placeholder, "\'" + base_pdf_json + "\'");
+		String base_pdf_json = this.toJSon(result.getBaseDocumentInfo()).toString(4);
+		s = s.replace(base_pdf_json_obj_placeholder, base_pdf_json);
 		
-		String test_pdf_json = this.toJSon(result.getTestDocumentInfo()).toString();
-		s = s.replaceFirst(test_pdf_json_placeholder, "\'" + test_pdf_json + "\'");
+		String test_pdf_json = this.toJSon(result.getTestDocumentInfo()).toString(4);
+		s = s.replace(test_pdf_json_obj_placeholder, test_pdf_json);
 		
-		String diff_content_json = this.toJSon(result).toString();
-		s = s.replaceFirst(diff_content_json_placeholder, "\'" + diff_content_json + "\'");
+		String diff_content_json = this.toJSon(result).toString(4);
+		s = s.replace(diff_content_json_obj_placeholder, diff_content_json);
+		
 		return s;
 	}
 	
@@ -270,7 +268,7 @@ public class DiffReport {
 		}
 		json.put(DiffContent.Category.Text.text, textArr);
 		json.put(DiffContent.Category.Image.text, imageArr);
-		json.put(DiffContent.Category.Path.text, imageArr);
+		json.put(DiffContent.Category.Path.text, pathArr);
 		json.put(DiffContent.Category.Annot.text, annotArr);
 		return json;
 	}

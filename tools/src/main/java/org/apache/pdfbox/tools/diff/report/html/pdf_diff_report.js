@@ -2,13 +2,9 @@
 var diff_page_count = &diff_page_count&;
 var diff_page_nums = &diff_page_nums&;
 
-var base_pdf_json = &base_pdf_json&;
-var test_pdf_json = &test_pdf_json&;
-var diff_content_json = &diff_content_json&;
-
-var base_pdf_json_obj = JSON.parse(base_pdf_json);
-var test_pdf_json_obj = JSON.parse(test_pdf_json);
-var diff_content_json_obj = JSON.parse(diff_content_json);
+var base_pdf_json_obj = &base_pdf_json_obj&;
+var test_pdf_json_obj = &test_pdf_json_obj&;
+var diff_content_json_obj = &diff_content_json_obj&;
 
 var Base_Stroke_Color = "red";
 var Test_Stroke_Color = "red";

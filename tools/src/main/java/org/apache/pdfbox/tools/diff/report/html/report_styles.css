@@ -1,3 +1,8 @@
+h1 {
+  margin: .2em 0;
+  font-size: 2em;
+}
+
 .flat-table {
 	display: block;
 	font-family: sans-serif;

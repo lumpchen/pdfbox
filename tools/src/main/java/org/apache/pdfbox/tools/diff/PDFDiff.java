@@ -145,7 +145,7 @@ public class PDFDiff {
 			
 			result.add(pageNo, pageDiffResult);
 		} catch (IOException e) {
-			throw new PDFDiffException("Page content extract failure: " + pageNo);
+			throw new PDFDiffException("Page content extract failure: " + pageNo, e);
 		}
 	}
 }

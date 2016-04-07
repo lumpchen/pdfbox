@@ -10,11 +10,19 @@ import org.apache.pdfbox.tools.diff.report.DiffReport;
 public class PDFDiffTest {
 
 	public static void main(String[] args) {
-		diff(args[0], args[1]);
+		if (args.length == 2) {
+			diff(args[0], args[1], "C:/uatest/report");
+		} else {
+			diff_folder(args[0], args[1], args[2]);			
+		}
 	}
 	
-	private static void diff(String base, String test) {
-		PDFDiff differ = new PDFDiff(new File(base), new File(test), DiffSetting.getDefaultSetting());
+	private static void diff(String base, String test, String reportDir) {
+		diff(new File(base), new File(test), new File(reportDir));
+	}
+	
+	private static void diff(File base, File test, File reportDir) {
+		PDFDiff differ = new PDFDiff(base, test, DiffSetting.getDefaultSetting());
 		try {
 			PDocDiffResult result = differ.diff();
 			
@@ -35,12 +43,39 @@ public class PDFDiffTest {
 					}
 				}
 			}
-			DiffReport report = new DiffReport(new File("C:/uatest/report"), "report", result);
+			DiffReport report = new DiffReport(reportDir, "report", result);
 			report.toHtml();
 		} catch (PDFDiffException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private static void diff_folder(String base, String test, String report) {
+		File baseDir = new File(base);
+		File testDir = new File(test);
+		File reportDir = new File(report);
+		
+		File[] baseFiles = baseDir.listFiles();
+		for (File baseFile : baseFiles) {
+			String name = baseFile.getName();
+			File testFile = new File(testDir, name);
+			if (!testFile.exists()) {
+				continue;
+			}
+			
+			File reportFile = new File(reportDir, name);
+			
+			if (!reportFile.exists()) {
+				if (reportFile.mkdirs()) {
+					System.out.println("Compare PDF: " + name);
+					diff(baseFile, testFile, reportFile);				
+				}				
+			} else {
+				System.out.println("Compare PDF: " + name);
+				diff(baseFile, testFile, reportFile);
+			}
 		}
 	}
 }
