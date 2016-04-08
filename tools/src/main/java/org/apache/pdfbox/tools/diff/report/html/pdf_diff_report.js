@@ -171,7 +171,16 @@ function updateAttributeTable(item) {
 	}
 }
 
-function findDiffReport(pageNo) {
+function initTreeData(pageNo) {
+	tree[0].nodes[0].nodes.length = 0;
+	tree[0].nodes[0].tags = [0]; // Text
+	tree[0].nodes[1].nodes.length = 0;
+	tree[0].nodes[1].tags = [0]; // Image
+	tree[0].nodes[2].nodes.length = 0;
+	tree[0].nodes[2].tags = [0]; // Path
+	tree[0].nodes[3].nodes.length = 0;
+	tree[0].nodes[3].tags = [0]; // Annot
+	
 	for (i = 0; i < diff_content_json_obj.length; i++) {
 		var num = diff_content_json_obj[i].PageNo;
 		tree[0].nodes[0].nodes.length = 0;
@@ -242,7 +251,7 @@ function findShowText(attributes) {
 
 function drawTree(pageNo) {
 		tree[0].tags = ["Page " + (pageNo + 1)];
-		findDiffReport(pageNo);
+		initTreeData(pageNo);
 		$(function() {
 			var options = {
 					bootstrap2: false, 
