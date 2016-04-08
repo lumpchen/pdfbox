@@ -5,13 +5,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
+import org.apache.pdfbox.tools.diff.document.PageThread;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.TextThread;
 import org.apache.pdfbox.tools.diff.document.compare.name.fraser.neil.plaintext.diff_match_patch.Diff;
 import org.apache.pdfbox.tools.diff.document.compare.name.fraser.neil.plaintext.diff_match_patch.Operation;
 
-public class TextComparator extends BaseObjectComparator {
+public class TextComparator extends ContentComparator {
 	
 	public TextComparator(CompareSetting setting) {
 		super(setting);
@@ -84,7 +85,7 @@ public class TextComparator extends BaseObjectComparator {
 					TextLob testLob = testTextThread.getTextLob(testBegin + itest, slot)[0];
 					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
 					diffContent.putAttr(DiffContent.Key.Attr_Text, true, text, text);
-					if (!this.diff(baseLob.getContent(), testLob.getContent(), diffContent)) {
+					if (!this.compare(baseLob.getContent(), testLob.getContent(), diffContent)) {
 						diffContent.setBBox(baseLob.getBoundingBox(), testLob.getBoundingBox());
 						result.add(diffContent);
 					}
@@ -98,34 +99,33 @@ public class TextComparator extends BaseObjectComparator {
 		return result.toArray(new DiffContent[result.size()]);
 	}
 	
-	private boolean diff(TextContent textContent_1, TextContent textContent_2, DiffContent entry) {
+	private boolean compare(TextContent textContent_1, TextContent textContent_2, DiffContent entry) {
 		boolean result = true;
 		
 		String val_1 = textContent_1 == null ? null : textContent_1.getFontName();
 		String val_2 = textContent_2 == null ? null : textContent_2.getFontName();
-		boolean equals = diff(removeFontNameSuffix(val_1), removeFontNameSuffix(val_2));
+		boolean equals = compare(removeFontNameSuffix(val_1), removeFontNameSuffix(val_2));
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Font, equals, val_1, val_2);
 		
 		Float size_1 = textContent_1 == null ? null : textContent_1.getFontSize();
 		Float size_2 = textContent_2 == null ? null : textContent_2.getFontSize();
-		equals = diff(size_1, size_2);
+		equals = compare(size_1, size_2);
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Font_size, equals, size_1 == null ? null : size_1.toString(), 
 				size_2 == null ? null : size_2.toString());
 		
 		val_1 = textContent_1 == null ? null : textContent_1.getNonStrokingColorspace();
 		val_2 = textContent_2 == null ? null : textContent_2.getNonStrokingColorspace();
-		equals = diff(val_1, val_2);
+		equals = compare(val_1, val_2);
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Colorspace, equals, val_1, val_2);
 		
 		val_1 = textContent_1 == null ? null : textContent_1.getNonStrokingColorValue();
 		val_2 = textContent_2 == null ? null : textContent_2.getNonStrokingColorValue();
-		equals = diff(val_1, val_2);
+		equals = compare(val_1, val_2);
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Color, equals, val_1, val_2);
-		
 		
 		return result;
 	}
@@ -148,7 +148,8 @@ public class TextComparator extends BaseObjectComparator {
 	}
 
 	@Override
-	public DiffContent[] compare(Object base, Object test) {
-		return this.compare((TextThread) base, (TextThread) test);
+	public DiffContent[] compare(PageThread basePageThread, PageThread testPageThread) {
+		DiffContent[] diffs = this.compare(basePageThread.getTextThread(), testPageThread.getTextThread());
+		return diffs;
 	}
 }

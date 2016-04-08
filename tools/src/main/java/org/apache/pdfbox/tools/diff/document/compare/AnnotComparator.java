@@ -7,10 +7,11 @@ import java.util.List;
 import org.apache.pdfbox.tools.diff.PageDiffResult;
 import org.apache.pdfbox.tools.diff.PageDiffResult.ContentAttr;
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
+import org.apache.pdfbox.tools.diff.document.PageThread;
 import org.apache.pdfbox.tools.diff.document.PageThread.AnnotLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.AnnotSet;
 
-public class AnnotComparator extends BaseObjectComparator {
+public class AnnotComparator extends ContentComparator {
 
 	public AnnotComparator(CompareSetting setting) {
 		super(setting);
@@ -26,7 +27,7 @@ public class AnnotComparator extends BaseObjectComparator {
 			AnnotLob testAnnot = this.findAnnotLob(baseAnnot, testAnnotList);
 			
 			DiffContent diffContent = new DiffContent(DiffContent.Category.Annot);
-			if (!this.diff(baseAnnot, testAnnot, diffContent)) {
+			if (!this.compare(baseAnnot, testAnnot, diffContent)) {
 				result.add(diffContent);
 			}
 			if (testAnnot != null) {
@@ -37,7 +38,7 @@ public class AnnotComparator extends BaseObjectComparator {
 		// process remain annots in test
 		for (AnnotLob annot : testAnnotList) {
 			DiffContent diffContent = new DiffContent(DiffContent.Category.Annot);
-			if (!this.diff(null, annot, diffContent)) {
+			if (!this.compare(null, annot, diffContent)) {
 				result.add(diffContent);
 			}
 		}
@@ -45,7 +46,7 @@ public class AnnotComparator extends BaseObjectComparator {
 		return result.toArray(new DiffContent[result.size()]);
 	}
 	
-	private boolean diff(AnnotLob baseAnnot, AnnotLob testAnnot, DiffContent entry) {
+	private boolean compare(AnnotLob baseAnnot, AnnotLob testAnnot, DiffContent entry) {
 		Rectangle bbox_1 = baseAnnot == null ? null : baseAnnot.getBBox();
 		Rectangle bbox_2 = testAnnot == null ? null : testAnnot.getBBox();
 		entry.setBBox(bbox_1, bbox_2);
@@ -53,25 +54,25 @@ public class AnnotComparator extends BaseObjectComparator {
 		
 		String s_1 = baseAnnot == null ? null : baseAnnot.fieldType;
 		String s_2 = testAnnot == null ? null : testAnnot.fieldType;
-		boolean equals = diff(s_1, s_2);
+		boolean equals = compare(s_1, s_2);
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_FieldType, equals, s_1, s_2);
 		
 		s_1 = baseAnnot == null ? null : baseAnnot.subType;
 		s_2 = testAnnot == null ? null : testAnnot.subType;
-		equals = diff(s_1, s_2);
+		equals = compare(s_1, s_2);
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_SubType, equals, s_1, s_2);
 		
 		s_1 = baseAnnot == null ? null : baseAnnot.annotName;
 		s_2 = testAnnot == null ? null : testAnnot.annotName;
-		equals = diff(s_1, s_2);
+		equals = compare(s_1, s_2);
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_AnnotName, equals, s_1, s_2);
 		
 		s_1 = baseAnnot == null ? null : baseAnnot.annotContents;
 		s_2 = testAnnot == null ? null : testAnnot.annotContents;
-		equals = diff(s_1, s_2);
+		equals = compare(s_1, s_2);
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_AnnotContents, equals, s_1, s_2);
 		
@@ -104,22 +105,34 @@ public class AnnotComparator extends BaseObjectComparator {
 				}
 				
 				if (content.getCategory() == DiffContent.Category.Image) {
+					List<ContentAttr> attrList = content.getAttrList();
+					if (attrList.size() > 0) {
+						entry.putAttr("|-----Image", false, "", "");
+					}
+					for (ContentAttr attr : attrList) {
+						entry.putAttr("|----------" + attr.key, attr.equals, attr.baseVal, attr.testVal);
+					}
 				}
 				
 				if (content.getCategory() == DiffContent.Category.Path) {
-				}
-				
-				if (content.getCategory() == DiffContent.Category.Annot) {
+					List<ContentAttr> attrList = content.getAttrList();
+					if (attrList.size() > 0) {
+						entry.putAttr("|-----Path", false, "", "");
+					}
+					for (ContentAttr attr : attrList) {
+						entry.putAttr("|----------" + attr.key, attr.equals, attr.baseVal, attr.testVal);
+					}
 				}
 			}			
 		}
 		
 		return result;
 	}
+	
 	private AnnotLob findAnnotLob(AnnotLob base, List<AnnotLob> testAnnotList) {
 		for (AnnotLob test : testAnnotList) {
-			if (diff(base.fieldType, test.fieldType) 
-					&& diff(base.subType, test.subType)
+			if (compare(base.fieldType, test.fieldType) 
+					&& compare(base.subType, test.subType)
 					&& base.getBBox().intersects(test.getBBox())
 					) {
 				return test;
@@ -127,9 +140,10 @@ public class AnnotComparator extends BaseObjectComparator {
 		}
 		return null;
 	}
-
+	
 	@Override
-	public DiffContent[] compare(Object base, Object test) {
-		return this.compare((AnnotSet) base, (AnnotSet) test);
+	public DiffContent[] compare(PageThread basePageThread, PageThread testPageThread) {
+		DiffContent[] diffs = this.compare(basePageThread.getAnnotSet(), testPageThread.getAnnotSet());
+		return diffs;
 	}
 }

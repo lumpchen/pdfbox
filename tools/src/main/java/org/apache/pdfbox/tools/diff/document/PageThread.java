@@ -312,6 +312,25 @@ public class PageThread {
 		}
 	}
 	
+	public static class PathLob {
+		
+		private Rectangle bBox;
+		private PathContent pathContent;
+		
+		public PathLob(PathContent pathContent) {
+			this.pathContent = pathContent;
+			this.bBox = pathContent.getOutlineArea().getBounds();
+		}
+		
+		public Rectangle getBBox() {
+			return this.bBox;
+		}
+		
+		public PathContent getPathContent() {
+			return this.pathContent;
+		}
+	}
+	
 	public static class PathSet {
 		
 		private List<PathContent> pathList;
@@ -322,6 +341,15 @@ public class PageThread {
 		
 		public void addPathContent(PathContent pathContent) {
 			this.pathList.add(pathContent);
+		}
+		
+		public List<PathLob> getPathLobList() {
+			List<PathLob> pathLobList = new ArrayList<PathLob>(this.pathList.size());
+			for (PathContent pathContent : this.pathList) {
+				pathLobList.add(new PathLob(pathContent));
+			}
+			
+			return pathLobList;
 		}
 	}
 	

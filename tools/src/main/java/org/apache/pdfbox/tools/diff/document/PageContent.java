@@ -166,6 +166,29 @@ public abstract class PageContent {
 		return buf.toString();
 	}
 	
+	public String getStrokingColorspace() {
+		if (this.getGraphicsStateDesc() == null
+				|| this.getGraphicsStateDesc().strokingColor == null) {
+			return null;
+		}
+		return this.getGraphicsStateDesc().strokingColor.colorSpace;
+	}
+	
+	public String getStrokingColorValue() {
+		if (this.getGraphicsStateDesc() == null
+				|| this.getGraphicsStateDesc().strokingColor == null) {
+			return null;
+		}
+		float[] components = this.getGraphicsStateDesc().strokingColor.components;
+		StringBuilder buf = new StringBuilder("");
+		if (components != null) {
+			for (float c : components) {
+				buf.append(c + " ");
+			}
+		}
+		return buf.toString();
+	}
+	
 	public String getFontName() {
 		if (this.getGraphicsStateDesc() == null 
 				|| this.getGraphicsStateDesc().textState == null) {
@@ -191,8 +214,6 @@ public abstract class PageContent {
 	abstract public String getTypeString();
 	
 	abstract public Map<String, String> getAttrMap();
-	abstract public boolean diff(PageContent content);
-	
 	public static class TextContent extends PageContent {
 
 		private StringBuilder text;
@@ -236,12 +257,6 @@ public abstract class PageContent {
 			return null;
 		}
 
-		@Override
-		public boolean diff(PageContent content) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-		
 		public Rectangle getBBox(int begin, int end) {
 			if (begin < 0 || end > this.outline.size()) {
 				return new Rectangle(0, 0);
@@ -283,11 +298,6 @@ public abstract class PageContent {
 			return null;
 		}
 
-		@Override
-		public boolean diff(PageContent content) {
-			// TODO Auto-generated method stub
-			return false;
-		}
 	}
 	
 	public static class ImageContent extends PageContent {
@@ -320,11 +330,6 @@ public abstract class PageContent {
 			return null;
 		}
 
-		@Override
-		public boolean diff(PageContent content) {
-			// TODO Auto-generated method stub
-			return false;
-		}
 	}
 	
 	public static class AnnotContent extends PageContent {
@@ -363,12 +368,6 @@ public abstract class PageContent {
 		@Override
 		public Map<String, String> getAttrMap() {
 			return null;
-		}
-
-		@Override
-		public boolean diff(PageContent content) {
-			// TODO Auto-generated method stub
-			return false;
 		}
 	}
 }
