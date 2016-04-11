@@ -74,7 +74,7 @@ function onload()
 	diff_summary_span.innerHTML = sum;
 	
 	var tableBody = document.getElementById("page_list_table").getElementsByTagName("tbody")[0];
-	for (i = 0; i < base_pdf_json_obj.pageCount; i++) {
+	for (var i = 0; i < base_pdf_json_obj.pageCount; i++) {
 		var pageRow = tableBody.insertRow(tableBody.rows.length);
 		var cell = pageRow.insertCell(0);
 		var text = document.createTextNode("Page " + (i + 1));
@@ -143,7 +143,7 @@ function updatePageView() {
 function updateAttributeTable(item) {
 	$("#attribute_table tbody tr").remove();
 	var tableBody = document.getElementById("attribute_table").getElementsByTagName("tbody")[0];
-	for (i = 0; i < item.Attributes.length; i++) {
+	for (var i = 0; i < item.Attributes.length; i++) {
 		var attr = item.Attributes[i];
 		
 		var attrRow = tableBody.insertRow(tableBody.rows.length);
@@ -181,11 +181,8 @@ function initTreeData(pageNo) {
 	tree[0].nodes[3].nodes.length = 0;
 	tree[0].nodes[3].tags = [0]; // Annot
 	
-	for (i = 0; i < diff_content_json_obj.length; i++) {
+	for (var i = 0; i < diff_content_json_obj.length; i++) {
 		var num = diff_content_json_obj[i].PageNo;
-		tree[0].nodes[0].nodes.length = 0;
-		tree[0].nodes[0].tags = [0]; // Text
-		tree[0].nodes[1].tags = [0]; // Image
 		if (pageNo == num) {
 			var result = diff_content_json_obj[i].Result;
 			
@@ -238,7 +235,7 @@ function initTreeData(pageNo) {
 
 function findShowText(attributes) {
 	var text;
-	for (i = 0; i < attributes.length; i++) {
+	for (var i = 0; i < attributes.length; i++) {
 		if (attributes[i].Key == "Text") {
 			text = attributes[i].Value[0];
 			if (attributes[i].Value[0] == "") {

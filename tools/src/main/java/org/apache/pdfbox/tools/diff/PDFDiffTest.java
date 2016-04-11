@@ -22,8 +22,10 @@ public class PDFDiffTest {
 	}
 	
 	private static void diff(File base, File test, File reportDir) {
-		PDFDiff differ = new PDFDiff(base, test, DiffSetting.getDefaultSetting());
+		DiffSetting setting = DiffSetting.getDefaultSetting();
+		PDFDiff differ = new PDFDiff(base, test, setting);
 		try {
+			System.out.println("Compare PDF: " + base.getName());
 			PDocDiffResult result = differ.diff();
 			
 			int count = result.countOfDiffPages();
@@ -31,7 +33,15 @@ public class PDFDiffTest {
 				System.out.println(count);
 			} else {
 				System.out.println("PDFs are same!");
+				if (setting.noReportOnSameResult) {
+					return;
+				}
 			}
+			
+			if (!reportDir.exists() && !reportDir.mkdirs()) {
+				throw new IOException("Can't create report folder: " + reportDir.getAbsolutePath());
+			}
+			
 			Integer[] nums = result.getDiffPageNums();
 			for (int num : nums) {
 				PageDiffResult pageDiffResult = result.getPageDiffResult(num);
@@ -43,6 +53,7 @@ public class PDFDiffTest {
 					}
 				}
 			}
+
 			DiffReport report = new DiffReport(reportDir, "report", result);
 			report.toHtml();
 		} catch (PDFDiffException e) {
@@ -66,16 +77,7 @@ public class PDFDiffTest {
 			}
 			
 			File reportFile = new File(reportDir, name);
-			
-			if (!reportFile.exists()) {
-				if (reportFile.mkdirs()) {
-					System.out.println("Compare PDF: " + name);
-					diff(baseFile, testFile, reportFile);				
-				}				
-			} else {
-				System.out.println("Compare PDF: " + name);
-				diff(baseFile, testFile, reportFile);
-			}
+			diff(baseFile, testFile, reportFile);				
 		}
 	}
 }
