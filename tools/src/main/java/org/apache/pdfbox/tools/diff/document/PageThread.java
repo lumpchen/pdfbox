@@ -31,7 +31,7 @@ public class PageThread {
 		this.pathSet = new PathSet();
 		this.annotSet = new AnnotSet();
 		
-		if (this.contentList.isEmpty()) {
+		if (this.contentList == null || this.contentList.isEmpty()) {
 			return;
 		}
 		for (int i = 0; i < this.contentList.size(); i++) {

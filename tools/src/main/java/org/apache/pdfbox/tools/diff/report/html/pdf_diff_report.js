@@ -59,8 +59,10 @@ function onload()
 	var test_pdf_span = document.getElementById("test_pdf_name");
 	test_pdf_span.textContent = test_pdf_json_obj.title;
 	
+	var max_page_count = base_pdf_json_obj.pageCount > test_pdf_json_obj.pageCount ? 
+			base_pdf_json_obj.pageCount : test_pdf_json_obj.pageCount;
 	var page_count_span = document.getElementById("page_count");
-	page_count_span.textContent = base_pdf_json_obj.pageCount;
+	page_count_span.textContent = max_page_count;
 	
 	var sum = "";
 	if (diff_page_count == 0) {
@@ -74,7 +76,7 @@ function onload()
 	diff_summary_span.innerHTML = sum;
 	
 	var tableBody = document.getElementById("page_list_table").getElementsByTagName("tbody")[0];
-	for (var i = 0; i < base_pdf_json_obj.pageCount; i++) {
+	for (var i = 0; i < max_page_count; i++) {
 		var pageRow = tableBody.insertRow(tableBody.rows.length);
 		var cell = pageRow.insertCell(0);
 		var text = document.createTextNode("Page " + (i + 1));
@@ -107,12 +109,29 @@ var page_view_paras = {};
 
 function pageSelectHandler(pageNo) {
 	return function() {
+		
 		page_view_paras["PageNo"] = pageNo;
 		page_view_paras["DiffContent"] = null;
-		page_view_paras["BasePageWidth"] = base_pdf_json_obj.pages[pageNo].width;
-		page_view_paras["BasePageHeight"] = base_pdf_json_obj.pages[pageNo].height;
-		page_view_paras["TestPageWidth"] = test_pdf_json_obj.pages[pageNo].width;
-		page_view_paras["TestPageHeight"] = test_pdf_json_obj.pages[pageNo].height;
+				
+		if (pageNo < base_pdf_json_obj.pageCount) {
+			page_view_paras["BasePageWidth"] = base_pdf_json_obj.pages[pageNo].width;
+			page_view_paras["BasePageHeight"] = base_pdf_json_obj.pages[pageNo].height;
+			page_view_paras["BaseIsBlank"] = false;
+		} else {
+			page_view_paras["BasePageWidth"] = 0;
+			page_view_paras["BasePageHeight"] = 0;
+			page_view_paras["BaseIsBlank"] = true;
+		}
+		
+		if (pageNo < test_pdf_json_obj.pageCount) {
+			page_view_paras["TestPageWidth"] = test_pdf_json_obj.pages[pageNo].width;
+			page_view_paras["TestPageHeight"] = test_pdf_json_obj.pages[pageNo].height;
+			page_view_paras["TestIsBlank"] = false;
+		} else {
+			page_view_paras["TestPageWidth"] = 0;
+			page_view_paras["TestPageHeight"] = 0;
+			page_view_paras["TestIsBlank"] = true;
+		}
 		
 		drawTree(pageNo);
 		updatePageView();
@@ -121,49 +140,64 @@ function pageSelectHandler(pageNo) {
 
 function updatePageView() {
 	pageNo = page_view_paras["PageNo"];
-	var imageTag = base_pdf_json_obj.pages[pageNo].imageTag;
-	var baseCanvas = document.getElementById("base_page_canvas");
-	baseCanvas.width = page_view_paras["BasePageWidth"] + 2;
-	baseCanvas.height = page_view_paras["BasePageHeight"] + 2;
-	drawPage(imageTag, baseCanvas);
-	baseCanvas.style.cursor = 'crosshair';
 	
-	baseCanvas.addEventListener('mousemove', function(evt) {
-		var mousePos = getMousePos(baseCanvas, evt);
-		var zoomCtx = zoom.getContext("2d");
-		zoomCtx.fillStyle = "white";
-		zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
-		zoomCtx.drawImage(baseCanvas, mousePos.x, mousePos.y, 200, 100, 0,0, 600, 300);
-		zoom.style.top = evt.pageY + 2 + "px";
-		zoom.style.left = evt.pageX + 2 + "px";
-		zoom.style.display = "block";
-	}, false);
+	if (page_view_paras["BaseIsBlank"]) {
+		var baseCanvas = document.getElementById("base_page_canvas");
+		baseCanvas.width = page_view_paras["TestPageWidth"] + 2;
+		baseCanvas.height = page_view_paras["TestPageHeight"] + 2;
+		drawBlankPage(baseCanvas);
+	} else {
+		var imageTag = base_pdf_json_obj.pages[pageNo].imageTag;
+		var baseCanvas = document.getElementById("base_page_canvas");
+		baseCanvas.width = page_view_paras["BasePageWidth"] + 2;
+		baseCanvas.height = page_view_paras["BasePageHeight"] + 2;
+		drawPage(imageTag, baseCanvas);
+		baseCanvas.style.cursor = 'crosshair';
+		
+		baseCanvas.addEventListener('mousemove', function(evt) {
+			var mousePos = getMousePos(baseCanvas, evt);
+			var zoomCtx = zoom.getContext("2d");
+			zoomCtx.fillStyle = "white";
+			zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
+			zoomCtx.drawImage(baseCanvas, mousePos.x, mousePos.y, 200, 100, 0, 0, 600, 300);
+			zoom.style.top = evt.pageY + 2 + "px";
+			zoom.style.left = evt.pageX + 2 + "px";
+			zoom.style.display = "block";
+		}, false);
+		
+		baseCanvas.addEventListener("mouseout", function() {
+			zoom.style.display = "none";
+		});
+	}
 	
-	baseCanvas.addEventListener("mouseout", function(){
-		zoom.style.display = "none";
-	});
-	
-	var imageTag = test_pdf_json_obj.pages[pageNo].imageTag;
-	var testCanvas = document.getElementById("test_page_canvas");
-	testCanvas.width = page_view_paras["TestPageWidth"] + 2;
-	testCanvas.height = page_view_paras["TestPageHeight"] + 2;
-	drawPage(imageTag, testCanvas);
-	testCanvas.style.cursor = 'crosshair';
-	
-	testCanvas.addEventListener('mousemove', function(evt) {
-		var mousePos = getMousePos(testCanvas, evt);
-		var zoomCtx = zoom.getContext("2d");
-		zoomCtx.fillStyle = "white";
-		zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
-		zoomCtx.drawImage(testCanvas, mousePos.x, mousePos.y, 200, 100, 0,0, 600, 300);
-		zoom.style.top = evt.pageY + 2 + "px";
-		zoom.style.left = evt.pageX + 2 + "px";
-		zoom.style.display = "block";
-	}, false);
-	
-	testCanvas.addEventListener("mouseout", function(){
-		zoom.style.display = "none";
-	});
+	if (page_view_paras["TestIsBlank"]) {
+		var testCanvas = document.getElementById("test_page_canvas");
+		testCanvas.width = page_view_paras["BasePageWidth"] + 2;
+		testCanvas.height = page_view_paras["BasePageHeight"] + 2;
+		drawBlankPage(testCanvas);
+	} else {
+		var imageTag = test_pdf_json_obj.pages[pageNo].imageTag;
+		var testCanvas = document.getElementById("test_page_canvas");
+		testCanvas.width = page_view_paras["TestPageWidth"] + 2;
+		testCanvas.height = page_view_paras["TestPageHeight"] + 2;
+		drawPage(imageTag, testCanvas);
+		testCanvas.style.cursor = 'crosshair';
+		
+		testCanvas.addEventListener('mousemove', function(evt) {
+			var mousePos = getMousePos(testCanvas, evt);
+			var zoomCtx = zoom.getContext("2d");
+			zoomCtx.fillStyle = "white";
+			zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
+			zoomCtx.drawImage(testCanvas, mousePos.x, mousePos.y, 200, 100, 0, 0, 600, 300);
+			zoom.style.top = evt.pageY + 2 + "px";
+			zoom.style.left = evt.pageX + 2 + "px";
+			zoom.style.display = "block";
+		}, false);
+		
+		testCanvas.addEventListener("mouseout", function() {
+			zoom.style.display = "none";
+		});
+	}
 	
 	var item = page_view_paras["DiffContent"];
 	$("#attribute_table tbody tr").remove();
@@ -171,6 +205,20 @@ function updatePageView() {
 		updateAttributeTable(item);
 	}
 }
+
+function drawBlankPage(canvas) {
+	var ctx = canvas.getContext("2d");
+	ctx.fillStyle = "white";
+	ctx.save();
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	ctx.font = "66pt Calibri";
+	ctx.strokeStyle = 'red';
+	ctx.fillStyle = 'red';
+	ctx.fillText("NOT FOUND", 50, canvas.height / 2);
+	ctx.stroke();
+	ctx.restore();
+}
+
 
 function getMousePos(canvas, evt) {
 	var rect = canvas.getBoundingClientRect();

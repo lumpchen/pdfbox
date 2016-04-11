@@ -68,35 +68,42 @@ public class PDFDiff {
 	private void diffPDoc(PDDocument base, PDDocument test, PDocDiffResult result) throws PDFDiffException {
 		int pageNum_1 = base.getNumberOfPages();
 		int pageNum_2 = test.getNumberOfPages();
-		if (pageNum_1 != pageNum_2) {
-			throw new PDFDiffException("Page count is different: base=" + pageNum_1 + ", test=" + pageNum_2);
-		}
+//		if (pageNum_1 != pageNum_2) {
+//			throw new PDFDiffException("Page count is different: base=" + pageNum_1 + ", test=" + pageNum_2);
+//		}
+		
 		result.getBaseDocumentInfo().setPageCount(pageNum_1);
 		result.getBaseDocumentInfo().setImageSuffix(setting.previewImageFormat);
 		
 		result.getTestDocumentInfo().setPageCount(pageNum_2);
 		result.getTestDocumentInfo().setImageSuffix(setting.previewImageFormat);
+		
+		int maxPageNum = pageNum_1 > pageNum_2 ? pageNum_1 : pageNum_2; 
         try {
-            for (int i = 0; i < pageNum_1; i++) {
-            	DiffLogger.getInstance().info("Compare page " + (i + 1) + " in " + pageNum_1);
+            for (int i = 0; i < maxPageNum; i++) {
+            	DiffLogger.getInstance().info("Compare page " + (i + 1) + " in " + maxPageNum);
             	
-                PDPage page_1 = base.getPage(i);
-                PDPage page_2 = test.getPage(i);
+                PDPage page_1 = i < pageNum_1 ? base.getPage(i) : null;
+                PDPage page_2 = i < pageNum_2 ? test.getPage(i) : null;
                 this.diffPage(i, page_1, page_2, result);
                 
-                PageInfo info = new PageInfo(i);
-                info.setPreviewImage(this.renderPage(i, base));
-                int[] size = this.getPageSize(page_1);
-                info.setWidth(size[0]);
-                info.setHeight(size[1]);
-        		result.getBaseDocumentInfo().setPageInfo(i, info);
-        		
-        		info = new PageInfo(i);
-        		info.setPreviewImage(this.renderPage(i, test));
-        		size = this.getPageSize(page_2);
-                info.setWidth(size[0]);
-                info.setHeight(size[1]);
-        		result.getTestDocumentInfo().setPageInfo(i, info);
+                if (page_1 != null) {
+                	PageInfo info = new PageInfo(i);
+                    info.setPreviewImage(this.renderPage(i, base));
+                    int[] size = this.getPageSize(page_1);
+                    info.setWidth(size[0]);
+                    info.setHeight(size[1]);
+            		result.getBaseDocumentInfo().setPageInfo(i, info);	
+                }
+                
+                if (page_2 != null) {
+                	PageInfo info = new PageInfo(i);
+            		info.setPreviewImage(this.renderPage(i, test));
+            		int[] size = this.getPageSize(page_2);
+                    info.setWidth(size[0]);
+                    info.setHeight(size[1]);
+            		result.getTestDocumentInfo().setPageInfo(i, info);
+                }
             }
         } catch (Exception e) {
         	e.printStackTrace();
@@ -115,7 +122,7 @@ public class PDFDiff {
 
         if (rotationAngle == 90 || rotationAngle == 270) {
             return new int[]{heightPx, widthPx};
-        } else{
+        } else {
         	return new int[]{widthPx, heightPx};
         }
 	}
@@ -132,13 +139,19 @@ public class PDFDiff {
 	
 	private void diffPage(int pageNo, PDPage base, PDPage test, PDocDiffResult result) throws PDFDiffException {
 		try {
-			PageContentExtractor extractor_1 = new PageContentExtractor(base);
-			extractor_1.extract();
-			List<PageContent> basePageContents = extractor_1.getPageContentList();
-			
-			PageContentExtractor extractor_2 = new PageContentExtractor(test);
-			extractor_2.extract();
-			List<PageContent> testPageContents = extractor_2.getPageContentList();
+			List<PageContent> basePageContents = null;
+			if (base != null) {
+				PageContentExtractor extractor_1 = new PageContentExtractor(base);
+				extractor_1.extract();
+				basePageContents = extractor_1.getPageContentList();	
+			}
+
+			List<PageContent> testPageContents = null;
+			if (test != null) {
+				PageContentExtractor extractor_2 = new PageContentExtractor(test);
+				extractor_2.extract();
+				testPageContents = extractor_2.getPageContentList();	
+			}
 			
 			PageContentComparator pageComparator = new PageContentComparator();
 			PageDiffResult pageDiffResult = pageComparator.compare(basePageContents, testPageContents);

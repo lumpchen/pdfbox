@@ -218,8 +218,12 @@ public class DiffReport {
 		JSONArray pageArray = new JSONArray();
 		for (int i = 0; i < docInfo.getPageCount(); i++) {
 			PageInfo pageInfo = docInfo.getPageInfo(i);
-			JSONObject pageJson = this.toJSon(pageInfo, tagPrefix, tagSuffix);
-			pageArray.put(pageJson);
+			if (pageInfo != null) {
+				JSONObject pageJson = this.toJSon(pageInfo, tagPrefix, tagSuffix);
+				pageArray.put(pageJson);	
+			} else {
+				pageArray.put(new JSONObject());
+			}
 		}
 		docJson.put("pages", pageArray);
 		return docJson;
