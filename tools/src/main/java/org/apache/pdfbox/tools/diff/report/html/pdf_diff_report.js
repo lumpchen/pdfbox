@@ -208,17 +208,23 @@ function updatePageView() {
 
 function drawBlankPage(canvas) {
 	var ctx = canvas.getContext("2d");
-	ctx.fillStyle = "white";
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	ctx.save();
+	ctx.fillStyle = "white";
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
-	ctx.font = "66pt Calibri";
+	ctx.rect(1, 1, canvas.width, canvas.height);
 	ctx.strokeStyle = 'red';
-	ctx.fillStyle = 'red';
-	ctx.fillText("NOT FOUND", 50, canvas.height / 2);
 	ctx.stroke();
+	
+	ctx.translate(72, canvas.height / 2);
+	ctx.scale(6, 6);
+	//ctx.rotate(Math.PI * 2 / (6 * -2));
+	ctx.font = "16pt Calibri";
+	ctx.fillStyle = 'red';
+	ctx.fillText("NOT FOUND", 0, 0);
+	
 	ctx.restore();
 }
-
 
 function getMousePos(canvas, evt) {
 	var rect = canvas.getBoundingClientRect();
