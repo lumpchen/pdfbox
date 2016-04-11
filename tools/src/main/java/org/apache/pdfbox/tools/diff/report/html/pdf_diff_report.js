@@ -122,22 +122,62 @@ function pageSelectHandler(pageNo) {
 function updatePageView() {
 	pageNo = page_view_paras["PageNo"];
 	var imageTag = base_pdf_json_obj.pages[pageNo].imageTag;
-	var c = document.getElementById("base_page_canvas");
-	c.width = page_view_paras["BasePageWidth"] + 2;
-	c.height = page_view_paras["BasePageHeight"] + 2;
-	drawPage(imageTag, c);
+	var baseCanvas = document.getElementById("base_page_canvas");
+	baseCanvas.width = page_view_paras["BasePageWidth"] + 2;
+	baseCanvas.height = page_view_paras["BasePageHeight"] + 2;
+	drawPage(imageTag, baseCanvas);
+	baseCanvas.style.cursor = 'crosshair';
+	
+	baseCanvas.addEventListener('mousemove', function(evt) {
+		var mousePos = getMousePos(baseCanvas, evt);
+		var zoomCtx = zoom.getContext("2d");
+		zoomCtx.fillStyle = "white";
+		zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
+		zoomCtx.drawImage(baseCanvas, mousePos.x, mousePos.y, 200, 100, 0,0, 600, 300);
+		zoom.style.top = evt.pageY + 2 + "px";
+		zoom.style.left = evt.pageX + 2 + "px";
+		zoom.style.display = "block";
+	}, false);
+	
+	baseCanvas.addEventListener("mouseout", function(){
+		zoom.style.display = "none";
+	});
 	
 	var imageTag = test_pdf_json_obj.pages[pageNo].imageTag;
-	c = document.getElementById("test_page_canvas");
-	c.width = page_view_paras["TestPageWidth"] + 2;
-	c.height = page_view_paras["TestPageHeight"] + 2;
-	drawPage(imageTag, c);
+	var testCanvas = document.getElementById("test_page_canvas");
+	testCanvas.width = page_view_paras["TestPageWidth"] + 2;
+	testCanvas.height = page_view_paras["TestPageHeight"] + 2;
+	drawPage(imageTag, testCanvas);
+	testCanvas.style.cursor = 'crosshair';
+	
+	testCanvas.addEventListener('mousemove', function(evt) {
+		var mousePos = getMousePos(testCanvas, evt);
+		var zoomCtx = zoom.getContext("2d");
+		zoomCtx.fillStyle = "white";
+		zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
+		zoomCtx.drawImage(testCanvas, mousePos.x, mousePos.y, 200, 100, 0,0, 600, 300);
+		zoom.style.top = evt.pageY + 2 + "px";
+		zoom.style.left = evt.pageX + 2 + "px";
+		zoom.style.display = "block";
+	}, false);
+	
+	testCanvas.addEventListener("mouseout", function(){
+		zoom.style.display = "none";
+	});
 	
 	var item = page_view_paras["DiffContent"];
 	$("#attribute_table tbody tr").remove();
 	if ((typeof(item) !== 'undefined') && (item !== null)) {
 		updateAttributeTable(item);
 	}
+}
+
+function getMousePos(canvas, evt) {
+	var rect = canvas.getBoundingClientRect();
+	return {
+		x: evt.clientX - rect.left,
+		y: evt.clientY - rect.top
+	};
 }
 
 function updateAttributeTable(item) {

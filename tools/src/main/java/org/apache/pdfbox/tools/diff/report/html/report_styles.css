@@ -1,6 +1,6 @@
 h1 {
-  margin: .2em 0;
-  font-size: 2em;
+	margin: .2em 0;
+	font-size: 2em;
 }
 
 .flat-table {
@@ -85,6 +85,7 @@ h1 {
 	float: right;
 	text-align: left;
 }
+
 .cont-table {
 	display: block;
 	font-family: sans-serif;
@@ -114,4 +115,9 @@ h1 {
 .cont-table td:hover {
 	background-color: #C0C0C0;
 	cursor: pointer;
+}
+
+#zoom {
+	border: 1px black solid;
+	box-shadow: 5px 5px 10px #1e1e1e;
 }
