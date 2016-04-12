@@ -1,6 +1,7 @@
 package org.apache.pdfbox.tools.diff.document.compare;
 
 import java.awt.Rectangle;
+import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,8 @@ import org.apache.pdfbox.tools.diff.document.PageContent.PathContent;
 import org.apache.pdfbox.tools.diff.document.PageThread;
 import org.apache.pdfbox.tools.diff.document.PageThread.PathLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.PathSet;
+import org.apache.pdfbox.tools.diff.document.compare.geom.Line2D;
+import org.apache.pdfbox.tools.diff.document.compare.geom.Vec2D;
 
 public class PathComparator extends ContentComparator {
 
@@ -83,4 +86,39 @@ public class PathComparator extends ContentComparator {
 		return diffs;
 	}
 	
+	private static void comparePath(Rectangle bbox_1, Rectangle bbox_2) {
+		if (bbox_1 == null || bbox_2 == null) {
+			return;
+		}
+
+		Line2D line_1 = getMidLine(bbox_1);
+		Line2D line_2 = getMidLine(bbox_2);
+		
+		line_1.intersectLine(line_2).getType();
+		
+	}
+	
+	private static Line2D getMidLine(Rectangle rect) {
+		Line2D line = null;
+		if (rect.width >= rect.height) { //Hor
+			float x1 = rect.x;
+			float y1 = rect.y + rect.height / 2.0f;
+			float x2 = rect.x + rect.width;
+			float y2 = y1;
+			
+	        Vec2D v1 = new Vec2D(x1, y1);
+	        Vec2D v2 = new Vec2D(x2, y2);
+	        line = new Line2D(v1, v2);
+		} else {
+			float x1 = rect.x + rect.width / 2.0f;
+			float y1 = rect.y;
+			float x2 = rect.x + rect.width / 2.0f;
+			float y2 = y1 + rect.height / 2.0f;
+			
+	        Vec2D v1 = new Vec2D(x1, y1);
+	        Vec2D v2 = new Vec2D(x2, y2);
+	        line = new Line2D(v1, v2);
+		}
+		return line;
+	}
 }
