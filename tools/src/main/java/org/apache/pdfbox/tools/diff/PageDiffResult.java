@@ -46,6 +46,9 @@ public class PageDiffResult {
 		};
 		
 		public static class Key {
+			public static String Attr_Pos_X = "X Position";
+			public static String Attr_Pos_Y = "Y Position";
+			
 			public static String Attr_Text = "Text";
 			public static String Attr_Font = "Font";
 			public static String Attr_Font_size = "Font Size";

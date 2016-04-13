@@ -127,6 +127,20 @@ public class TextComparator extends ContentComparator {
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Color, equals, val_1, val_2);
 		
+		if (this.setting.enableTextPositionCompare) {
+			Integer x_1 = textContent_1 == null ? null : textContent_1.getX();
+			Integer x_2 = textContent_2 == null ? null : textContent_2.getX();
+			equals = compare(x_1, x_2); 
+			result &= equals;
+			entry.putAttr(DiffContent.Key.Attr_Pos_X, equals, x_1, x_2);
+			
+			Integer y_1 = textContent_1 == null ? null : textContent_1.getY();
+			Integer y_2 = textContent_2 == null ? null : textContent_2.getY();
+			equals = compare(y_1, y_2);
+			result &= equals;
+			entry.putAttr(DiffContent.Key.Attr_Pos_Y, equals, y_1, y_2);
+		}
+		
 		return result;
 	}
 	
