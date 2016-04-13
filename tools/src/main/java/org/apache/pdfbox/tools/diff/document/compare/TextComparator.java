@@ -119,13 +119,13 @@ public class TextComparator extends ContentComparator {
 		val_2 = textContent_2 == null ? null : textContent_2.getNonStrokingColorspace();
 		equals = compare(val_1, val_2);
 		result &= equals;
-		entry.putAttr(DiffContent.Key.Attr_Colorspace, equals, val_1, val_2);
+		entry.putAttr(DiffContent.Key.Attr_Stroke_Colorspace, equals, val_1, val_2);
 		
 		val_1 = textContent_1 == null ? null : textContent_1.getNonStrokingColorValue();
 		val_2 = textContent_2 == null ? null : textContent_2.getNonStrokingColorValue();
 		equals = compare(val_1, val_2);
 		result &= equals;
-		entry.putAttr(DiffContent.Key.Attr_Color, equals, val_1, val_2);
+		entry.putAttr(DiffContent.Key.Attr_Stroke_Color, equals, val_1, val_2);
 		
 		if (this.setting.enableTextPositionCompare) {
 			Integer x_1 = textContent_1 == null ? null : textContent_1.getX();

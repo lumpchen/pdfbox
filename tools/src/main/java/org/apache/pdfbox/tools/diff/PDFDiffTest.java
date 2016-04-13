@@ -71,6 +71,9 @@ public class PDFDiffTest {
 		File[] baseFiles = baseDir.listFiles();
 		for (File baseFile : baseFiles) {
 			String name = baseFile.getName();
+			if (!name.toLowerCase().endsWith(".pdf")) {
+				continue;
+			}
 			File testFile = new File(testDir, name);
 			if (!testFile.exists()) {
 				continue;

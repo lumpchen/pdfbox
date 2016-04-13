@@ -218,7 +218,7 @@ function drawBlankPage(canvas) {
 	
 	ctx.translate(72, canvas.height / 2);
 	ctx.scale(6, 6);
-	//ctx.rotate(Math.PI * 2 / (6 * -2));
+	// ctx.rotate(Math.PI * 2 / (6 * -2));
 	ctx.font = "16pt Calibri";
 	ctx.fillStyle = 'red';
 	ctx.fillText("NOT FOUND", 0, 0);
@@ -341,26 +341,30 @@ function findShowText(attributes) {
 }
 
 function drawTree(pageNo) {
-		tree[0].tags = ["Page " + (pageNo + 1)];
-		initTreeData(pageNo);
-		$(function() {
-			var options = {
-					bootstrap2: false, 
-					showTags: true,
-					levels: 5,
-					data: tree};
-			$('#treeview').treeview(options);
+	tree[0].tags = ["Page " + (pageNo + 1)];
+	initTreeData(pageNo);
+	$(function() {
+		var options = {
+				bootstrap2: false, 
+				showTags: true,
+				levels: 5,
+				data: tree};
+		$('#treeview').treeview(options);
+		
+		$('#treeview').on('nodeSelected', function(e, node) {
+			var parent = $('#treeview').treeview('getParent', node);
+			if (parent !== undefined) {
+				page_view_paras["text"] = parent['text'];
+			}
 			
-			$('#treeview').on('nodeSelected', function(e, node) {
-				nodeText = node['text'];
-				var item = node['item'];
-				
-				page_view_paras["DiffContent"] = item;
-				page_view_paras["text"] = node['text'];
-				updatePageView();
-			});
-		}
-		);
+			var item = node['item'];
+			
+			page_view_paras["DiffContent"] = item;
+			// page_view_paras["text"] = node['text'];
+			updatePageView();
+		});
+	}
+	);
 }
 
 function drawPage(imageTag, canvas) {
@@ -414,19 +418,29 @@ function drawContentOutline(category, outline, ctx, canvasWidth, canvasHeight, s
 		return;
 	}
 	var x = toPixel(outline[0]);
+	var y = canvasHeight - toPixel(outline[1]);
 	var h = toPixel(outline[3]);
-	var dh = 0;
-	if (category == "text") {
-		dh = parseInt(h / 4);
-	}
-	var y = canvasHeight - toPixel(outline[1]) + dh;
 	var w = toPixel(outline[2]);
-	h += dh;
+
+	if (category === "Text") {
+		var dh = parseInt(h / 4);
+		//x -= 2;
+		y += dh;
+		h += dh;
+		w += 6;
+	}
+	
 	ctx.save();
+	ctx.setLineDash([2, 4]);
 	ctx.beginPath();
-	ctx.lineWidth = "1";
+	ctx.lineWidth = "0.5";
 	ctx.strokeStyle = strokeColor;
 	ctx.fillStyle = fillColor;
+	
+	if (category === "Path") {
+		ctx.fillStyle = "black";
+	}
+	
 	if (strokeColor == "red") {
 		ctx.rect(x, y - h, w, h);	
 	} else {

@@ -175,7 +175,7 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 
 	void strokePath(GeneralPath path, boolean mark) throws IOException {
 		if (mark) {
-			this.markPathContent();
+			this.markPathContent(false);
 		}
 		this.linePath.reset();
 	}
@@ -187,13 +187,13 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 
 	private void fillPath(GeneralPath path, boolean mark, int windingRule) throws IOException {
 		if (mark) {
-			this.markPathContent();
+			this.markPathContent(true);
 		}
 		this.linePath.reset();
 	}
 	
-	private void markPathContent() {
-		PathContent content = new PathContent();
+	private void markPathContent(boolean fill) {
+		PathContent content = new PathContent(fill);
 		this.runtimePageContentStack.push(content);
 		this.markGraphicsState();
 		

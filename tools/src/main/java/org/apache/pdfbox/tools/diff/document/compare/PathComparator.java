@@ -1,7 +1,6 @@
 package org.apache.pdfbox.tools.diff.document.compare;
 
 import java.awt.Rectangle;
-import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +10,7 @@ import org.apache.pdfbox.tools.diff.document.PageThread;
 import org.apache.pdfbox.tools.diff.document.PageThread.PathLob;
 import org.apache.pdfbox.tools.diff.document.PageThread.PathSet;
 import org.apache.pdfbox.tools.diff.document.compare.geom.Line2D;
+import org.apache.pdfbox.tools.diff.document.compare.geom.Line2D.LineIntersection;
 import org.apache.pdfbox.tools.diff.document.compare.geom.Vec2D;
 
 public class PathComparator extends ContentComparator {
@@ -57,23 +57,46 @@ public class PathComparator extends ContentComparator {
 		PathContent pathContent_1 = basePath == null ? null : basePath.getPathContent();
 		PathContent pathContent_2 = testPath == null ? null : testPath.getPathContent();
 		
+		Float f1 = pathContent_1 == null ? null : pathContent_1.getGraphicsStateDesc().lineWidth;
+		Float f2 = pathContent_2 == null ? null : pathContent_2.getGraphicsStateDesc().lineWidth;
+		boolean equals = compare(f1, f2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Line_Width, equals, f1 == null ? null : f1.toString(), 
+				f2 == null ? null : f2.toString());
+		
 		String val_1 = pathContent_1 == null ? null : pathContent_1.getStrokingColorspace();
 		String val_2 = pathContent_2 == null ? null : pathContent_2.getStrokingColorspace();
-		boolean equals = compare(val_1, val_2);
+		equals = compare(val_1, val_2);
 		result &= equals;
-		entry.putAttr(DiffContent.Key.Attr_Colorspace, equals, val_1, val_2);
+		entry.putAttr(DiffContent.Key.Attr_Stroke_Colorspace, equals, val_1, val_2);
 		
 		val_1 = pathContent_1 == null ? null : pathContent_1.getStrokingColorValue();
 		val_2 = pathContent_2 == null ? null : pathContent_2.getStrokingColorValue();
 		equals = compare(val_1, val_2);
 		result &= equals;
-		entry.putAttr(DiffContent.Key.Attr_Color, equals, val_1, val_2);
-		return result;
+		entry.putAttr(DiffContent.Key.Attr_Stroke_Color, equals, val_1, val_2);
+		
+		val_1 = pathContent_1 == null ? null : pathContent_1.getNonStrokingColorspace();
+		val_2 = pathContent_2 == null ? null : pathContent_2.getNonStrokingColorspace();
+		equals = compare(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Fill_Colorspace, equals, val_1, val_2);
+		
+		val_1 = pathContent_1 == null ? null : pathContent_1.getNonStrokingColorValue();
+		val_2 = pathContent_2 == null ? null : pathContent_2.getNonStrokingColorValue();
+		equals = compare(val_1, val_2);
+		result &= equals;
+		entry.putAttr(DiffContent.Key.Attr_Fill_Color, equals, val_1, val_2);
+		
+		return false;
+//		return result;
 	}
 
 	private PathLob findPathLob(PathLob base, List<PathLob> testPathList) {
 		for (PathLob test : testPathList) {
-			if (base.getBBox().intersects(test.getBBox())) {
+			Rectangle bbox_1 = base.getBBox();
+			Rectangle bbox_2 = test.getBBox();
+			if (this.comparePath(bbox_1, bbox_2) == 0) {
 				return test;
 			}
 		}
@@ -86,15 +109,33 @@ public class PathComparator extends ContentComparator {
 		return diffs;
 	}
 	
-	private static void comparePath(Rectangle bbox_1, Rectangle bbox_2) {
+	private int comparePath(Rectangle bbox_1, Rectangle bbox_2) {
 		if (bbox_1 == null || bbox_2 == null) {
-			return;
+			return -1;
 		}
+		
+		float tolerance = this.setting.toleranceOfPath;
 
 		Line2D line_1 = getMidLine(bbox_1);
 		Line2D line_2 = getMidLine(bbox_2);
 		
-		line_1.intersectLine(line_2).getType();
+		LineIntersection.Type type = line_1.intersectLine(line_2).getType();
+		if (type == LineIntersection.Type.COINCIDENT 
+				|| type == LineIntersection.Type.COINCIDENT_NO_INTERSECT) {
+			return 0;
+		}
+		
+		if (type == LineIntersection.Type.PARALLEL) {
+			float dist = line_1.distanceToPoint(line_2.getMidPoint());
+			if (dist <= tolerance) {
+				return 0;
+			}
+		}
+		
+		if (type == LineIntersection.Type.INTERSECTING) {
+			return 1;
+		}
+		return 1;
 		
 	}
 	

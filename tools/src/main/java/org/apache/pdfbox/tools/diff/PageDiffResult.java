@@ -52,8 +52,15 @@ public class PageDiffResult {
 			public static String Attr_Text = "Text";
 			public static String Attr_Font = "Font";
 			public static String Attr_Font_size = "Font Size";
-			public static String Attr_Colorspace = "Colorspace";
-			public static String Attr_Color = "Color";
+			public static String Attr_Stroke_Colorspace = "Stroke Colorspace";
+			public static String Attr_Stroke_Color = "Stroke Color";
+			public static String Attr_Fill_Colorspace = "Fill Colorspace";
+			public static String Attr_Fill_Color = "Fill Color";
+			
+			public static String Attr_Line_Width = "Line Width";
+			public static String Attr_Line_Cap = "Line Cap";
+			public static String Attr_Line_Join = "Line Join";
+			public static String Attr_Miter_Limit = "Miter Limit";
 			
 			public static String Attr_Width = "Width";
 			public static String Attr_Height = "Height";

@@ -6,11 +6,13 @@ public class CompareSetting {
 	public boolean enableCompareAnnots = true;
 	public boolean enableTextPositionCompare = true;
 	
+	public float toleranceOfPath = 2;
 	public CompareSetting() {
 		this.enableCompareAnnots = true;
-		this.enableComparePath = false;
+		this.enableComparePath = true;
 		
 		this.enableTextPositionCompare = true;
+		this.toleranceOfPath = 2;
 	}
 	
 }

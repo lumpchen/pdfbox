@@ -278,16 +278,19 @@ public abstract class PageContent {
 	
 	public static class PathContent extends PageContent {
 
-		public PathContent() {
+		private boolean fill;
+		
+		public PathContent(boolean fill) {
 			super();
 			this.type = Type.Path;
+			this.fill = fill;
 		}
 		
 		@Override
 		public String showString() {
 			return "";
 		}
-
+		
 		@Override
 		public String getTypeString() {
 			return "Path";
@@ -298,6 +301,9 @@ public abstract class PageContent {
 			return null;
 		}
 
+		public boolean isFill() {
+			return this.fill;
+		}
 	}
 	
 	public static class ImageContent extends PageContent {
