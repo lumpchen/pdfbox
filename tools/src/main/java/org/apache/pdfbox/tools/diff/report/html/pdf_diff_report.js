@@ -245,6 +245,8 @@ function updateAttributeTable(item) {
 		var cell = attrRow.insertCell(0);
 		var text = document.createTextNode(attr.Key);
 		cell.appendChild(text);
+		cell.style.textAlign = "left";
+		cell.style.fontWeight = "bold";
 		if (!attr.Equals) {
 			cell.style.color = "#FF0000";
 		}
@@ -252,6 +254,7 @@ function updateAttributeTable(item) {
 		var cell = attrRow.insertCell(1);
 		var text = document.createTextNode(attr.Value[0]);
 		cell.appendChild(text);
+		cell.style.textAlign = "center";
 		if (!attr.Equals) {
 			cell.style.color = "#FF0000";
 		}
@@ -259,6 +262,7 @@ function updateAttributeTable(item) {
 		var cell = attrRow.insertCell(2);
 		var text = document.createTextNode(attr.Value[1]);
 		cell.appendChild(text);
+		cell.style.textAlign = "center";
 		if (!attr.Equals) {
 			cell.style.color = "#FF0000";
 		}
@@ -403,7 +407,7 @@ function drawDiffContentOutline(category, outlineArr) { // arr[base, test]
 	if (baseRect.length > 0) {
 		var baseCanvas = document.getElementById("base_page_canvas");
 		var baseCtx = baseCanvas.getContext("2d");
-		drawContentOutline(category, baseRect, baseCtx, page_view_paras["TestPageWidth"], page_view_paras["BasePageHeight"], Base_Stroke_Color, Base_Fill_Color);
+		drawContentOutline(category, baseRect, baseCtx, page_view_paras["BasePageWidth"], page_view_paras["BasePageHeight"], Base_Stroke_Color, Base_Fill_Color);
 	}
 
 	if (testRect.length > 0) {
@@ -431,23 +435,26 @@ function drawContentOutline(category, outline, ctx, canvasWidth, canvasHeight, s
 	}
 	
 	ctx.save();
-	ctx.setLineDash([2, 4]);
+	ctx.setLineDash([8, 8]);
 	ctx.beginPath();
-	ctx.lineWidth = "0.5";
+	ctx.lineWidth = "1";
 	ctx.strokeStyle = strokeColor;
 	ctx.fillStyle = fillColor;
 	
 	if (category === "Path") {
-		ctx.fillStyle = "black";
-	}
-	
-	if (strokeColor == "red") {
-		ctx.rect(x, y - h, w, h);	
+		ctx.fillStyle = "red";
+		ctx.rect(x, y - h - 2, w, h + 2);
+		ctx.fill();
 	} else {
-		canvas_arrow(ctx, x - 40, y - 50, x, y - 10);	
+		if (strokeColor == "red") {
+			ctx.rect(x, y - h, w, h);	
+		} else {
+			canvas_arrow(ctx, x - 40, y - 50, x, y - 10);	
+		}
+		
+		ctx.stroke();
+		ctx.fill();
 	}
-	ctx.stroke();
-	ctx.fill();
 	
 	ctx.lineWidth = "1";
 	ctx.moveTo(0, y);
@@ -455,8 +462,9 @@ function drawContentOutline(category, outline, ctx, canvasWidth, canvasHeight, s
 	ctx.font = "16pt Calibri";
 	ctx.fillStyle = 'red';
 	ctx.fillText("x:" + outline[0] + " y:" + outline[1], 0, y);
-	ctx.stroke();
-	
+	if (category !== "Path") {
+		ctx.stroke();	
+	}
 	ctx.restore();
 }
 

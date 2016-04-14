@@ -85,8 +85,7 @@ public class TextComparator extends ContentComparator {
 					TextLob testLob = testTextThread.getTextLob(testBegin + itest, slot)[0];
 					DiffContent diffContent = new DiffContent(DiffContent.Category.Text);
 					diffContent.putAttr(DiffContent.Key.Attr_Text, true, text, text);
-					if (!this.compare(baseLob.getContent(), testLob.getContent(), diffContent)) {
-						diffContent.setBBox(baseLob.getBoundingBox(), testLob.getBoundingBox());
+					if (!this.compare(baseLob, testLob, diffContent)) {
 						result.add(diffContent);
 					}
 					
@@ -99,8 +98,11 @@ public class TextComparator extends ContentComparator {
 		return result.toArray(new DiffContent[result.size()]);
 	}
 	
-	private boolean compare(TextContent textContent_1, TextContent textContent_2, DiffContent entry) {
+	private boolean compare(TextLob baseLob, TextLob testLob, DiffContent entry) {
 		boolean result = true;
+		
+		TextContent textContent_1 = baseLob.getContent();
+		TextContent textContent_2 = testLob.getContent();
 		
 		String val_1 = textContent_1 == null ? null : textContent_1.getFontName();
 		String val_2 = textContent_2 == null ? null : textContent_2.getFontName();
@@ -128,18 +130,20 @@ public class TextComparator extends ContentComparator {
 		entry.putAttr(DiffContent.Key.Attr_Stroke_Color, equals, val_1, val_2);
 		
 		if (this.setting.enableTextPositionCompare) {
-			Integer x_1 = textContent_1 == null ? null : textContent_1.getX();
-			Integer x_2 = textContent_2 == null ? null : textContent_2.getX();
+			Integer x_1 = baseLob.getBoundingBox().x;
+			Integer x_2 = testLob.getBoundingBox().x;
 			equals = compare(x_1, x_2); 
 			result &= equals;
 			entry.putAttr(DiffContent.Key.Attr_Pos_X, equals, x_1, x_2);
 			
-			Integer y_1 = textContent_1 == null ? null : textContent_1.getY();
-			Integer y_2 = textContent_2 == null ? null : textContent_2.getY();
+			Integer y_1 = baseLob.getBoundingBox().y;
+			Integer y_2 = testLob.getBoundingBox().y;
 			equals = compare(y_1, y_2);
 			result &= equals;
 			entry.putAttr(DiffContent.Key.Attr_Pos_Y, equals, y_1, y_2);
 		}
+		
+		entry.setBBox(baseLob.getBoundingBox(), testLob.getBoundingBox());
 		
 		return result;
 	}

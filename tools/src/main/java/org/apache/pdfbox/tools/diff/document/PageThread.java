@@ -329,6 +329,10 @@ public class PageThread {
 		public PathContent getPathContent() {
 			return this.pathContent;
 		}
+		
+		public String getPaintOperator() {
+			return this.getPathContent().isFill() ? "Fill" : "Stroke";
+		}
 	}
 	
 	public static class PathSet {

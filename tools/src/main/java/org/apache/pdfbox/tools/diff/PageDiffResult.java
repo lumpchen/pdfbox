@@ -57,6 +57,7 @@ public class PageDiffResult {
 			public static String Attr_Fill_Colorspace = "Fill Colorspace";
 			public static String Attr_Fill_Color = "Fill Color";
 			
+			public static String Attr_Painting_OP = "Paint Operator";
 			public static String Attr_Line_Width = "Line Width";
 			public static String Attr_Line_Cap = "Line Cap";
 			public static String Attr_Line_Join = "Line Join";
