@@ -199,7 +199,6 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		
 		GeneralPath gpath = (GeneralPath) this.getLinePath().clone();
 		this.markPath(gpath);
-//		this.contentList.add(this.runtimePageContentStack.pop());
 		this.addToContentList(this.runtimePageContentStack.pop());
 	}
 
@@ -224,7 +223,15 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
     		return;
     	}
     	PageContent content = this.runtimePageContentStack.pop();
-    	//this.contentList.add(content);
+    	
+    	if (content.getType() == PageContent.Type.Text) {
+    		TextContent textContent = (TextContent) content;
+    		if (textContent.getText() == null 
+    				|| textContent.getText().trim().length() == 0
+    				|| textContent.getHeight() == 0) { //empty TJ
+    			return;
+    		}
+    	}
     	this.addToContentList(content);
     }
     
@@ -340,7 +347,6 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		}
 		
 		this.markPath(outline);
-//		this.contentList.add(this.runtimePageContentStack.pop());
 		this.addToContentList(this.runtimePageContentStack.pop());
 		
 	}
