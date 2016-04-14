@@ -42,14 +42,13 @@ h1 {
 #body {
 	border: 2px solid;
 	background-color: #eeeeee;
-	max-height: 650px;
+	max-height: 50%;
 	overflow: auto;
 	padding: 10px;
 }
 
 #nav {
-	max-height: 650px;
-	line-height: 30px;
+	max-height: 700px;
 	background-color: #eeeeee;
 	max-width: 10%;
 	float: left;
@@ -59,23 +58,28 @@ h1 {
 }
 
 #section {
-	max-width: 1800px;
-	max-height: 650px;
-	
+	max-width: 90%;
+	max-height: 700px;
 	float: left;
 	padding: 10px;
 }
 
 #footer {
-	border: 1px solid;
+	border: 2px solid;
+	background-color: gray;
+	max-height: 50%;
+	overflow: auto;
+	padding: 20px;
+}
+
+#content_tree {
 	background-color: gray;
 	width: 25%;
 	float: left;
 	text-align: left;
 }
 
-#contable {
-	border: 1px solid;
+#content_table {
 	background-color: gray;
 	width: 75%;
 	clear: both;

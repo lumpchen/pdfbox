@@ -47,10 +47,10 @@
 		</div>
 
 		<div id="section">
-			<div style="float: left;">
+			<div style="float: left; max-width: 50%">
 				<canvas id="base_page_canvas"></canvas>
 			</div>
-			<div style="float: left;">
+			<div style="float: left; max-width: 50%">
 				<canvas id="test_page_canvas"></canvas>
 			</div>
 		</div>
@@ -59,26 +59,28 @@
 			style="position: absolute; top: 0; left: 0; display: none"></canvas>
 	</div>
 
-	<div id="contable">
-		<table id="attribute_table" class="cont-table">
-			<thead>
-				<tr>
-					<th style="width: 200px">Attribute</th>
-					<th style="width: 400px">Baseline</th>
-					<th style="width: 400px">Test</th>
-				</tr>
-			</thead>
-			<tbody>
-
-			</tbody>
-		</table>
-	</div>
-
 	<div id="footer">
-		<div class="row">
-			<div class="col-sm-12">
-				<label for="treeview"></label>
-				<div id="treeview" />
+		<div id="content_table">
+			<table id="attribute_table" class="cont-table">
+				<thead>
+					<tr>
+						<th style="width: 200px">Attribute</th>
+						<th style="width: 400px">Baseline</th>
+						<th style="width: 400px">Test</th>
+					</tr>
+				</thead>
+				<tbody>
+
+				</tbody>
+			</table>
+		</div>
+
+		<div id="content_tree">
+			<div class="row">
+				<div class="col-sm-12">
+					<label for="treeview"></label>
+					<div id="treeview" />
+				</div>
 			</div>
 		</div>
 	</div>
