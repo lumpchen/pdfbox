@@ -1,8 +1,9 @@
 package org.apache.pdfbox.tools.diff.document.compare;
 
 import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
-import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -120,73 +121,56 @@ public class PathComparator extends ContentComparator {
 	}
 
 	private boolean comparePathContent(PathContent path_1, PathContent path_2) {
-		Area area_1 = path_1.getOutlineArea();
-		Area area_2 = path_2.getOutlineArea();
-		Rectangle bbox_1 = area_1.getBounds();
-		Rectangle bbox_2 = area_2.getBounds();
-		
-		if (area_1.isEmpty()) {
+		if (path_1.isFill() != path_2.isFill()) {
 			return false;
 		}
 		
-//		if (area_1.isSingular() && area_1.isSingular()) {
-//			if (this.comparePath(bbox_1, bbox_2) == 0) {
-//				return true;
-//			}
-//		}
+//		List<Shape> shapeList_1 = path_1.getOutlineShapeList();
+//		Area area_1 = this.toArea(shapeList_1);
 //		
-//		if (area_1.isRectangular() && area_2.isRectangular()) {
-//			if (path_1.isFill() && path_2.isFill()) {
-//				return area_1.equals(area_2);
-//			}
-//		}
-
-		if (area_1.equals(area_2) && (path_1.isFill() == path_2.isFill())) {
+//		List<Shape> shapeList_2 = path_2.getOutlineShapeList();
+//		Area area_2 = this.toArea(shapeList_2);
+		
+		Area area_1 = path_1.getOutlineArea();
+		Area area_2 = path_2.getOutlineArea();
+		if (this.equalsWithTolerance(area_1, area_2)) {
 			return true;
 		}
-
+		
 		return false;
 	}
 
+	private Area toArea(List<Shape> shapeList) {
+		Area area = new Area();
+		for (Shape s : shapeList) {
+			area.add(new Area(s.getBounds2D()));
+		}
+		return area;
+	}
+	
+	private boolean equalsWithTolerance(Area a1, Area a2) {
+		Rectangle r1 = a1.getBounds();
+		Rectangle r2 = a2.getBounds();
+		if (r1.width != r2.width || r1.height != r2.height) {
+			return false;
+		}
+		float tor = this.setting.toleranceOfPath;
+		int dx = r1.x - r2.x;
+		int dy = r1.y - r2.y;
+		if (Math.abs(dx) <= tor && Math.abs(dy) <= tor) {
+			AffineTransform at = new AffineTransform(1, 0, 0, 1, dx, dy);
+			Area ta2 = a2.createTransformedArea(at);
+			if (a1.equals(ta2)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public DiffContent[] compare(PageThread basePageThread, PageThread testPageThread) {
 		DiffContent[] diffs = this.compare(basePageThread.getPathSet(), testPageThread.getPathSet());
 		return diffs;
 	}
 
-	private int comparePath(Rectangle bbox_1, Rectangle bbox_2) {
-		if (bbox_1 == null || bbox_2 == null) {
-			return -1;
-		}
-
-		float tolerance = this.setting.toleranceOfPath;
-
-		Line2D line_1 = getMidLine(bbox_1);
-		Line2D line_2 = getMidLine(bbox_2);
-
-		
-		boolean instersect = line_1.intersectsLine(line_2);
-
-		return 1;
-	}
-
-	private static Line2D getMidLine(Rectangle rect) {
-		java.awt.geom.Line2D line = null;
-		if (rect.width >= rect.height) { // Hor
-			float x1 = rect.x;
-			float y1 = rect.y + rect.height / 2.0f;
-			float x2 = rect.x + rect.width;
-			float y2 = y1;
-
-			line = new Line2D.Float(x1, y1, x2, y2);
-		} else {
-			float x1 = rect.x + rect.width / 2.0f;
-			float y1 = rect.y;
-			float x2 = rect.x + rect.width / 2.0f;
-			float y2 = y1 + rect.height / 2.0f;
-
-			line = new Line2D.Float(x1, y1, x2, y2);
-		}
-		return line;
-	}
 }
