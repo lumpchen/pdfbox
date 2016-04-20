@@ -9,9 +9,11 @@ public class CompareSetting {
 	public float toleranceOfPath = 2;
 	public CompareSetting() {
 		this.enableCompareAnnots = true;
-		this.enableComparePath = true;
+//		this.enableComparePath = true;
+		this.enableComparePath = false;
 		
-		this.enableTextPositionCompare = true;
+//		this.enableTextPositionCompare = true;
+		this.enableTextPositionCompare = false;
 		this.toleranceOfPath = 2;
 	}
 	
