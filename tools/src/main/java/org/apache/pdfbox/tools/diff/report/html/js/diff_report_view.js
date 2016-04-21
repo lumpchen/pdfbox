@@ -482,5 +482,5 @@ PDF_DIFF.diff_report_view = function(report_data) {
 	};
 };
 
-PDF_DIFF.view = new PDF_DIFF.diff_report_view(diff_report_data);
+PDF_DIFF.view = new PDF_DIFF.diff_report_view(PDF_DIFF.diff_report_data);
 

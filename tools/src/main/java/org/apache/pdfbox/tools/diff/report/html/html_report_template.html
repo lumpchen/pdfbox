@@ -5,15 +5,17 @@
 <meta charset='UTF-8' />
 <meta http-equiv='content-type' content='text/html; charset=utf-8' />
 <title>PDF DIFF Report</title>
-<link rel="stylesheet" href="bootstrap.css">
-<link rel="stylesheet" href="report_styles.css">
+<link rel="stylesheet" href="css/bootstrap.css">
+<link rel="stylesheet" href="css/report_styles.css">
 
-<script type="text/javascript" src="pdf_diff_report.js"></script>
-<script type="text/javascript" src="jquery.js"></script>
-<script type="text/javascript" src="bootstrap-treeview.js"></script>
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/bootstrap-treeview.js"></script>
+
+<script type="text/javascript" src="js/diff_report_data.js"></script>
+<script type="text/javascript" src="js/diff_report_view.js"></script>
 </head>
 
-<body onload="onload()">
+<body onload="PDF_DIFF.view.onload()">
 	<div id="header">
 		<h1>
 			<span>Baseline:</span> <span id="base_pdf_name"></span>

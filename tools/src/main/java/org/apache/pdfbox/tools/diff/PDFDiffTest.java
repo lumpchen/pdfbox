@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
-import org.apache.pdfbox.tools.diff.report.DiffReport;
+import org.apache.pdfbox.tools.diff.report.HtmlDiffReport;
 
 public class PDFDiffTest {
 
@@ -54,7 +54,7 @@ public class PDFDiffTest {
 				}
 			}
 
-			DiffReport report = new DiffReport(reportDir, "report", result);
+			HtmlDiffReport report = new HtmlDiffReport(reportDir, "report", result);
 			report.toHtml();
 		} catch (PDFDiffException e) {
 			e.printStackTrace();
