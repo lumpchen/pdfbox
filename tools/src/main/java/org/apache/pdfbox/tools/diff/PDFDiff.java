@@ -21,12 +21,19 @@ public class PDFDiff {
 	private File base;
 	private File test;
 	private DiffSetting setting;
+	private DiffLogger logger;
 	
 	public PDFDiff(File base, File test, DiffSetting setting) {
+		this(base, test, setting, DiffLogger.getDefaultLogger());
+	}
+	
+	public PDFDiff(File base, File test, DiffSetting setting, DiffLogger logger) {
 		this.base = base;
 		this.test = test;
 		this.setting = setting;
+		this.logger = logger;
 	}
+	
 	
 	public PDocDiffResult diff() throws PDFDiffException {
 		PDDocument baselinePDF = null;
@@ -81,7 +88,8 @@ public class PDFDiff {
 		int maxPageNum = pageNum_1 > pageNum_2 ? pageNum_1 : pageNum_2; 
         try {
             for (int i = 0; i < maxPageNum; i++) {
-            	DiffLogger.getInstance().info("Compare page " + (i + 1) + " in " + maxPageNum);
+            	this.logger.info("Compare page " + (i + 1) + " in " + maxPageNum);
+            	this.logger.progress(i + 1, maxPageNum);
             	
                 PDPage page_1 = i < pageNum_1 ? base.getPage(i) : null;
                 PDPage page_2 = i < pageNum_2 ? test.getPage(i) : null;
