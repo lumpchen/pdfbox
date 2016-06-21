@@ -10,28 +10,75 @@ import org.apache.pdfbox.tools.diff.report.HtmlDiffReport;
 public class PDFDiffTool {
 
 	public static void main(String[] args) {
-		if (args.length == 3) {
-			diff(args[0], args[1], args[2]);
-		} else {
+		if (args == null || args.length < 3) {
 			showUsage();
+		}
+		
+		boolean folderCompare = false;
+		String base = null;
+		String test = null;
+		String result = null;
+		DiffSetting setting = DiffSetting.getDefaultSetting();
+		for (int i = 0; i < args.length; i++) {
+			String arg = args[i];
+			
+			if (arg.equals("-folder")) {
+				folderCompare = true;
+			} else if (arg.equals("-disableTextPositionCompare")) {
+				setting.compSetting.enableTextPositionCompare = false;
+			} else if (arg.equals("-disableCompareAnnots")) {
+				setting.compSetting.enableCompareAnnots = false;
+			} else if (arg.equals("-disableComparePath")) {
+				setting.compSetting.enableComparePath = false;
+			} else if (arg.equals("-imageQuality")) {
+				if (args[++i].equalsIgnoreCase("high")) {
+					setting.resolution = 300;
+				}
+			} else if (base == null) {
+				base = args[i];
+			} else if (test == null) {
+				test = args[i];
+			} else if (result == null) {
+				result = args[i];
+			}
+		}
+		
+		if (base == null || test == null || result == null) {
+			System.err.println("Invalid parameters! \n");
+			showUsage();
+		}
+		
+		if (folderCompare) {
+			diff_folder(base, test, result, setting);
+		} else {
+			diff(base, test, result, setting);
 		}
 	}
 	
 	private static void showUsage() {
-		
+        String message = "Usage: java -jar pdfdiff.jar [options] <baseline> <compare> <result_folder>\n"
+                + "\nOptions:\n"
+                + "  -folder                                  : Compare all pdf file in folder\n"
+                + "  -disableCompareAnnots                    : Disable annotation compare\n"
+                + "  -disableComparePath                      : Disable path compare\n"
+                + "  -disableTextPositionCompare              : Disable text position compare\n"
+                + "  -imageQuality                            : <high> as reolustion 300dpi\n";
+        
+        System.err.println(message);
+        System.exit(1);
 	}
 	
-	public static int diff(String base, String test, String reportDir) {
+	public static int diff(String base, String test, String reportDir, DiffSetting setting) {
 		File baseFile = new File(base);
 		if (baseFile.exists() && baseFile.isFile()) {
-			return diff(new File(base), new File(test), new File(reportDir));
+			return diff(new File(base), new File(test), new File(reportDir), setting);
 		} else {
-			return diff_folder(base, test, reportDir);
+			return diff_folder(base, test, reportDir, setting);
 		}
 	}
 	
-	public static int diff(File base, File test, File reportDir) {
-		return diff(base, test, reportDir, null, null);
+	public static int diff(File base, File test, File reportDir, DiffSetting setting) {
+		return diff(base, test, reportDir, setting, null);
 	}
 	
 	public static int diff(File base, File test, File reportDir, DiffSetting setting, DiffLogger logger) {
@@ -79,14 +126,14 @@ public class PDFDiffTool {
 			report.toHtml();
 			return count;
 		} catch (PDFDiffException e) {
-			e.printStackTrace();
+			logger.error(e);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e);
 		}
 		return -1;
 	}
 	
-	public static int diff_folder(String base, String test, String report) {
+	public static int diff_folder(String base, String test, String report, DiffSetting setting) {
 		File baseDir = new File(base);
 		File testDir = new File(test);
 		File reportDir = new File(report);
@@ -104,7 +151,7 @@ public class PDFDiffTool {
 			}
 			
 			File reportFile = new File(reportDir, name);
-			count += diff(baseFile, testFile, reportFile);				
+			count += diff(baseFile, testFile, reportFile, setting);
 		}
 		
 		return count;

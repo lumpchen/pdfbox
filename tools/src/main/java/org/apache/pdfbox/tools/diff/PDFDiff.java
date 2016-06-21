@@ -161,7 +161,7 @@ public class PDFDiff {
 				testPageContents = extractor_2.getPageContentList();	
 			}
 			
-			PageContentComparator pageComparator = new PageContentComparator();
+			PageContentComparator pageComparator = new PageContentComparator(this.setting.compSetting);
 			PageDiffResult pageDiffResult = pageComparator.compare(basePageContents, testPageContents);
 			
 			result.add(pageNo, pageDiffResult);
