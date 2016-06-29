@@ -18,9 +18,9 @@ package org.apache.pdfbox.pdmodel.font.encoding;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.common.COSObjectable;
 
@@ -51,6 +51,10 @@ public abstract class Encoding implements COSObjectable
         {
             return MacRomanEncoding.INSTANCE;
         }
+        else if (COSName.MAC_EXPERT_ENCODING.equals(name))
+        {
+            return MacExpertEncoding.INSTANCE;
+        }
         else
         {
             return null;
@@ -62,9 +66,9 @@ public abstract class Encoding implements COSObjectable
     private Set<String> names;
 
     /**
-     * Returns an unmodifiable view of the code -> name mapping.
+     * Returns an unmodifiable view of the code -&gt; name mapping.
      * 
-     * @return the code -> name map
+     * @return the code -&gt; name map
      */
     public Map<Integer, String> getCodeToNameMap()
     {
@@ -72,10 +76,10 @@ public abstract class Encoding implements COSObjectable
     }
 
     /**
-     * Returns an unmodifiable view of the name -> code mapping. More than one name may map to
+     * Returns an unmodifiable view of the name -&gt; code mapping. More than one name may map to
      * the same code.
      *
-     * @return the name -> code map
+     * @return the name -&gt; code map
      */
     public Map<String, Integer> getNameToCodeMap()
     {
@@ -105,7 +109,7 @@ public abstract class Encoding implements COSObjectable
         // otherwise /Differences won't be accounted for
         if (names == null)
         {
-            names = new HashSet<String>(codeToName.size());
+            names = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
             names.addAll(codeToName.values());
         }
         return names.contains(name);

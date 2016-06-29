@@ -31,26 +31,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Enumeration;
-import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1EncodableVector;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.DERSet;
-import org.bouncycastle.asn1.cms.Attribute;
-import org.bouncycastle.asn1.cms.AttributeTable;
-import org.bouncycastle.asn1.cms.Attributes;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.cms.CMSSignedData;
-import org.bouncycastle.cms.SignerInformation;
-import org.bouncycastle.cms.SignerInformationStore;
-import org.bouncycastle.tsp.TSPException;
 
 /**
  * An example for singing a PDF with bouncy castle.
@@ -68,14 +55,15 @@ public class CreateSignature extends CreateSignatureBase
 
     /**
      * Initialize the signature creator with a keystore and certficate password.
-     * @param keystore the keystore containing the signing certificate
+     * @param keystore the pkcs12 keystore containing the signing certificate
      * @param password the password for recovering the key
      * @throws KeyStoreException if the keystore has not been initialized (loaded)
      * @throws NoSuchAlgorithmException if the algorithm for recovering the key cannot be found
      * @throws UnrecoverableKeyException if the given password is wrong
+     * @throws CertificateException if the certificate is not valid as signing time
      */
     public CreateSignature(KeyStore keystore, char[] password)
-            throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException
+            throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException
     {
         // grabs the first alias from the keystore and get the private key. An
         // TODO alternative method or constructor could be used for setting a specific
@@ -91,8 +79,13 @@ public class CreateSignature extends CreateSignatureBase
             throw new KeyStoreException("Keystore is empty");
         }
         setPrivateKey((PrivateKey) keystore.getKey(alias, password));
-        Certificate[] certificateChain = keystore.getCertificateChain(alias);
-        setCertificate(certificateChain[0]);
+        Certificate cert = keystore.getCertificateChain(alias)[0];
+        setCertificate(cert);
+        if (cert instanceof X509Certificate)
+        {
+            // avoid expired certificate
+            ((X509Certificate) cert).checkValidity();
+        }
     }
 
     /**
@@ -160,64 +153,6 @@ public class CreateSignature extends CreateSignatureBase
 
         // write incremental (only for signing purpose)
         document.saveIncremental(output);
-    }
-
-    /**
-     * We just extend CMS signed Data
-     *
-     * @param signedData -Generated CMS signed data
-     * @return CMSSignedData - Extended CMS signed data
-     */
-    @Override
-    protected CMSSignedData signTimeStamps(CMSSignedData signedData)
-            throws IOException, TSPException
-    {
-        SignerInformationStore signerStore = signedData.getSignerInfos();
-        List<SignerInformation> newSigners = new ArrayList<SignerInformation>();
-
-        for (SignerInformation signer : signerStore.getSigners())
-        {
-            newSigners.add(signTimeStamp(signer));
-        }
-
-        // TODO do we have to return a new store?
-        return CMSSignedData.replaceSigners(signedData, new SignerInformationStore(newSigners));
-    }
-
-    /**
-     * We are extending CMS Signature
-     *
-     * @param signer information about signer
-     * @return information about SignerInformation
-     */
-    private SignerInformation signTimeStamp(SignerInformation signer)
-            throws IOException, TSPException
-    {
-        AttributeTable unsignedAttributes = signer.getUnsignedAttributes();
-
-        ASN1EncodableVector vector = new ASN1EncodableVector();
-        if (unsignedAttributes != null)
-        {
-            vector = unsignedAttributes.toASN1EncodableVector();
-        }
-
-        byte[] token = getTsaClient().getTimeStampToken(signer.getSignature());
-        ASN1ObjectIdentifier oid = PKCSObjectIdentifiers.id_aa_signatureTimeStampToken;
-        ASN1Encodable signatureTimeStamp = new Attribute(oid, new DERSet(ASN1Primitive.fromByteArray(token)));
-
-        vector.add(signatureTimeStamp);
-        Attributes signedAttributes = new Attributes(vector);
-
-        SignerInformation newSigner = SignerInformation.replaceUnsignedAttributes(
-                signer, new AttributeTable(signedAttributes));
-
-        // TODO can this actually happen?
-        if (newSigner == null)
-        {
-            return signer;
-        }
-
-        return newSigner;
     }
 
     public static void main(String[] args) throws IOException, GeneralSecurityException

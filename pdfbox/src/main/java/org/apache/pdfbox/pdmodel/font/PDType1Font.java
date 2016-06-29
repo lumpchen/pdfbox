@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.fontbox.EncodedFont;
@@ -41,11 +42,11 @@ import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.font.encoding.Encoding;
 import org.apache.pdfbox.pdmodel.font.encoding.StandardEncoding;
 import org.apache.pdfbox.pdmodel.font.encoding.Type1Encoding;
-import org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding;
 import org.apache.pdfbox.util.Matrix;
 
 
 import static org.apache.pdfbox.pdmodel.font.UniUtil.getUniNameOfCodePoint;
+import org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding;
 
 /**
  * A PostScript Type 1 Font.
@@ -88,13 +89,26 @@ public class PDType1Font extends PDSimpleFont
     public static final PDType1Font SYMBOL = new PDType1Font("Symbol");
     public static final PDType1Font ZAPF_DINGBATS = new PDType1Font("ZapfDingbats");
 
-    private final Type1Font type1font; // embedded font
-    private final FontBoxFont genericFont; // embedded or system font for rendering
+    /**
+     * embedded font.
+     */
+    private final Type1Font type1font;
+    
+    /**
+     * embedded or system font for rendering.
+     */
+    private final FontBoxFont genericFont;
+    
     private final boolean isEmbedded;
     private final boolean isDamaged;
     private Matrix fontMatrix;
     private final AffineTransform fontMatrixTransform;
     private BoundingBox fontBBox;
+
+    /**
+     * to improve encoding speed.
+     */
+    private final Map <Integer,byte[]> codeToBytesMap;
 
     /**
      * Creates a Type 1 standard 14 font for embedding.
@@ -107,8 +121,10 @@ public class PDType1Font extends PDSimpleFont
         
         dict.setItem(COSName.SUBTYPE, COSName.TYPE1);
         dict.setName(COSName.BASE_FONT, baseFont);
-        encoding = new WinAnsiEncoding();
+        encoding = WinAnsiEncoding.INSTANCE;
         dict.setItem(COSName.ENCODING, COSName.WIN_ANSI_ENCODING);
+        // standard 14 fonts may be accessed concurrently, as they are singletons
+        codeToBytesMap = new ConcurrentHashMap<Integer,byte[]>();
 
         // todo: could load the PFB font here if we wanted to support Standard 14 embedding
         type1font = null;
@@ -152,6 +168,7 @@ public class PDType1Font extends PDSimpleFont
         isEmbedded = true;
         isDamaged = false;
         fontMatrixTransform = new AffineTransform();
+        codeToBytesMap = new HashMap<Integer,byte[]>();
     }
 
     /**
@@ -172,6 +189,7 @@ public class PDType1Font extends PDSimpleFont
         isEmbedded = true;
         isDamaged = false;
         fontMatrixTransform = new AffineTransform();
+        codeToBytesMap = new HashMap<Integer,byte[]>();
     }
 
     /**
@@ -184,6 +202,7 @@ public class PDType1Font extends PDSimpleFont
     public PDType1Font(COSDictionary fontDictionary) throws IOException
     {
         super(fontDictionary);
+        codeToBytesMap = new HashMap<Integer,byte[]>();
 
         PDFontDescriptor fd = getFontDescriptor();
         Type1Font t1 = null;
@@ -339,6 +358,12 @@ public class PDType1Font extends PDSimpleFont
     @Override
     protected byte[] encode(int unicode) throws IOException
     {
+        byte[] bytes = codeToBytesMap.get(unicode);
+        if (bytes != null)
+        {
+            return bytes;
+        }
+
         String name = getGlyphList().codePointToName(unicode);
         if (!encoding.contains(name))
         {
@@ -357,7 +382,9 @@ public class PDType1Font extends PDSimpleFont
         }
 
         int code = inverted.get(name);
-        return new byte[] { (byte)code };
+        bytes = new byte[] { (byte)code };
+        codeToBytesMap.put(code, bytes);
+        return bytes;
     }
 
     @Override

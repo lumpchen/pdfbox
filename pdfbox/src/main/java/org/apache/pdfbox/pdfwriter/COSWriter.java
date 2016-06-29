@@ -768,16 +768,14 @@ public class COSWriter implements ICOSVisitor, Closeable
                 new ByteArrayInputStream(signBuffer));
 
         // sign the bytes
-        byte[] sign = signatureInterface.sign(signStream);
-        String signature = new COSString(sign).toHexString();
+        byte[] signatureBytes = Hex.getBytes(signatureInterface.sign(signStream));
         // substract 2 bytes because of the enclosing "<>"
-        if (signature.length() > signatureLength - 2)
+        if (signatureBytes.length > signatureLength - 2)
         {
             throw new IOException("Can't write signature, not enough space");
         }
 
         // overwrite the signature Contents in the buffer
-        byte[] signatureBytes = signature.getBytes(Charsets.ISO_8859_1);
         System.arraycopy(signatureBytes, 0, buffer, bufSignatureOffset + 1, signatureBytes.length);
 
         // write the data to the incremental output stream
@@ -1380,19 +1378,22 @@ public class COSWriter implements ICOSVisitor, Closeable
     {
         // check for non-ASCII characters
         boolean isASCII = true;
-        for (byte b : bytes)
+        if (!forceHex)
         {
-            // if the byte is negative then it is an eight bit byte and is outside the ASCII range
-            if (b < 0)
+            for (byte b : bytes)
             {
-                isASCII = false;
-                break;
-            }
-            // PDFBOX-3107 EOL markers within a string are troublesome
-            if (b == 0x0d || b == 0x0a)
-            {
-                isASCII = false;
-                break;
+                // if the byte is negative then it is an eight bit byte and is outside the ASCII range
+                if (b < 0)
+                {
+                    isASCII = false;
+                    break;
+                }
+                // PDFBOX-3107 EOL markers within a string are troublesome
+                if (b == 0x0d || b == 0x0a)
+                {
+                    isASCII = false;
+                    break;
+                }
             }
         }
 
@@ -1420,10 +1421,7 @@ public class COSWriter implements ICOSVisitor, Closeable
         {
             // write hex string
             output.write('<');
-            for (byte b : bytes)
-            {
-                output.write(Hex.getBytes(b));
-            }
+            Hex.writeHexBytes(bytes, output);
             output.write('>');
         }
     }
