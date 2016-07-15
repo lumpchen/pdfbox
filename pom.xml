@@ -54,6 +54,7 @@
     <module>app</module>
     <module>debugger-app</module>
     <module>examples</module>
+    <module>accessibility</module>
   </modules>
 
   <build>
