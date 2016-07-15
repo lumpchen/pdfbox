@@ -47,6 +47,7 @@ import org.apache.pdfbox.util.Matrix;
 
 import static org.apache.pdfbox.pdmodel.font.UniUtil.getUniNameOfCodePoint;
 import org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding;
+import org.apache.pdfbox.pdmodel.font.encoding.ZapfDingbatsEncoding;
 
 /**
  * A PostScript Type 1 Font.
@@ -121,8 +122,16 @@ public class PDType1Font extends PDSimpleFont
         
         dict.setItem(COSName.SUBTYPE, COSName.TYPE1);
         dict.setName(COSName.BASE_FONT, baseFont);
-        encoding = WinAnsiEncoding.INSTANCE;
-        dict.setItem(COSName.ENCODING, COSName.WIN_ANSI_ENCODING);
+        if ("ZapfDingbats".equals(baseFont))
+        {
+            encoding = ZapfDingbatsEncoding.INSTANCE;
+        }
+        else
+        {
+            encoding = WinAnsiEncoding.INSTANCE;
+            dict.setItem(COSName.ENCODING, COSName.WIN_ANSI_ENCODING);
+        }
+
         // standard 14 fonts may be accessed concurrently, as they are singletons
         codeToBytesMap = new ConcurrentHashMap<Integer,byte[]>();
 
@@ -368,8 +377,8 @@ public class PDType1Font extends PDSimpleFont
         if (!encoding.contains(name))
         {
             throw new IllegalArgumentException(
-                    String.format("U+%04X ('%s') is not available in this font's encoding: %s",
-                                  unicode, name, encoding.getEncodingName()));
+                    String.format("U+%04X ('%s') is not available in this font %s (generic: %s) encoding: %s",
+                                  unicode, name, getName(), genericFont.getName(), encoding.getEncodingName()));
         }
         
         String nameInFont = getNameInFont(name);
@@ -378,7 +387,7 @@ public class PDType1Font extends PDSimpleFont
         if (nameInFont.equals(".notdef") || !genericFont.hasGlyph(nameInFont))
         {
             throw new IllegalArgumentException(
-                    String.format("No glyph for U+%04X in font %s", unicode, getName()));
+                    String.format("No glyph for U+%04X in font %s (generic: %s)", unicode, getName(), genericFont.getName()));
         }
 
         int code = inverted.get(name);

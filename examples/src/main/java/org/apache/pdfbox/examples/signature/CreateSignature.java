@@ -28,13 +28,9 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Calendar;
-import java.util.Enumeration;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
@@ -56,36 +52,17 @@ public class CreateSignature extends CreateSignatureBase
     /**
      * Initialize the signature creator with a keystore and certficate password.
      * @param keystore the pkcs12 keystore containing the signing certificate
-     * @param password the password for recovering the key
+     * @param pin the password for recovering the key
      * @throws KeyStoreException if the keystore has not been initialized (loaded)
      * @throws NoSuchAlgorithmException if the algorithm for recovering the key cannot be found
      * @throws UnrecoverableKeyException if the given password is wrong
      * @throws CertificateException if the certificate is not valid as signing time
+     * @throws IOException if no certificate could be found
      */
-    public CreateSignature(KeyStore keystore, char[] password)
-            throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException
+    public CreateSignature(KeyStore keystore, char[] pin)
+            throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException, IOException
     {
-        // grabs the first alias from the keystore and get the private key. An
-        // TODO alternative method or constructor could be used for setting a specific
-        // alias that should be used.
-        Enumeration<String> aliases = keystore.aliases();
-        String alias;
-        if (aliases.hasMoreElements())
-        {
-            alias = aliases.nextElement();
-        }
-        else
-        {
-            throw new KeyStoreException("Keystore is empty");
-        }
-        setPrivateKey((PrivateKey) keystore.getKey(alias, password));
-        Certificate cert = keystore.getCertificateChain(alias)[0];
-        setCertificate(cert);
-        if (cert instanceof X509Certificate)
-        {
-            // avoid expired certificate
-            ((X509Certificate) cert).checkValidity();
-        }
+        super(keystore, pin);
     }
 
     /**

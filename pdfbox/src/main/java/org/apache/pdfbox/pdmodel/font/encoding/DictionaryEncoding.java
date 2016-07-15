@@ -19,8 +19,6 @@ package org.apache.pdfbox.pdmodel.font.encoding;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
@@ -34,7 +32,6 @@ import org.apache.pdfbox.cos.COSNumber;
  */
 public class DictionaryEncoding extends Encoding
 {
-    private static final Log LOG = LogFactory.getLog(DictionaryEncoding.class);
     private final COSDictionary encoding;
     private final Encoding baseEncoding;
     private final Map<Integer, String> differences = new HashMap<Integer, String>();
@@ -62,14 +59,11 @@ public class DictionaryEncoding extends Encoding
 
         if (this.baseEncoding == null)
         {
-            LOG.error("Invalid encoding: " + baseEncoding);
+            throw new IllegalArgumentException("Invalid encoding: " + baseEncoding);
         }
         
-        if (this.baseEncoding != null)
-        {
-            codeToName.putAll(this.baseEncoding.codeToName);
-            inverted.putAll(this.baseEncoding.inverted);
-        }
+        codeToName.putAll(this.baseEncoding.codeToName);
+        inverted.putAll(this.baseEncoding.inverted);
         applyDifferences();
     }
 
@@ -100,7 +94,7 @@ public class DictionaryEncoding extends Encoding
         if (encoding.containsKey(COSName.BASE_ENCODING))
         {
             COSName name = encoding.getCOSName(COSName.BASE_ENCODING);
-            base = Encoding.getInstance(name);
+            base = Encoding.getInstance(name); // may be null
         }
 
         if (base == null)
@@ -119,17 +113,15 @@ public class DictionaryEncoding extends Encoding
                 }
                 else
                 {
-                    LOG.error("Symbolic fonts must have a built-in encoding");
+                    throw new IllegalArgumentException("Symbolic fonts must have a built-in " + 
+                                                       "encoding");
                 }
             }
         }
         baseEncoding = base;
 
-        if (baseEncoding != null)
-        {
-            codeToName.putAll(baseEncoding.codeToName);
-            inverted.putAll(baseEncoding.inverted);
-        }
+        codeToName.putAll(baseEncoding.codeToName);
+        inverted.putAll(baseEncoding.inverted);
         applyDifferences();
     }
 
@@ -161,7 +153,7 @@ public class DictionaryEncoding extends Encoding
     }
 
     /**
-     * Returns the base encoding. Will be null for Type 3 fonts or if the encoding is missing or invalid.
+     * Returns the base encoding. Will be null for Type 3 fonts.
      */
     public Encoding getBaseEncoding()
     {

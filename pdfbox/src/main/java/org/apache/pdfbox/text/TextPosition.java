@@ -110,7 +110,7 @@ public final class TextPosition
      * @param pageRotation rotation of the page that the text is located in
      * @param pageWidth rotation of the page that the text is located in
      * @param pageHeight rotation of the page that the text is located in
-     * @param textMatrix TextMatrix for start of text (in display units)
+     * @param textMatrix text rendering matrix for start of text (in display units)
      * @param endX x coordinate of the end position
      * @param endY y coordinate of the end position
      * @param maxHeight Maximum height of text (in display units)
@@ -120,7 +120,7 @@ public final class TextPosition
      * @param charCodes An array of the internal PDF character codes for the glyphs in this text.
      * @param font The current font for this text position.
      * @param fontSize The new font size.
-     * @param fontSizeInPt The font size in pt units.
+     * @param fontSizeInPt The font size in pt units (see {@link #getFontSizeInPt()} for details).
      */
     public TextPosition(int pageRotation, float pageWidth, float pageHeight, Matrix textMatrix,
                         float endX, float endY, float maxHeight, float individualWidth,
@@ -179,7 +179,10 @@ public final class TextPosition
     }
 
     /**
-     * Return the text matrix stored in this object.
+     * The matrix containing the starting text position and scaling. Despite the name, it is not the
+     * text matrix set by the "Tm" operator, it is really the effective text rendering matrix (which
+     * is dependent on the current transformation matrix (set by the "cm" operator), the text matrix
+     * (set by the "Tm" operator), the font size (set by the "Tf" operator) and the page cropbox).
      *
      * @return The Matrix containing the starting text position
      */
@@ -403,7 +406,10 @@ public final class TextPosition
     }
 
     /**
-     * This will get the font size that this object is suppose to be drawn at.
+     * This will get the font size that has been set with the "Tf" operator (Set text font and
+     * size). When the text is rendered, it may appear bigger or smaller depending on the current
+     * transformation matrix (set by the "cm" operator) and the text matrix (set by the "Tm"
+     * operator).
      *
      * @return The font size.
      */
@@ -413,8 +419,11 @@ public final class TextPosition
     }
 
     /**
-     * This will get the font size in pt. To get this size we have to multiply the pdf-fontsize
-     * and the scaling from the textmatrix
+     * This will get the font size in pt. To get this size we have to multiply the font size from
+     * {@link #getFontSize() getFontSize()} with the text matrix (set by the "Tm" operator)
+     * horizontal scaling factor and truncate the result to integer. The actual rendering may appear
+     * bigger or smaller depending on the current transformation matrix (set by the "cm" operator).
+     * To get the size in rendering, use {@link #getXScale() getXScale()}.
      *
      * @return The font size in pt.
      */
@@ -445,7 +454,11 @@ public final class TextPosition
     }
 
     /**
-     * @return Returns the xScale.
+     * This will get the X scaling factor. This is dependent on the current transformation matrix
+     * (set by the "cm" operator), the text matrix (set by the "Tm" operator) and the font size (set
+     * by the "Tf" operator).
+     *
+     * @return The X scaling factor.
      */
     public float getXScale()
     {
@@ -453,7 +466,11 @@ public final class TextPosition
     }
 
     /**
-     * @return Returns the yScale.
+     * This will get the Y scaling factor. This is dependent on the current transformation matrix
+     * (set by the "cm" operator), the text matrix (set by the "Tm" operator) and the font size (set
+     * by the "Tf" operator).
+     *
+     * @return The Y scaling factor.
      */
     public float getYScale()
     {
