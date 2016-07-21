@@ -4,6 +4,6 @@ import org.apache.pdfbox.accessibility.UACheckContext;
 
 public interface CheckProcess {
 
-	public void check(UACheckContext ctx) throws CheckException;
+	public void check(UACheckContext ctx) throws CheckProcessException;
 	
 }

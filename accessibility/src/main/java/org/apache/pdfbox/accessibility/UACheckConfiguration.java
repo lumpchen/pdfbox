@@ -1,5 +1,6 @@
 package org.apache.pdfbox.accessibility;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -31,4 +32,23 @@ public class UACheckConfiguration {
 	public void removeProcess(String processName) {
 		this.processes.remove(processName);
 	}
+	
+	public Collection<String> getProcessNames() {
+        return this.processes.keySet();
+    }
+
+	public CheckProcess getProcessInstance(String name) throws CheckException {
+		if (this.processes.containsKey(name)) {
+			Class<? extends CheckProcess> process = this.processes.get(name);
+			try {
+				return process.newInstance();
+			} catch (InstantiationException e) {
+				throw new CheckException(e);
+			} catch (IllegalAccessException e) {
+				throw new CheckException(e);
+			}
+		}
+		throw new CheckException(name + " class is missing!");
+	}
+	
 }
