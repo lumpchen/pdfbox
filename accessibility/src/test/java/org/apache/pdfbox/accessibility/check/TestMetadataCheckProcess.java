@@ -8,7 +8,8 @@ public class TestMetadataCheckProcess {
 	@Test
 	public void test() {
 		UAChecker checker = new UAChecker();
-		String path = "C:\\uatest\\PDFUA-Reference-Files_01\\PDFUA-Reference-10_(Danish-form).pdf";
+		String path = "C:\\uatest\\artifact.pdf";
+		
 		checker.check(path);
 	}
 }
