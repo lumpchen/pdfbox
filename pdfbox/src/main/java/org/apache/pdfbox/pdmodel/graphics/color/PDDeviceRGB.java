@@ -17,13 +17,15 @@
 package org.apache.pdfbox.pdmodel.graphics.color;
 
 import java.awt.Transparency;
-import java.awt.color.CMMException;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.pdfbox.cos.COSName;
 
 /**
@@ -35,23 +37,11 @@ import org.apache.pdfbox.cos.COSName;
  */
 public final class PDDeviceRGB extends PDDeviceColorSpace
 {
-    static
-    {
-        try
-        {
-            // Initialize before INSTANCE object is used due to weird errors (PDFBOX-2184, PDFBOX-3375)
-            ColorSpace.getInstance(ColorSpace.CS_sRGB).toRGB(new float[] { 0, 0, 0, 0 });
-        }
-        catch (CMMException ex)
-        {
-            // ignored
-        }
-    }
-
     /**  This is the single instance of this class. */
     public static final PDDeviceRGB INSTANCE = new PDDeviceRGB();
     
     private final PDColor initialColor = new PDColor(new float[] { 0, 0, 0 }, this);
+    private final Lock lock = new ReentrantLock ();
     private volatile ColorSpace awtColorSpace;
     
     private PDDeviceRGB()
@@ -68,7 +58,8 @@ public final class PDDeviceRGB extends PDDeviceColorSpace
         {
             return;
         }
-        synchronized (this)
+        lock.lock ();
+        try
         {
             // we might have been waiting for another thread, so check again
             if (awtColorSpace != null)
@@ -81,6 +72,10 @@ public final class PDDeviceRGB extends PDDeviceColorSpace
             // condition caused by lazy initialization of the color transform, so we perform
             // an initial color conversion while we're still synchronized, see PDFBOX-2184
             awtColorSpace.toRGB(new float[] { 0, 0, 0, 0 });
+        }
+        finally
+        {
+            lock.unlock();
         }
     }
     

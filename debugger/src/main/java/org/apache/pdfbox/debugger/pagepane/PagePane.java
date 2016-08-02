@@ -21,6 +21,9 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
@@ -45,7 +48,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
  * @author Tilman Hausherr
  * @author John Hewson
  */
-public class PagePane implements ActionListener, AncestorListener
+public class PagePane implements ActionListener, AncestorListener, MouseMotionListener, MouseListener
 {
     private JPanel panel;
     private int pageIndex = -1;
@@ -53,12 +56,15 @@ public class PagePane implements ActionListener, AncestorListener
     private JLabel label;
     private ZoomMenu zoomMenu;
     private RotationMenu rotationMenu;
+    private final JLabel statuslabel;
+    private final PDPage page;
 
-    public PagePane(PDDocument document, COSDictionary page)
+    public PagePane(PDDocument document, COSDictionary pageDict, JLabel statuslabel)
     {
-        PDPage pdPage = new PDPage(page);
-        pageIndex = document.getPages().indexOf(pdPage);
+        page = new PDPage(pageDict);
+        pageIndex = document.getPages().indexOf(page);
         this.document = document;
+        this.statuslabel = statuslabel;
         initUI();
     }
 
@@ -76,6 +82,8 @@ public class PagePane implements ActionListener, AncestorListener
         panel.add(pageLabel);
         
         label = new JLabel();
+        label.addMouseMotionListener(this);
+        label.addMouseListener(this);
         label.setBackground(panel.getBackground());
         label.setAlignmentX(Component.CENTER_ALIGNMENT);
         panel.add(label);
@@ -133,6 +141,76 @@ public class PagePane implements ActionListener, AncestorListener
     {
     }
 
+    @Override
+    public void mouseDragged(MouseEvent e)
+    {
+    }
+
+    /**
+     * Catch mouse event to display cursor position in PDF coordinates in the status bar.
+     *
+     * @param e mouse event with position
+     */
+    @Override
+    public void mouseMoved(MouseEvent e)
+    {
+        float height = page.getCropBox().getHeight();
+        float width  = page.getCropBox().getWidth();
+        float offsetX = page.getCropBox().getLowerLeftX();
+        float offsetY = page.getCropBox().getLowerLeftY();
+        float zoomScale = zoomMenu.getPageZoomScale();
+        float x = e.getX() / zoomScale;
+        float y = e.getY() / zoomScale;
+        int x1, y1;
+        switch ((RotationMenu.getRotationDegrees() + page.getRotation()) % 360)
+        {
+            case 90:
+                x1 = (int) (y + offsetX);
+                y1 = (int) (x + offsetY);
+                break;
+            case 180:
+                x1 = (int) (width - x + offsetX);
+                y1 = (int) (y - offsetY);
+                break;
+            case 270:
+                x1 = (int) (width - y + offsetX);
+                y1 = (int) (height - x + offsetY);
+                break;
+            case 0:
+            default:
+                x1 = (int) (x + offsetX);
+                y1 = (int) (height - y + offsetY);
+                break;
+        }
+        statuslabel.setText(x1 + "," + y1);
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e)
+    {
+        statuslabel.setText("");
+    }
+
     /**
      * Note that PDDocument is not officially thread safe, caution advised.
      */
@@ -151,9 +229,13 @@ public class PagePane implements ActionListener, AncestorListener
         protected BufferedImage doInBackground() throws IOException
         {
             label.setIcon(null);
-            label.setText("Loading...");
+            label.setText("Rendering...");
             PDFRenderer renderer = new PDFRenderer(document);
+            long t0 = System.currentTimeMillis();
+            statuslabel.setText("Rendering...");
             BufferedImage bim = renderer.renderImage(pageIndex, scale);
+            float t = (System.currentTimeMillis() - t0) / 1000f;
+            statuslabel.setText("Rendered in " + t + " second" + (t > 1 ? "s" : ""));
             return ImageUtil.getRotatedImage(bim, rotation);
         }
 

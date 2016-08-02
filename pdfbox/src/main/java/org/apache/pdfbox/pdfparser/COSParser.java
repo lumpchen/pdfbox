@@ -208,8 +208,10 @@ public class COSParser extends BaseParser
         document.setStartXref(startXrefOffset);
         long prev = startXrefOffset;
         // ---- parse whole chain of xref tables/object streams using PREV reference
-        while (prev > 0)
+        long lastPrev = -1;
+        while (prev > 0 && prev != lastPrev)
         {
+            lastPrev = prev;
             // seek to xref table
             source.seek(prev);
 
@@ -298,6 +300,11 @@ public class COSParser extends BaseParser
                 }
             }
         }
+        if (prev == lastPrev)
+        {
+            //TODO better idea needed? PDFBOX-3446
+            throw new IOException("/Prev loop at offset " + prev);
+        }
         // ---- build valid xrefs out of the xref chain
         xrefTrailerResolver.setStartxref(startXrefOffset);
         COSDictionary trailer = xrefTrailerResolver.getTrailer();
@@ -324,7 +331,7 @@ public class COSParser extends BaseParser
 
         COSDictionary dict = parseCOSDictionary();
         COSStream xrefStream = parseCOSStream(dict);
-        parseXrefStream(xrefStream, (int) objByteOffset, isStandalone);
+        parseXrefStream(xrefStream, objByteOffset, isStandalone);
         xrefStream.close();
 
         return dict.getLong(COSName.PREV);
@@ -745,7 +752,7 @@ public class COSParser extends BaseParser
         {
             throw new IOException("XREF for " + objKey.getNumber() + ":"
                     + objKey.getGeneration() + " points to wrong object: " + readObjNr
-                    + ":" + readObjGen);
+                    + ":" + readObjGen + " at offset " + offsetOrObjstmObNr);
         }
 
         skipSpaces();
@@ -1204,7 +1211,7 @@ public class COSParser extends BaseParser
         // seek to offset-1 
         source.seek(startXRefOffset-1);
         int nextValue = source.read();
-        // the first character has to be whitespace(s), and then a digit
+        // the first character has to be a whitespace, and then a digit
         if (isWhitespace(nextValue))
         {
             skipSpaces();
@@ -2002,7 +2009,7 @@ public class COSParser extends BaseParser
                 {
                     try
                     {
-                        int currOffset = Integer.parseInt(splitString[0]);
+                        long currOffset = Long.parseLong(splitString[0]);
                         int currGenID = Integer.parseInt(splitString[1]);
                         COSObjectKey objKey = new COSObjectKey(currObjID, currGenID);
                         xrefTrailerResolver.setXRef(objKey, currOffset);
