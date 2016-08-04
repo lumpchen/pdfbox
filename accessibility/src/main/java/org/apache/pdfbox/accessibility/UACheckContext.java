@@ -1,5 +1,6 @@
 package org.apache.pdfbox.accessibility;
 
+import org.apache.pdfbox.accessibility.check.CheckResult;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.xmpbox.XMPMetadata;
 

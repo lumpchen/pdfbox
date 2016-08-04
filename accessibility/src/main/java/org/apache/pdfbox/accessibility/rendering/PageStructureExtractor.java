@@ -1,4 +1,4 @@
-package org.apache.pdfbox.rendering;
+package org.apache.pdfbox.accessibility.rendering;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -26,6 +26,11 @@ import org.apache.pdfbox.pdmodel.font.PDType1CFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
+import org.apache.pdfbox.rendering.CIDType0Glyph2D;
+import org.apache.pdfbox.rendering.Glyph2D;
+import org.apache.pdfbox.rendering.StructuredPDFStreamEngine;
+import org.apache.pdfbox.rendering.TTFGlyph2D;
+import org.apache.pdfbox.rendering.Type1Glyph2D;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.Vector;
 

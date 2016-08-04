@@ -1,7 +1,9 @@
-package org.apache.pdfbox.accessibility;
+package org.apache.pdfbox.accessibility.check;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.pdfbox.accessibility.check.matterhorn.CheckPoint;
 
 public class CheckResult {
 
@@ -13,9 +15,6 @@ public class CheckResult {
 	}
 	
 	public void addCheckPoint(CheckPoint checkPoint) {
-		if (checkPoint.isFailure()) {
-			this.failureCount++;
-		}
 		this.results.add(checkPoint);
 	}
 	

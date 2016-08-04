@@ -1,4 +1,4 @@
-package org.apache.pdfbox.accessibility.validator.matterhorn;
+package org.apache.pdfbox.accessibility.check.matterhorn;
 
 public class GraphicsCheckPoint extends CheckPoint {
 
@@ -9,9 +9,5 @@ public class GraphicsCheckPoint extends CheckPoint {
 		super();
 	}
 
-	@Override
-	public boolean check() {
-		return false;
-	}
 			
 }

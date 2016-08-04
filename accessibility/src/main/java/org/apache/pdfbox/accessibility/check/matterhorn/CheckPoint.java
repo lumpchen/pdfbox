@@ -1,14 +1,13 @@
-package org.apache.pdfbox.accessibility.validator.matterhorn;
+package org.apache.pdfbox.accessibility.check.matterhorn;
 
 public abstract class CheckPoint {
 
+	protected String category;
 	protected String failureCondition;
 
 	public CheckPoint() {
 	}
 
-	abstract public boolean check();
-	
 	public String getExplanation() {
 		return "";
 	}
@@ -16,5 +15,4 @@ public abstract class CheckPoint {
 	public String getFailureCondition() {
 		return this.failureCondition;
 	}
-	
 }

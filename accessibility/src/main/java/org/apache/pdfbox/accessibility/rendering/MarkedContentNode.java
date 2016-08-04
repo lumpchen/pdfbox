@@ -1,4 +1,4 @@
-package org.apache.pdfbox.rendering;
+package org.apache.pdfbox.accessibility.rendering;
 
 import java.awt.Shape;
 import java.awt.geom.Area;

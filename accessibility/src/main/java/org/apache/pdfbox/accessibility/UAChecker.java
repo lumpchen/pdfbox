@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import org.apache.pdfbox.accessibility.check.CheckException;
 import org.apache.pdfbox.accessibility.check.CheckProcess;
 import org.apache.pdfbox.accessibility.check.CheckProcessException;
 import org.apache.pdfbox.pdmodel.PDDocument;

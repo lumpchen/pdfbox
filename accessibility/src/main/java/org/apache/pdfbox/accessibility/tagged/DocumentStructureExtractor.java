@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.pdfbox.accessibility.rendering.MarkedContentNode;
+import org.apache.pdfbox.accessibility.rendering.PageStructureExtractor;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.rendering.MarkedContentNode;
-import org.apache.pdfbox.rendering.PageStructureExtractor;
 
 public class DocumentStructureExtractor {
 	private PDDocument document;

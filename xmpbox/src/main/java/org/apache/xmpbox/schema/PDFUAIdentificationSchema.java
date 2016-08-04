@@ -9,18 +9,18 @@ import org.apache.xmpbox.type.StructuredType;
 import org.apache.xmpbox.type.Types;
 
 @StructuredType(preferedPrefix = "pdfuaid", namespace = "http://www.aiim.org/pdfua/ns/id/")
-public class PDFUAIdSchema extends XMPSchema 
+public class PDFUAIdentificationSchema extends XMPSchema 
 {
 
     @PropertyType(type = Types.Integer, card = Cardinality.Simple)
     public static final String PART = "part";
     
-    public PDFUAIdSchema(XMPMetadata metadata)
+    public PDFUAIdentificationSchema(XMPMetadata metadata)
     {
         super(metadata);
     }
 
-    public PDFUAIdSchema(XMPMetadata metadata, String prefix)
+    public PDFUAIdentificationSchema(XMPMetadata metadata, String prefix)
     {
         super(metadata, prefix);
     }

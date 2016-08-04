@@ -29,6 +29,7 @@ import org.apache.xmpbox.schema.AdobePDFSchema;
 import org.apache.xmpbox.schema.DublinCoreSchema;
 import org.apache.xmpbox.schema.PDFAExtensionSchema;
 import org.apache.xmpbox.schema.PDFAIdentificationSchema;
+import org.apache.xmpbox.schema.PDFUAIdentificationSchema;
 import org.apache.xmpbox.schema.PhotoshopSchema;
 import org.apache.xmpbox.schema.XMPBasicJobTicketSchema;
 import org.apache.xmpbox.schema.XMPBasicSchema;
@@ -554,6 +555,11 @@ public class XMPMetadata
         return (AdobePDFSchema) getSchema(AdobePDFSchema.class);
     }
 
+    public PDFUAIdentificationSchema getPDFUAIdentificationSchema()
+    {
+        return (PDFUAIdentificationSchema) getSchema(PDFUAIdentificationSchema.class);
+    }
+    
     /**
      * Add a schema to the current structure.
      * 

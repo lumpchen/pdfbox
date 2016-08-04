@@ -38,6 +38,7 @@ import org.apache.xmpbox.schema.DublinCoreSchema;
 import org.apache.xmpbox.schema.ExifSchema;
 import org.apache.xmpbox.schema.PDFAExtensionSchema;
 import org.apache.xmpbox.schema.PDFAIdentificationSchema;
+import org.apache.xmpbox.schema.PDFUAIdentificationSchema;
 import org.apache.xmpbox.schema.PhotoshopSchema;
 import org.apache.xmpbox.schema.TiffSchema;
 import org.apache.xmpbox.schema.XMPBasicJobTicketSchema;
@@ -112,6 +113,7 @@ public final class TypeMapping
         addNameSpace(ExifSchema.class);
         addNameSpace(TiffSchema.class);
         addNameSpace(XMPageTextSchema.class);
+        addNameSpace(PDFUAIdentificationSchema.class);
     }
 
     public void addToDefinedStructuredTypes(String typeName, String ns, PropertiesDescription pm)

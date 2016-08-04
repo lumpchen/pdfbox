@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.pdfbox.accessibility.rendering.MarkedContentNode;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.rendering.MarkedContentNode;
 
 public class TagsExtractor {
 

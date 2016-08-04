@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.pdfbox.accessibility.check.CheckException;
 import org.apache.pdfbox.accessibility.check.CheckProcess;
 import org.apache.pdfbox.accessibility.check.MetadataCheckProcess;
 
