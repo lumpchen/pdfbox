@@ -1,9 +1,7 @@
-package org.apache.pdfbox.accessibility.check;
+package org.apache.pdfbox.accessibility.validate;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.pdfbox.accessibility.check.matterhorn.CheckPoint;
 
 public class CheckResult {
 

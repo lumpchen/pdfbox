@@ -1,6 +1,4 @@
-package org.apache.pdfbox.accessibility.check;
-
-import org.apache.pdfbox.accessibility.UACheckContext;
+package org.apache.pdfbox.accessibility.validate;
 
 public interface CheckProcess {
 

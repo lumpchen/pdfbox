@@ -1,6 +1,9 @@
-package org.apache.pdfbox.accessibility;
+package org.apache.pdfbox.accessibility.validate;
 
-import org.apache.pdfbox.accessibility.check.CheckResult;
+import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.xmpbox.XMPMetadata;
 
@@ -10,8 +13,10 @@ public class UACheckContext {
 	private XMPMetadata metadata;
 	private CheckResult checkResult;
 	private UACheckConfiguration conf;
+	public final Logger logger = Logger.getLogger(UACheckContext.class.getName());
 	
 	public UACheckContext() {
+		
 	}
 
 	public void setConfigure(UACheckConfiguration conf) {
@@ -44,6 +49,11 @@ public class UACheckContext {
 
 	public void setMetadata(XMPMetadata metadata) {
 		this.metadata = metadata;
+	}
+	
+	public void setLogFile(String logFilePath) throws SecurityException, IOException {
+		FileHandler logFile = new FileHandler(logFilePath);
+		logger.addHandler(logFile);
 	}
 
 }

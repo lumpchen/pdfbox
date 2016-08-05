@@ -1,4 +1,4 @@
-package org.apache.pdfbox.accessibility.check;
+package org.apache.pdfbox.accessibility.validate;
 
 public class CheckException extends Exception {
 

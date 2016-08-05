@@ -1,6 +1,6 @@
 package org.apache.pdfbox.accessibility.check;
 
-import org.apache.pdfbox.accessibility.UAChecker;
+import org.apache.pdfbox.accessibility.validate.UAChecker;
 import org.junit.Test;
 
 public class TestMetadataCheckProcess {
