@@ -40,8 +40,11 @@ public class TrueTypeFont implements FontBoxFont, Closeable
     private int unitsPerEm = -1;
     protected Map<String,TTFTable> tables = new HashMap<String,TTFTable>();
     private final TTFDataStream data;
-    private Map<String, Integer> postScriptNames;
+    private volatile Map<String, Integer> postScriptNames;
     
+    private final Object lockReadtable = new Object();
+    private final Object lockPSNames = new Object();
+
     /**
      * Constructor.  Clients should use the TTFParser to create a new TrueTypeFont object.
      * 
@@ -110,34 +113,60 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @param table the table to read.
      * @throws IOException if there was an error accessing the table.
      */
-    public synchronized byte[] getTableBytes(TTFTable table) throws IOException
+    public byte[] getTableBytes(TTFTable table) throws IOException
     {
-        // save current position
-        long currentPosition = data.getCurrentPosition();
-        data.seek(table.getOffset());
+        synchronized (lockReadtable)
+        {
+            // save current position
+            long currentPosition = data.getCurrentPosition();
+            data.seek(table.getOffset());
 
-        // read all data
-        byte[] bytes = data.read((int)table.getLength());
+            // read all data
+            byte[] bytes = data.read((int) table.getLength());
 
-        // restore current position
-        data.seek(currentPosition);
-        return bytes;
+            // restore current position
+            data.seek(currentPosition);
+            return bytes;
+        }
     }
-    
+
+    /**
+     * This will get the table for the given tag.
+     * 
+     * @param tag the name of the table to be returned
+     * @return The table with the given tag.
+     * @throws IOException if there was an error reading the table.
+     */
+    protected TTFTable getTable(String tag) throws IOException
+    {
+        // after the initial parsing of the ttf there aren't any write operations
+        // to the HashMap anymore, so that we don't have to synchronize the read access
+        TTFTable ttfTable = tables.get(tag);
+        if (ttfTable != null)
+        {
+            if (!ttfTable.initialized)
+            {
+                synchronized (lockReadtable)
+                {
+                    if (!ttfTable.initialized)
+                    {
+                        readTable(ttfTable);
+                    }
+                }
+            }
+        }
+        return ttfTable;
+    }
+
     /**
      * This will get the naming table for the true type font.
      * 
      * @return The naming table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized NamingTable getNaming() throws IOException
+    public NamingTable getNaming() throws IOException
     {
-        NamingTable naming = (NamingTable)tables.get( NamingTable.TAG );
-        if (naming != null && !naming.getInitialized())
-        {
-            readTable(naming);
-        }
-        return naming;
+        return (NamingTable) getTable(NamingTable.TAG);
     }
     
     /**
@@ -146,14 +175,9 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The postscript table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized PostScriptTable getPostScript() throws IOException
+    public PostScriptTable getPostScript() throws IOException
     {
-        PostScriptTable postscript = (PostScriptTable)tables.get( PostScriptTable.TAG );
-        if (postscript != null && !postscript.getInitialized())
-        {
-            readTable(postscript);
-        }
-        return postscript;
+        return (PostScriptTable) getTable(PostScriptTable.TAG);
     }
     
     /**
@@ -162,30 +186,20 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The OS/2 table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized OS2WindowsMetricsTable getOS2Windows() throws IOException
+    public OS2WindowsMetricsTable getOS2Windows() throws IOException
     {
-        OS2WindowsMetricsTable os2WindowsMetrics = (OS2WindowsMetricsTable)tables.get( OS2WindowsMetricsTable.TAG );
-        if (os2WindowsMetrics != null && !os2WindowsMetrics.getInitialized())
-        {
-            readTable(os2WindowsMetrics);
-        }
-        return os2WindowsMetrics;
+        return (OS2WindowsMetricsTable) getTable(OS2WindowsMetricsTable.TAG);
     }
-    
+
     /**
      * Get the maxp table for this TTF.
      * 
      * @return The maxp table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized MaximumProfileTable getMaximumProfile() throws IOException
+    public MaximumProfileTable getMaximumProfile() throws IOException
     {
-        MaximumProfileTable maximumProfile = (MaximumProfileTable)tables.get( MaximumProfileTable.TAG );
-        if (maximumProfile != null && !maximumProfile.getInitialized())
-        {
-            readTable(maximumProfile);
-        }
-        return maximumProfile;
+        return (MaximumProfileTable) getTable(MaximumProfileTable.TAG);
     }
     
     /**
@@ -194,14 +208,9 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The head table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized HeaderTable getHeader() throws IOException
+    public HeaderTable getHeader() throws IOException
     {
-        HeaderTable header = (HeaderTable)tables.get( HeaderTable.TAG );
-        if (header != null && !header.getInitialized())
-        {
-            readTable(header);
-        }
-        return header;
+        return (HeaderTable) getTable(HeaderTable.TAG);
     }
     
     /**
@@ -210,14 +219,9 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The hhea table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized HorizontalHeaderTable getHorizontalHeader() throws IOException
+    public HorizontalHeaderTable getHorizontalHeader() throws IOException
     {
-        HorizontalHeaderTable horizontalHeader = (HorizontalHeaderTable)tables.get( HorizontalHeaderTable.TAG );
-        if (horizontalHeader != null && !horizontalHeader.getInitialized())
-        {
-            readTable(horizontalHeader);
-        }
-        return horizontalHeader;
+        return (HorizontalHeaderTable) getTable(HorizontalHeaderTable.TAG);
     }
     
     /**
@@ -226,14 +230,9 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The hmtx table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized HorizontalMetricsTable getHorizontalMetrics() throws IOException
+    public HorizontalMetricsTable getHorizontalMetrics() throws IOException
     {
-        HorizontalMetricsTable horizontalMetrics = (HorizontalMetricsTable)tables.get( HorizontalMetricsTable.TAG );
-        if (horizontalMetrics != null && !horizontalMetrics.getInitialized())
-        {
-            readTable(horizontalMetrics);
-        }
-        return horizontalMetrics;
+        return (HorizontalMetricsTable) getTable(HorizontalMetricsTable.TAG);
     }
     
     /**
@@ -242,14 +241,9 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The loca table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized IndexToLocationTable getIndexToLocation() throws IOException
+    public IndexToLocationTable getIndexToLocation() throws IOException
     {
-        IndexToLocationTable indexToLocation = (IndexToLocationTable)tables.get( IndexToLocationTable.TAG );
-        if (indexToLocation != null && !indexToLocation.getInitialized())
-        {
-            readTable(indexToLocation);
-        }
-        return indexToLocation;
+        return (IndexToLocationTable) getTable(IndexToLocationTable.TAG);
     }
     
     /**
@@ -258,30 +252,20 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The glyf table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized GlyphTable getGlyph() throws IOException
+    public GlyphTable getGlyph() throws IOException
     {
-        GlyphTable glyph = (GlyphTable)tables.get( GlyphTable.TAG );
-        if (glyph != null && !glyph.getInitialized())
-        {
-            readTable(glyph);
-        }
-        return glyph;
+        return (GlyphTable) getTable(GlyphTable.TAG);
     }
     
     /**
      * Get the "cmap" table for this TTF.
      * 
      * @return The "cmap" table.
-    * @throws IOException if there was an error reading the table.
-      */
-    public synchronized CmapTable getCmap() throws IOException
+     * @throws IOException if there was an error reading the table.
+     */
+    public CmapTable getCmap() throws IOException
     {
-        CmapTable cmap = (CmapTable)tables.get( CmapTable.TAG );
-        if (cmap != null && !cmap.getInitialized())
-        {
-            readTable(cmap);
-        }
-        return cmap;
+        return (CmapTable) getTable(CmapTable.TAG);
     }
     
     /**
@@ -290,14 +274,9 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The vhea table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized VerticalHeaderTable getVerticalHeader() throws IOException
+    public VerticalHeaderTable getVerticalHeader() throws IOException
     {
-        VerticalHeaderTable verticalHeader = (VerticalHeaderTable)tables.get( VerticalHeaderTable.TAG );
-        if (verticalHeader != null && !verticalHeader.getInitialized())
-        {
-            readTable(verticalHeader);
-        }
-        return verticalHeader;
+        return (VerticalHeaderTable) getTable(VerticalHeaderTable.TAG);
     }
     
     /**
@@ -306,14 +285,9 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The vmtx table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized VerticalMetricsTable getVerticalMetrics() throws IOException
+    public VerticalMetricsTable getVerticalMetrics() throws IOException
     {
-        VerticalMetricsTable verticalMetrics = (VerticalMetricsTable)tables.get( VerticalMetricsTable.TAG );
-        if (verticalMetrics != null && !verticalMetrics.getInitialized())
-        {
-            readTable(verticalMetrics);
-        }
-        return verticalMetrics;
+        return (VerticalMetricsTable) getTable(VerticalMetricsTable.TAG);
     }
     
     /**
@@ -322,14 +296,9 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The VORG table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized VerticalOriginTable getVerticalOrigin() throws IOException
+    public VerticalOriginTable getVerticalOrigin() throws IOException
     {
-        VerticalOriginTable verticalOrigin = (VerticalOriginTable)tables.get( VerticalOriginTable.TAG );
-        if (verticalOrigin != null && !verticalOrigin.getInitialized())
-        {
-            readTable(verticalOrigin);
-        }
-        return verticalOrigin;
+        return (VerticalOriginTable) getTable(VerticalOriginTable.TAG);
     }
     
     /**
@@ -338,14 +307,9 @@ public class TrueTypeFont implements FontBoxFont, Closeable
      * @return The "kern" table.
      * @throws IOException if there was an error reading the table.
      */
-    public synchronized KerningTable getKerning() throws IOException
+    public KerningTable getKerning() throws IOException
     {
-        KerningTable kerning = (KerningTable)tables.get( KerningTable.TAG );
-        if (kerning != null && !kerning.getInitialized())
-        {
-            readTable(kerning);
-        }
-        return kerning;
+        return (KerningTable) getTable(KerningTable.TAG);
     }
     
     /**
@@ -482,23 +446,34 @@ public class TrueTypeFont implements FontBoxFont, Closeable
         }
     }
 
-    private synchronized void readPostScriptNames() throws IOException
+    private void readPostScriptNames() throws IOException
     {
-        if (postScriptNames == null && getPostScript() != null)
+        Map<String, Integer> psnames = postScriptNames;
+        if (psnames == null)
         {
-            String[] names = getPostScript().getGlyphNames();
-            if (names != null)
+            // the getter is already synchronized
+            PostScriptTable post = getPostScript();
+            synchronized (lockPSNames)
             {
-                postScriptNames = new HashMap<String, Integer>(names.length);
-                for (int i = 0; i < names.length; i++)
+                psnames = postScriptNames;
+                if (psnames == null)
                 {
-                    postScriptNames.put(names[i], i);
+                    String[] names = post != null ? post.getGlyphNames() : null;
+                    if (names != null)
+                    {
+                        psnames = new HashMap<String, Integer>(names.length);
+                        for (int i = 0; i < names.length; i++)
+                        {
+                            psnames.put(names[i], i);
+                        }
+                    }
+                    else
+                    {
+                        psnames = new HashMap<String, Integer>();
+                    }
+                    postScriptNames = psnames;
                 }
             }
-            else
-            {
-                postScriptNames = new HashMap<String, Integer>();
-            }                    
         }
     }
 
