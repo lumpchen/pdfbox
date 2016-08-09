@@ -7,6 +7,7 @@ import java.util.Map;
 public class UACheckConfiguration {
 
 	public static final String META_DATA_PROCESS = "metadata-process";
+	public static final String DOCUMENT_CATALOG_PROCESS = "document-catalog-process";
 
 	private final Map<String, Class<? extends CheckProcess>> processes = new LinkedHashMap<String, Class<? extends CheckProcess>>();
 
@@ -14,6 +15,7 @@ public class UACheckConfiguration {
 		UACheckConfiguration conf = new UACheckConfiguration();
 
 		conf.replaceProcess(META_DATA_PROCESS, MetadataCheckProcess.class);
+		conf.replaceProcess(DOCUMENT_CATALOG_PROCESS, DocumentCatalogProcess.class);
 
 		return conf;
 	}

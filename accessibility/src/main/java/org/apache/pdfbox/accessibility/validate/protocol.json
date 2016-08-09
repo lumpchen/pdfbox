@@ -1,0 +1,42 @@
+
+{
+	"PDF/UA" : {
+		"Basic requirements" : {
+		}
+		"Logical Structure" : {
+		}
+		"Metadata and Settings" : {
+			"Metadata" : [
+				"CheckPoint_3_1_1" : {
+					"title" : "XMP Metadata entry in Catalog",
+				},
+				"CheckPoint_3_1_2" : {
+					"title" : "PDF/UA identifier",
+				},
+				"CheckPoint_3_1_3" : {
+					"title" : "<dc:title> in document's XMP metadata",
+				},
+			],
+			"Document settings" : [
+				"CheckPoint_3_2_1" : {
+					"title" : "Display of document title in window title",
+				},
+				"CheckPoint_3_2_2" : {
+					"title" : "Tag suspects",
+				},
+				"CheckPoint_3_2_3" : {
+					"title" : "Marking document as tagged",
+				},
+				"CheckPoint_3_2_4" : {
+					"title" : "Dynamic XFA form",
+				},
+				"CheckPoint_3_2_5" : {
+					"title" : "Security settings and document access by assistive technologies",
+				},
+				"CheckPoint_3_2_6" : {
+					"title" : "Tab order entry for pages and annotations",
+				},
+			]
+		}
+	}
+}
