@@ -4,6 +4,22 @@
 		"Basic requirements" : {
 		}
 		"Logical Structure" : {
+			"Structure Elements" : {
+				"Headings" : {
+					"CheckPoint_0" : {
+						"title" : "Use of either H or Hn structure elements",
+					},
+					"CheckPoint_1" : {
+						"title" : "First level heading",
+					},
+					"CheckPoint_2" : {
+						"title" : "Nesting of heading levels",
+					},
+					"CheckPoint_3" : {
+						"title" : "H structure elements and structure nodes",
+					}
+				}
+			}
 		}
 		"Metadata and Settings" : {
 			"Metadata" : [

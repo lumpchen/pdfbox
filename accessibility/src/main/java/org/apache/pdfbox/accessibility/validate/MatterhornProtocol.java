@@ -2,6 +2,13 @@ package org.apache.pdfbox.accessibility.validate;
 
 public class MatterhornProtocol {
 
+	
+	
+	public static void construct(String checkPointKey) {
+		
+	}
+	
+	
 	public static final class Metadata {
 		public static final String category = "Metadata";
 		public static final String Failure_Condition_1 = "Document does not contain XMP metadata stream";

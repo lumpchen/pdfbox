@@ -115,8 +115,8 @@ public class PDocDiffResult {
 	}
 	
 	public static class PageInfo {
-		private int width;
-		private int height;
+		private float width;
+		private float height;
 		private String previewImage;
 		private int pageNo;
 		
@@ -128,19 +128,19 @@ public class PDocDiffResult {
 			return this.pageNo;
 		}
 		
-		public int getWidth() {
+		public float getWidth() {
 			return width;
 		}
 
-		public void setWidth(int width) {
+		public void setWidth(float width) {
 			this.width = width;
 		}
 
-		public int getHeight() {
+		public float getHeight() {
 			return height;
 		}
 
-		public void setHeight(int height) {
+		public void setHeight(float height) {
 			this.height = height;
 		}
 

@@ -98,7 +98,7 @@ public class PDFDiff {
                 if (page_1 != null) {
                 	PageInfo info = new PageInfo(i);
                     info.setPreviewImage(this.renderPage(i, base));
-                    int[] size = this.getPageSize(page_1);
+                    float[] size = this.getPageSize(page_1);
                     info.setWidth(size[0]);
                     info.setHeight(size[1]);
             		result.getBaseDocumentInfo().setPageInfo(i, info);	
@@ -107,7 +107,7 @@ public class PDFDiff {
                 if (page_2 != null) {
                 	PageInfo info = new PageInfo(i);
             		info.setPreviewImage(this.renderPage(i, test));
-            		int[] size = this.getPageSize(page_2);
+            		float[] size = this.getPageSize(page_2);
                     info.setWidth(size[0]);
                     info.setHeight(size[1]);
             		result.getTestDocumentInfo().setPageInfo(i, info);
@@ -119,19 +119,16 @@ public class PDFDiff {
         }
 	}
 	
-	private int[] getPageSize(PDPage page) {
+	private float[] getPageSize(PDPage page) {
         PDRectangle cropbBox = page.getCropBox();
         float widthPt = cropbBox.getWidth();
         float heightPt = cropbBox.getHeight();
-        float scale = this.setting.resolution / 72f;
-        int widthPx = Math.round(widthPt * scale);
-        int heightPx = Math.round(heightPt * scale);
         int rotationAngle = page.getRotation();
 
         if (rotationAngle == 90 || rotationAngle == 270) {
-            return new int[]{heightPx, widthPx};
+            return new float[]{heightPt, widthPt};
         } else {
-        	return new int[]{widthPx, heightPx};
+        	return new float[]{widthPt, heightPt};
         }
 	}
 	
