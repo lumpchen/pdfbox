@@ -343,8 +343,22 @@ public class PageThread {
 			this.pathList = new ArrayList<PathContent>();
 		}
 		
+		private void merge(List<PathContent> mergeList, PathContent content) {
+			boolean merged = false;
+			for (int i = 0; i < mergeList.size(); i++) {
+				if (mergeList.get(i).merge(content)) {
+					merged = true;
+					break;
+				}
+			}
+			if (!merged) {
+				mergeList.add(content);
+			}
+		}
+		
 		public void addPathContent(PathContent pathContent) {
-			this.pathList.add(pathContent);
+			this.merge(this.pathList, pathContent);
+//			this.pathList.add(pathContent);
 		}
 		
 		public List<PathLob> getPathLobList() {

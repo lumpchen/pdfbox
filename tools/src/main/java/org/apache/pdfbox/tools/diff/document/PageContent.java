@@ -33,6 +33,28 @@ public abstract class PageContent {
 		public int lineJoin;
 		public float miterLimit;
 		
+		@Override
+	    public boolean equals(Object obj) {
+	        if (this == obj) {
+	        	return true;
+	        }
+	        if (obj == null) {
+	        	return false;
+	        }
+	        
+	        GraphicsStateDesc aObj = (GraphicsStateDesc) obj;
+	        if (this.textState != null && this.textState.equals(aObj.textState)
+	        		&& this.nonStrokingColor != null && this.nonStrokingColor.equals(aObj.nonStrokingColor)
+	        		&& this.strokingColor != null && this.strokingColor.equals(aObj.strokingColor)
+	        		&& this.lineWidth == aObj.lineWidth
+	        		&& this.lineCap == aObj.lineCap
+	        		&& this.lineJoin == aObj.lineJoin
+	        		&& this.miterLimit == aObj.miterLimit) {
+	        	return true;
+	        }
+	        return false;
+	    }
+		
 //        private Matrix currentTransformationMatrix = new Matrix();
 //        private PDColor strokingColor = PDDeviceGray.INSTANCE.getInitialColor();
 //        private PDColor nonStrokingColor = PDDeviceGray.INSTANCE.getInitialColor();
@@ -68,12 +90,65 @@ public abstract class PageContent {
         public float rise = 0;
         public boolean knockout = true;
         public String fontName;
+        
+		@Override
+	    public boolean equals(Object obj) {
+	        if (this == obj) {
+	        	return true;
+	        }
+	        if (obj == null) {
+	        	return false;
+	        }
+	        
+	        TextStateDesc aObj = (TextStateDesc) obj;
+	        if (this.characterSpacing == aObj.characterSpacing
+	        		&& this.wordSpacing == aObj.wordSpacing
+	        		&& this.horizontalScaling == aObj.horizontalScaling
+	        		&& this.leading == aObj.leading
+	        		&& this.fontSize == aObj.fontSize
+	        		&& this.renderingMode == aObj.renderingMode
+	        		&& this.rise == aObj.rise
+	        		&& this.knockout == aObj.knockout
+	        		&& this.fontName == aObj.fontName) {
+	        	return true;
+	        }
+	        return false;
+		}
 	}
 	
 	public static class ColorDesc {
 	    public float[] components;
 	    public String patternName;
 	    public String colorSpace;
+	    
+		@Override
+	    public boolean equals(Object obj) {
+	        if (this == obj) {
+	        	return true;
+	        }
+	        if (obj == null) {
+	        	return false;
+	        }
+	        
+	        ColorDesc aObj = (ColorDesc) obj;
+	        if (this.patternName != aObj.patternName
+	        		&& this.colorSpace != aObj.colorSpace) {
+	        	return false;
+	        }
+	        
+	        if (this.components != null && aObj.components != null) {
+	        	if (this.components.length != aObj.components.length) {
+	        		return false;
+	        	}
+	        	
+	        	for (int i = 0; i < this.components.length; i++) {
+	        		if (this.components[i] != aObj.components[i]) {
+	        			return false;
+	        		}
+	        	}
+	        }
+	        return true;
+		}
 	}
 	
 	public PageContent() {
@@ -303,6 +378,20 @@ public abstract class PageContent {
 
 		public boolean isFill() {
 			return this.fill;
+		}
+		
+		public boolean merge(PathContent pathContent) {
+			if (!this.getGraphicsStateDesc().equals(pathContent.getGraphicsStateDesc())) {
+				return false;
+			}
+			
+			Area a1 = this.getOutlineArea();
+			Area a2 = pathContent.getOutlineArea();
+			if (a1.getBounds().intersects(a2.getBounds())) {
+				this.outline.addAll(pathContent.outline);
+				return true;
+			}
+			return false;
 		}
 	}
 	

@@ -444,7 +444,7 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		if (category === "Path") {
 			ctx.fillStyle = "red";
 			ctx.rect(x, y - h - 2, w, h + 2);
-			ctx.fill();
+			ctx.stroke();
 		} else {
 			if (strokeColor == "red") {
 				ctx.rect(x, y - h, w, h);	
@@ -462,9 +462,9 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		ctx.font = "16pt Calibri";
 		ctx.fillStyle = 'red';
 		ctx.fillText("x:" + outline[0] + " y:" + outline[1], 0, y);
-		if (category !== "Path") {
+//		if (category !== "Path") {
 			ctx.stroke();	
-		}
+//		}
 		ctx.restore();
 	};
 
