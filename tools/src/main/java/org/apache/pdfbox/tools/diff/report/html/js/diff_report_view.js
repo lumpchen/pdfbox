@@ -106,8 +106,27 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		);
 	};
 
+	var updatePageSelection = function(pageNo) {
+		var tableBody = document.getElementById("page_list_table").getElementsByTagName("tbody")[0];
+
+		for (var i = 0; i < tableBody.rows.length; i++) {
+			var td = tableBody.rows[i].cells[0];
+			if (i == pageNo) {
+				td.style.backgroundColor  = "lightgray";
+				td.style.fontWeight  = "Bold";
+				td.className += " selected";
+			} else {
+				td.style.backgroundColor = "rgb(238, 238, 238)";
+				td.style.fontWeight  = "normal";
+				td.classList.remove('selected');
+			}
+		}
+	}
+	
 	var pageSelectHandler = function(pageNo) {
 		return function() {
+			updatePageSelection(pageNo);
+			
 			page_view_paras["PageNo"] = pageNo;
 			page_view_paras["DiffContent"] = null;
 
