@@ -14,23 +14,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.pdfbox.pdmodel.interactive.pagenavigation;
+package org.apache.pdfbox.pdmodel.interactive.digitalsignature;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * The direction of motion for the specified transition effect. Only for {@link PDTransitionStyle#Split},
- * {@link PDTransitionStyle#Blinds} and {@link PDTransitionStyle#Fly}.
- * 
- * @author Andrea Vacondio
+ * Interface for external signature creation scenarios. It contains method for retrieving PDF data
+ * to be sign and setting created CMS signature to the PDF.
  *
  */
-public enum PDTransitionMotion
+public interface ExternalSigningSupport
 {
     /**
-     * Inward from the edges of the page
+     * Get PDF content to be signed. Obtained InputStream must be closed after use.
+     *
+     * @return content stream
      */
-    I,
+    InputStream getContent() throws IOException;
+
     /**
-     * Outward from the center of the page
+     * Set CMS signature bytes to PDF.
+     *
+     * @param signature CMS signature as byte array
+     *
+     * @throws IOException if exception occured during PDF writing
      */
-    O
+    void setSignature(byte[] signature) throws IOException;
 }

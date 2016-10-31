@@ -19,8 +19,6 @@ package org.apache.pdfbox.pdmodel.font.encoding;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
@@ -34,8 +32,6 @@ import org.apache.pdfbox.cos.COSNumber;
  */
 public class DictionaryEncoding extends Encoding
 {
-    private static final Log LOG = LogFactory.getLog(DictionaryEncoding.class);
-    
     private final COSDictionary encoding;
     private final Encoding baseEncoding;
     private final Map<Integer, String> differences = new HashMap<Integer, String>();
@@ -152,7 +148,7 @@ public class DictionaryEncoding extends Encoding
             else if( next instanceof COSName )
             {
                 COSName name = (COSName)next;
-                add(currentIndex, name.getName());
+                overwrite(currentIndex, name.getName());
                 this.differences.put(currentIndex, name.getName());
                 currentIndex++;
             }

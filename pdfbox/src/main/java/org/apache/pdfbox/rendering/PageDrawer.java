@@ -33,7 +33,6 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,15 +46,9 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.function.PDFunction;
-import org.apache.pdfbox.pdmodel.font.PDCIDFontType0;
-import org.apache.pdfbox.pdmodel.font.PDCIDFontType2;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType1CFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.PDVectorFont;
 import org.apache.pdfbox.pdmodel.graphics.PDLineDashPattern;
-import org.apache.pdfbox.pdmodel.graphics.blend.SoftMaskPaint;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceGray;
@@ -96,23 +89,29 @@ public class PageDrawer extends PDFGraphicsStreamEngine
     // the graphics device to draw to, xform is the initial transform of the device (i.e. DPI)
     private Graphics2D graphics;
     private AffineTransform xform;
-
+    
     // the page box to draw (usually the crop box but may be another)
     private PDRectangle pageSize;
+
+    private int pageRotation;
     
+    // whether image of a transparency group must be flipped
+    // needed when in a tiling pattern
+    private boolean flipTG = false;
+
     // clipping winding rule used for the clipping path
     private int clipWindingRule = -1;
     private GeneralPath linePath = new GeneralPath();
-
+    
     // last clipping path
     private Area lastClip;
-
+    
     // buffered clipping area for text being drawn
     private Area textClippingArea;
 
-    // glyph cache
-    private final Map<PDFont, Glyph2D> fontGlyph2D = new HashMap<PDFont, Glyph2D>();
-    
+    // glyph caches
+    private final Map<PDFont, GlyphCache> glyphCaches = new HashMap<PDFont, GlyphCache>();
+
     /**
      * Constructor.
      *
@@ -174,6 +173,7 @@ public class PageDrawer extends PDFGraphicsStreamEngine
         graphics = (Graphics2D) g;
         xform = graphics.getTransform();
         this.pageSize = pageSize;
+        pageRotation = getPage().getRotation() % 360;
 
         setRenderingHints();
 
@@ -217,10 +217,14 @@ public class PageDrawer extends PDFGraphicsStreamEngine
 
         Area oldLastClip = lastClip;
         lastClip = null;
+        
+        boolean oldFlipTG = flipTG;
+        flipTG = true;
 
         setRenderingHints();
         processTilingPattern(pattern, color, colorSpace, patternMatrix);
-
+        
+        flipTG = oldFlipTG;
         graphics = oldGraphics;
         linePath = oldLinePath;
         lastClip = oldLastClip;
@@ -330,27 +334,34 @@ public class PageDrawer extends PDFGraphicsStreamEngine
         AffineTransform at = textRenderingMatrix.createAffineTransform();
         at.concatenate(font.getFontMatrix().createAffineTransform());
 
-        Glyph2D glyph2D = createGlyph2D(font);
-        drawGlyph2D(glyph2D, font, code, displacement, at);
+        // create cache if it does not exist
+        PDVectorFont vectorFont = ((PDVectorFont)font);
+        GlyphCache cache = glyphCaches.get(font);
+        if (cache == null)
+        {
+            cache = new GlyphCache(vectorFont);
+            glyphCaches.put(font, cache);
+        }
+        
+        GeneralPath path = cache.getPathForCharacterCode(code);
+        drawGlyph(path, font, code, displacement, at);
     }
 
     /**
-     * Render the font using the Glyph2D interface.
+     * Renders a glyph.
      * 
-     * @param glyph2D the Glyph2D implementation provided a GeneralPath for each glyph
+     * @param path the GeneralPath for the glyph
      * @param font the font
      * @param code character code
      * @param displacement the glyph's displacement (advance)
      * @param at the transformation
      * @throws IOException if something went wrong
      */
-    private void drawGlyph2D(Glyph2D glyph2D, PDFont font, int code, Vector displacement,
-                             AffineTransform at) throws IOException
+    private void drawGlyph(GeneralPath path, PDFont font, int code, Vector displacement, AffineTransform at) throws IOException
     {
         PDGraphicsState state = getGraphicsState();
         RenderingMode renderingMode = state.getTextState().getRenderingMode();
-
-        GeneralPath path = glyph2D.getPathForCharacterCode(code);
+        
         if (path != null)
         {
             // stretch non-embedded glyph if it does not match the width contained in the PDF
@@ -391,72 +402,7 @@ public class PageDrawer extends PDFGraphicsStreamEngine
             }
         }
     }
-
-    /**
-     * Provide a Glyph2D for the given font.
-     * 
-     * @param font the font
-     * @return the implementation of the Glyph2D interface for the given font
-     * @throws IOException if something went wrong
-     */
-    private Glyph2D createGlyph2D(PDFont font) throws IOException
-    {
-        Glyph2D glyph2D = fontGlyph2D.get(font);
-        // Is there already a Glyph2D for the given font?
-        if (glyph2D != null)
-        {
-            return glyph2D;
-        }
-
-        if (font instanceof PDTrueTypeFont)
-        {
-            PDTrueTypeFont ttfFont = (PDTrueTypeFont)font;
-            glyph2D = new TTFGlyph2D(ttfFont);  // TTF is never null
-        }
-        else if (font instanceof PDType1Font)
-        {
-            PDType1Font pdType1Font = (PDType1Font)font;
-            glyph2D = new Type1Glyph2D(pdType1Font); // T1 is never null
-        }
-        else if (font instanceof PDType1CFont)
-        {
-            PDType1CFont type1CFont = (PDType1CFont)font;
-            glyph2D = new Type1Glyph2D(type1CFont);
-        }
-        else if (font instanceof PDType0Font)
-        {
-            PDType0Font type0Font = (PDType0Font) font;
-            if (type0Font.getDescendantFont() instanceof PDCIDFontType2)
-            {
-                glyph2D = new TTFGlyph2D(type0Font); // TTF is never null
-            }
-            else if (type0Font.getDescendantFont() instanceof PDCIDFontType0)
-            {
-                // a Type0 CIDFont contains CFF font
-                PDCIDFontType0 cidType0Font = (PDCIDFontType0)type0Font.getDescendantFont();
-                glyph2D = new CIDType0Glyph2D(cidType0Font); // todo: could be null (need incorporate fallback)
-            }
-        }
-        else
-        {
-            throw new IllegalStateException("Bad font type: " + font.getClass().getSimpleName());
-        }
-
-        // cache the Glyph2D instance
-        if (glyph2D != null)
-        {
-            fontGlyph2D.put(font, glyph2D);
-        }
-
-        if (glyph2D == null)
-        {
-            // todo: make sure this never happens
-            throw new UnsupportedOperationException("No font for " + font.getName());
-        }
-
-        return glyph2D;
-    }
-
+    
     @Override
     public void appendRectangle(Point2D p0, Point2D p1, Point2D p2, Point2D p3)
     {
@@ -472,47 +418,31 @@ public class PageDrawer extends PDFGraphicsStreamEngine
         linePath.closePath();
     }
 
-    /**
-     * Generates AWT raster for a soft mask
-     * 
-     * @param softMask soft mask
-     * @return AWT raster for soft mask
-     * @throws IOException
-     */
-    private Raster createSoftMaskRaster(PDSoftMask softMask) throws IOException
+    //TODO: move soft mask apply to getPaint()?
+    private Paint applySoftMaskToPaint(Paint parentPaint, PDSoftMask softMask) throws IOException
     {
-        TransparencyGroup transparencyGroup = new TransparencyGroup(softMask.getGroup(), true);
-        COSName subtype = softMask.getSubType();
-        if (COSName.ALPHA.equals(subtype))
+        if (softMask == null || softMask.getGroup() == null)
         {
-            return transparencyGroup.getAlphaRaster();
+            return parentPaint;
         }
-        else if (COSName.LUMINOSITY.equals(subtype))
+        TransparencyGroup transparencyGroup = new TransparencyGroup(softMask.getGroup(), true);
+        BufferedImage image = transparencyGroup.getImage();
+        BufferedImage gray = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+        if (COSName.ALPHA.equals(softMask.getSubType()))
         {
-            return transparencyGroup.getLuminosityRaster();
+            gray.setData(image.getAlphaRaster());
+        }
+        else if (COSName.LUMINOSITY.equals(softMask.getSubType()))
+        {
+            Graphics g = gray.getGraphics();
+            g.drawImage(image, 0, 0, null);
+            g.dispose();
         }
         else
         {
             throw new IOException("Invalid soft mask subtype.");
         }
-    }
-
-    private Paint applySoftMaskToPaint(Paint parentPaint, PDSoftMask softMask) throws IOException
-    {
-        if (softMask != null) 
-        {
-            //TODO PDFBOX-2934
-            if (COSName.ALPHA.equals(softMask.getSubType()))
-            {
-                LOG.info("alpha smask not implemented yet, is ignored");
-                return parentPaint;
-            }
-            return new SoftMaskPaint(parentPaint, createSoftMaskRaster(softMask));
-        }
-        else 
-        {
-            return parentPaint;
-        }
+        return new SoftMask(parentPaint, gray, transparencyGroup.getBounds());
     }
 
     // returns the stroking AWT Paint
@@ -526,6 +456,7 @@ public class PageDrawer extends PDFGraphicsStreamEngine
     // returns the non-stroking AWT Paint
     private Paint getNonStrokingPaint() throws IOException
     {
+        //TODO why no soft mask?
         return getPaint(getGraphicsState().getNonStrokingColor());
     }
 
@@ -782,6 +713,7 @@ public class PageDrawer extends PDFGraphicsStreamEngine
         if (pdImage.isStencil())
         {
             // fill the image with paint
+            //TODO why no soft mask?
             BufferedImage image = pdImage.getStencilImage(getNonStrokingPaint());
 
             // draw the image
@@ -968,14 +900,6 @@ public class PageDrawer extends PDFGraphicsStreamEngine
         }
     }
 
-    private static class AnnotationBorder
-    {
-        private float[] dashArray = null;
-        private boolean underline = false;
-        private float width = 0;
-        private PDColor color;
-    }
-    
     // return border info. BorderStyle must be provided as parameter because
     // method is not available in the base class
     private AnnotationBorder getAnnotationBorder(PDAnnotation annotation, 
@@ -1034,7 +958,7 @@ public class PageDrawer extends PDFGraphicsStreamEngine
         }
         return ab;
     }
-
+    
     private void drawAnnotationLinkBorder(PDAnnotationLink link) throws IOException
     {
         AnnotationBorder ab = getAnnotationBorder(link, link.getBorderStyle());
@@ -1086,7 +1010,7 @@ public class PageDrawer extends PDFGraphicsStreamEngine
         graphics.setStroke(stroke);
         graphics.setClip(null);
         COSArray pathsArray = (COSArray) base;
-        for (COSBase baseElement : (Iterable<? extends COSBase>) pathsArray.toList())
+        for (COSBase baseElement : pathsArray)
         {
             if (!(baseElement instanceof COSArray))
             {
@@ -1135,8 +1059,24 @@ public class PageDrawer extends PDFGraphicsStreamEngine
         AffineTransform prev = graphics.getTransform();
         float x = bbox.getLowerLeftX();
         float y = pageSize.getHeight() - bbox.getLowerLeftY() - bbox.getHeight();
-        graphics.setTransform(AffineTransform.getTranslateInstance(x * xform.getScaleX(),
-                                                                   y * xform.getScaleY()));
+
+        Matrix m = new Matrix(xform);
+        float xScale = Math.abs(m.getScalingFactorX());
+        float yScale = Math.abs(m.getScalingFactorY());
+        
+        // adjust the initial translation (includes the translation used to "help" the rotation)
+        graphics.setTransform(AffineTransform.getTranslateInstance(xform.getTranslateX(), xform.getTranslateY()));
+
+        graphics.rotate(Math.toRadians(pageRotation));
+
+        // adjust (x,y) at the initial scale + cropbox
+        graphics.translate((x - pageSize.getLowerLeftX()) * xScale, (y + pageSize.getLowerLeftY()) * yScale);
+
+        if (flipTG)
+        {
+            graphics.translate(0, group.getImage().getHeight());
+            graphics.scale(1, -1);
+        }
 
         PDSoftMask softMask = getGraphicsState().getSoftMask();
         if (softMask != null)
@@ -1155,6 +1095,14 @@ public class PageDrawer extends PDFGraphicsStreamEngine
         }
 
         graphics.setTransform(prev);
+    }
+
+    private static class AnnotationBorder
+    {
+        private float[] dashArray = null;
+        private boolean underline = false;
+        private float width = 0;
+        private PDColor color;
     }
 
     /**
@@ -1193,7 +1141,9 @@ public class PageDrawer extends PDFGraphicsStreamEngine
                                         (float)clipRect.getWidth(), (float)clipRect.getHeight());
 
             // apply the underlying Graphics2D device's DPI transform
-            Shape deviceClip = xform.createTransformedShape(clip);
+            Matrix m = new Matrix(xform);
+            AffineTransform dpiTransform = AffineTransform.getScaleInstance(Math.abs(m.getScalingFactorX()), Math.abs(m.getScalingFactorY()));
+            Shape deviceClip = dpiTransform.createTransformedShape(clip);
             Rectangle2D bounds = deviceClip.getBounds2D();
 
             minX = (int) Math.floor(bounds.getMinX());
@@ -1208,11 +1158,24 @@ public class PageDrawer extends PDFGraphicsStreamEngine
             Graphics2D g = image.createGraphics();
 
             // flip y-axis
-            g.translate(0, height);
+            g.translate(0, image.getHeight());
             g.scale(1, -1);
 
+            boolean oldFlipTG = flipTG;
+            flipTG = false;
+
             // apply device transform (DPI)
-            g.transform(xform);
+            // the initial translation is ignored, because we're not writing into the initial graphics device
+            g.transform(dpiTransform);
+
+            AffineTransform xformOriginal = xform;
+            xform = AffineTransform.getScaleInstance(m.getScalingFactorX(), m.getScalingFactorY());
+            PDRectangle pageSizeOriginal = pageSize;
+            pageSize = new PDRectangle(0, 0,
+                        (float) bounds.getWidth() / Math.abs(m.getScalingFactorX()),
+                        (float) bounds.getHeight() / Math.abs(m.getScalingFactorY()));
+            int pageRotationOriginal = pageRotation;
+            pageRotation = 0;
 
             // adjust the origin
             g.translate(-clipRect.getX(), -clipRect.getY());
@@ -1231,9 +1194,13 @@ public class PageDrawer extends PDFGraphicsStreamEngine
             }
             finally 
             {
+                flipTG = oldFlipTG;
                 lastClip = lastClipOriginal;                
                 graphics.dispose();
                 graphics = g2dOriginal;
+                pageSize = pageSizeOriginal;
+                xform = xformOriginal;
+                pageRotation = pageRotationOriginal;
             }
         }
 
@@ -1247,19 +1214,15 @@ public class PageDrawer extends PDFGraphicsStreamEngine
             return bbox;
         }
 
-        public Raster getAlphaRaster()
+        public Rectangle2D getBounds()
         {
-            return image.getAlphaRaster();
-        }
-
-        public Raster getLuminosityRaster()
-        {
-            BufferedImage gray = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-            Graphics g = gray.getGraphics();
-            g.drawImage(image, 0, 0, null);
-            g.dispose();
-
-            return gray.getRaster();
+            Point2D size = new Point2D.Double(pageSize.getWidth(), pageSize.getHeight());
+            // apply the underlying Graphics2D device's DPI transform and y-axis flip
+            Matrix m = new Matrix(xform);
+            AffineTransform dpiTransform = AffineTransform.getScaleInstance(Math.abs(m.getScalingFactorX()), Math.abs(m.getScalingFactorY()));
+            size = dpiTransform.transform(size, size);
+            // Flip y
+            return new Rectangle2D.Double(minX, size.getY() - minY - height, width, height);
         }
     }
 }

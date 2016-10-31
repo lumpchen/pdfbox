@@ -275,7 +275,7 @@ public class CFFParser
             }
             else
             {
-                throw new IllegalArgumentException();
+                throw new IOException("invalid DICT data b0 byte: " + b0);
             }
         }
         return entry;
@@ -386,6 +386,10 @@ public class CFFParser
             // not sure if 0 is the correct value, but it seems to fit
             // see PDFBOX-1522
             sb.append("0");
+        }
+        if (sb.length() == 0)
+        {
+            return 0d;
         }
         return Double.valueOf(sb.toString());
     }
@@ -545,9 +549,8 @@ public class CFFParser
         List<Map<String, Object>> privateDictionaries = new LinkedList<Map<String, Object>>();
         List<Map<String, Object>> fontDictionaries = new LinkedList<Map<String, Object>>();
 
-        for (int i = 0; i < fdIndex.length; ++i)
+        for (byte[] bytes : fdIndex)
         {
-            byte[] bytes = fdIndex[i];
             CFFDataInput fontDictInput = new CFFDataInput(bytes);
             DictData fontDict = readDictData(fontDictInput);
 

@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -551,10 +550,9 @@ public class COSParser extends BaseParser
                 }
                 else if (baseObj instanceof COSArray)
                 {
-                    final Iterator<COSBase> arrIter = ((COSArray) baseObj).iterator();
-                    while (arrIter.hasNext())
+                    for (COSBase cosBase : ((COSArray) baseObj))
                     {
-                        addNewToList(toBeParsedList, arrIter.next(), addedObjects);
+                        addNewToList(toBeParsedList, cosBase, addedObjects);
                     }
                 }
                 else if (baseObj instanceof COSObject)

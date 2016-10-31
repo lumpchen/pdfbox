@@ -42,37 +42,22 @@ import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.font.encoding.Encoding;
 import org.apache.pdfbox.pdmodel.font.encoding.StandardEncoding;
 import org.apache.pdfbox.pdmodel.font.encoding.Type1Encoding;
+import org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding;
+import org.apache.pdfbox.pdmodel.font.encoding.ZapfDingbatsEncoding;
 import org.apache.pdfbox.util.Matrix;
 
 
 import static org.apache.pdfbox.pdmodel.font.UniUtil.getUniNameOfCodePoint;
-import org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding;
-import org.apache.pdfbox.pdmodel.font.encoding.ZapfDingbatsEncoding;
+import org.apache.pdfbox.pdmodel.font.encoding.SymbolEncoding;
 
 /**
  * A PostScript Type 1 Font.
  *
  * @author Ben Litchfield
  */
-public class PDType1Font extends PDSimpleFont
+public class PDType1Font extends PDSimpleFont implements PDVectorFont
 {
     private static final Log LOG = LogFactory.getLog(PDType1Font.class);
-
-    // alternative names for glyphs which are commonly encountered
-    private static final Map<String, String> ALT_NAMES = new HashMap<String, String>();
-    static
-    {
-        ALT_NAMES.put("ff", "f_f");
-        ALT_NAMES.put("ffi", "f_f_i");
-        ALT_NAMES.put("ffl", "f_f_l");
-        ALT_NAMES.put("fi", "f_i");
-        ALT_NAMES.put("fl", "f_l");
-        ALT_NAMES.put("st", "s_t");
-        ALT_NAMES.put("IJ", "I_J");
-        ALT_NAMES.put("ij", "i_j");
-        ALT_NAMES.put("ellipsis", "elipsis"); // misspelled in ArialMT
-    }
-    private static final int PFB_START_MARKER = 0x80;
 
     // todo: replace with enum? or getters?
     public static final PDType1Font TIMES_ROMAN = new PDType1Font("Times-Roman");
@@ -90,6 +75,23 @@ public class PDType1Font extends PDSimpleFont
     public static final PDType1Font SYMBOL = new PDType1Font("Symbol");
     public static final PDType1Font ZAPF_DINGBATS = new PDType1Font("ZapfDingbats");
 
+    // alternative names for glyphs which are commonly encountered
+    private static final Map<String, String> ALT_NAMES = new HashMap<String, String>();
+    private static final int PFB_START_MARKER = 0x80;
+
+    static
+    {
+        ALT_NAMES.put("ff", "f_f");
+        ALT_NAMES.put("ffi", "f_f_i");
+        ALT_NAMES.put("ffl", "f_f_l");
+        ALT_NAMES.put("fi", "f_i");
+        ALT_NAMES.put("fl", "f_l");
+        ALT_NAMES.put("st", "s_t");
+        ALT_NAMES.put("IJ", "I_J");
+        ALT_NAMES.put("ij", "i_j");
+        ALT_NAMES.put("ellipsis", "elipsis"); // misspelled in ArialMT
+    }
+
     /**
      * embedded font.
      */
@@ -102,14 +104,13 @@ public class PDType1Font extends PDSimpleFont
     
     private final boolean isEmbedded;
     private final boolean isDamaged;
-    private Matrix fontMatrix;
     private final AffineTransform fontMatrixTransform;
-    private BoundingBox fontBBox;
-
     /**
      * to improve encoding speed.
      */
     private final Map <Integer,byte[]> codeToBytesMap;
+    private Matrix fontMatrix;
+    private BoundingBox fontBBox;
 
     /**
      * Creates a Type 1 standard 14 font for embedding.
@@ -125,6 +126,10 @@ public class PDType1Font extends PDSimpleFont
         if ("ZapfDingbats".equals(baseFont))
         {
             encoding = ZapfDingbatsEncoding.INSTANCE;
+        }
+        else if ("Symbol".equals(baseFont))
+        {
+            encoding = SymbolEncoding.INSTANCE;
         }
         else
         {
@@ -235,9 +240,10 @@ public class PDType1Font extends PDSimpleFont
                     int length1 = stream.getInt(COSName.LENGTH1);
                     int length2 = stream.getInt(COSName.LENGTH2);
 
-                    // repair Length1 if necessary
+                    // repair Length1 and Length2 if necessary
                     byte[] bytes = fontFile.toByteArray();
                     length1 = repairLength1(bytes, length1);
+                    length2 = repairLength2(bytes, length1, length2);
                     
                     if (bytes.length > 0 && (bytes[0] & 0xff) == PFB_START_MARKER)
                     {
@@ -338,6 +344,27 @@ public class PDType1Font extends PDSimpleFont
         }
 
         return length1;
+    }
+
+    /**
+     * Some Type 1 fonts have an invalid Length2, see PDFBOX-3475. A negative /Length2 brings an
+     * IllegalArgumentException in Arrays.copyOfRange(), a huge value eats up memory because of
+     * padding.
+     *
+     * @param bytes Type 1 stream bytes
+     * @param length1 Length1 from the Type 1 stream
+     * @param length2 Length2 from the Type 1 stream
+     * @return repaired Length2 value
+     */
+    private int repairLength2(byte[] bytes, int length1, int length2)
+    {
+        // repair Length2 if necessary
+        if (length2 < 0 || length2 > bytes.length - length1)
+        {
+            LOG.warn("Ignored invalid Length2 " + length2 + " for Type 1 font " + getName());
+            return bytes.length - length1;
+        }
+        return length2;
     }
 
     /**
@@ -495,8 +522,10 @@ public class PDType1Font extends PDSimpleFont
     {
         if (getFontDescriptor() != null) {
             PDRectangle bbox = getFontDescriptor().getFontBoundingBox();
-            if (bbox.getLowerLeftX() != 0 || bbox.getLowerLeftY() != 0 ||
-                bbox.getUpperRightX() != 0 || bbox.getUpperRightY() != 0) {
+            if (bbox != null &&
+                    (bbox.getLowerLeftX() != 0 || bbox.getLowerLeftY() != 0 ||
+                     bbox.getUpperRightX() != 0 || bbox.getUpperRightY() != 0))
+            {
                 return new BoundingBox(bbox.getLowerLeftX(), bbox.getLowerLeftY(),
                                        bbox.getUpperRightX(), bbox.getUpperRightY());
             }
@@ -562,9 +591,34 @@ public class PDType1Font extends PDSimpleFont
     }
 
     @Override
+    public GeneralPath getPath(int code) throws IOException
+    {
+        String name = getEncoding().getName(code);
+        return getPath(name);
+    }
+
+    @Override
+    public GeneralPath getNormalizedPath(int code) throws IOException
+    {
+        String name = getEncoding().getName(code);
+        GeneralPath path = getPath(name);
+        if (path == null)
+        {
+            return getPath(".notdef");
+        }
+        return path;
+    }
+    
+    @Override
     public boolean hasGlyph(String name) throws IOException
     {
         return genericFont.hasGlyph(getNameInFont(name));
+    }
+
+    @Override
+    public boolean hasGlyph(int code) throws IOException
+    {
+        return !getEncoding().getName(code).equals(".notdef");
     }
 
     @Override

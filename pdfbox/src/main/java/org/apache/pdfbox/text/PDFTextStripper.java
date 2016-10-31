@@ -58,7 +58,7 @@ import org.apache.pdfbox.util.QuickSort;
  *
  * @author Ben Litchfield
  */
-public class PDFTextStripper extends PDFTextStreamEngine
+public class PDFTextStripper extends LegacyPDFStreamEngine
 {
     private static float defaultIndentThreshold = 2.0f;
     private static float defaultDropThreshold = 2.5f;
@@ -1870,7 +1870,7 @@ public class PDFTextStripper extends PDFTextStreamEngine
                 LOG.error("Could not close BidiMirroring.txt ", e);
             }
         }
-    };
+    }
 
     /**
      * This method parses the bidi file provided as inputstream.
@@ -1919,7 +1919,7 @@ public class PDFTextStripper extends PDFTextStreamEngine
     }
 
     /**
-     * Used within {@link #normalize(List, boolean, boolean)} to create a single {@link WordWithTextPositions} entry.
+     * Used within {@link #normalize(List)} to create a single {@link WordWithTextPositions} entry.
      */
     private WordWithTextPositions createWord(String word, List<TextPosition> wordPositions)
     {
@@ -1983,7 +1983,7 @@ public class PDFTextStripper extends PDFTextStreamEngine
     }
 
     /**
-     * Used within {@link #normalize(List, boolean, boolean)} to handle a {@link TextPosition}.
+     * Used within {@link #normalize(List)} to handle a {@link TextPosition}.
      * 
      * @return The StringBuilder that must be used when calling this method.
      */
