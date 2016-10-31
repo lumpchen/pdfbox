@@ -12,25 +12,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
-import org.apache.pdfbox.pdmodel.font.PDCIDFontType0;
-import org.apache.pdfbox.pdmodel.font.PDCIDFontType2;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType1CFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.PDVectorFont;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
+import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
+import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
-import org.apache.pdfbox.rendering.CIDType0Glyph2D;
-import org.apache.pdfbox.rendering.Glyph2D;
 import org.apache.pdfbox.rendering.StructuredPDFStreamEngine;
-import org.apache.pdfbox.rendering.TTFGlyph2D;
-import org.apache.pdfbox.rendering.Type1Glyph2D;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.Vector;
 
@@ -44,8 +40,10 @@ public class PageStructureExtractor extends StructuredPDFStreamEngine {
 	
     // clipping winding rule used for the clipping path
     private int clipWindingRule = -1;
-    // glyph cache
-    private final Map<PDFont, Glyph2D> fontGlyph2D = new HashMap<PDFont, Glyph2D>();
+
+    // glyph caches
+    private final Map<PDFont, GlyphCache> glyphCaches = new HashMap<PDFont, GlyphCache>();
+    
     private GeneralPath linePath = new GeneralPath();
 
 	public PageStructureExtractor(PDPage page) {
@@ -186,87 +184,47 @@ public class PageStructureExtractor extends StructuredPDFStreamEngine {
         AffineTransform at = textRenderingMatrix.createAffineTransform();
         at.concatenate(font.getFontMatrix().createAffineTransform());
 
-        Glyph2D glyph2D = createGlyph2D(font);
+        PDVectorFont vectorFont = ((PDVectorFont)font);
+        GlyphCache cache = glyphCaches.get(font);
+        if (cache == null) {
+            cache = new GlyphCache(vectorFont);
+            glyphCaches.put(font, cache);
+        }
+        
+        GeneralPath glyph2D = cache.getPathForCharacterCode(code);
         this.textBuffer.append(unicode);
         drawGlyph2D(glyph2D, font, code, displacement, at);
     }
     
-    protected void drawGlyph2D(Glyph2D glyph2D, PDFont font, int code, Vector displacement,
+    protected void drawGlyph2D(GeneralPath glyph2D, PDFont font, int code, Vector displacement,
             AffineTransform at) throws IOException {
-    	GeneralPath path = glyph2D.getPathForCharacterCode(code);
-    	if (path != null) {
-    		// stretch non-embedded glyph if it does not match the width contained in the PDF
-    		if (!font.isEmbedded()) {
-    			float fontWidth = font.getWidthFromFont(code);
-    			if (fontWidth > 0 && // ignore spaces
-    					Math.abs(fontWidth - displacement.getX() * 1000) > 0.0001) {
-    				float pdfWidth = displacement.getX() * 1000;
-    				at.scale(pdfWidth / fontWidth, 1);
-    			}
-    		}
+        PDGraphicsState state = getGraphicsState();
+        RenderingMode renderingMode = state.getTextState().getRenderingMode();
+        
+        if (glyph2D != null) {
+            // stretch non-embedded glyph if it does not match the width contained in the PDF
+            if (!font.isEmbedded()) {
+                float fontWidth = font.getWidthFromFont(code);
+                if (fontWidth > 0 && // ignore spaces
+                        Math.abs(fontWidth - displacement.getX() * 1000) > 0.0001) {
+                    float pdfWidth = displacement.getX() * 1000;
+                    at.scale(pdfWidth / fontWidth, 1);
+                }
+            }
 
-    		// render glyph
-    		Shape glyph = at.createTransformedShape(path);
-    		this.markPath(glyph.getBounds());
+            // render glyph
+            Shape glyph = at.createTransformedShape(glyph2D);
+            this.markPath(glyph.getBounds());
+            
+            if (renderingMode.isFill()) {
+            }
+
+            if (renderingMode.isStroke()) {
+            }
+
+            if (renderingMode.isClip()) {
+            }
     	}
-    }
-    
-    private Glyph2D createGlyph2D(PDFont font) throws IOException
-    {
-        // Is there already a Glyph2D for the given font?
-        if (fontGlyph2D.containsKey(font))
-        {
-            return fontGlyph2D.get(font);
-        }
-
-        Glyph2D glyph2D = null;
-        if (font instanceof PDTrueTypeFont)
-        {
-            PDTrueTypeFont ttfFont = (PDTrueTypeFont)font;
-            glyph2D = new TTFGlyph2D(ttfFont);  // TTF is never null
-        }
-        else if (font instanceof PDType1Font)
-        {
-            PDType1Font pdType1Font = (PDType1Font)font;
-            glyph2D = new Type1Glyph2D(pdType1Font); // T1 is never null
-        }
-        else if (font instanceof PDType1CFont)
-        {
-            PDType1CFont type1CFont = (PDType1CFont)font;
-            glyph2D = new Type1Glyph2D(type1CFont);
-        }
-        else if (font instanceof PDType0Font)
-        {
-            PDType0Font type0Font = (PDType0Font) font;
-            if (type0Font.getDescendantFont() instanceof PDCIDFontType2)
-            {
-                glyph2D = new TTFGlyph2D(type0Font); // TTF is never null
-            }
-            else if (type0Font.getDescendantFont() instanceof PDCIDFontType0)
-            {
-                // a Type0 CIDFont contains CFF font
-                PDCIDFontType0 cidType0Font = (PDCIDFontType0)type0Font.getDescendantFont();
-                glyph2D = new CIDType0Glyph2D(cidType0Font); // todo: could be null (need incorporate fallback)
-            }
-        }
-        else
-        {
-            throw new IllegalStateException("Bad font type: " + font.getClass().getSimpleName());
-        }
-
-        // cache the Glyph2D instance
-        if (glyph2D != null)
-        {
-            fontGlyph2D.put(font, glyph2D);
-        }
-
-        if (glyph2D == null)
-        {
-            // todo: make sure this never happens
-            throw new UnsupportedOperationException("No font for " + font.getName());
-        }
-
-        return glyph2D;
     }
     
 	private void markImage(Shape outline) {
@@ -351,5 +309,46 @@ public class PageStructureExtractor extends StructuredPDFStreamEngine {
 
 	public void endAnnot(PDAnnotation annot) {
 		int structParent = annot.getStructParent();
+	}
+	
+	static class GlyphCache {
+	    private static final Log LOG = LogFactory.getLog(GlyphCache.class);
+	    
+	    private final PDVectorFont font;
+	    private final Map<Integer, GeneralPath> cache = new HashMap<Integer, GeneralPath>();
+
+	    public GlyphCache(PDVectorFont font) {
+	        this.font = font;
+	    }
+	    
+	    public GeneralPath getPathForCharacterCode(int code) {
+	        GeneralPath path = cache.get(code);
+	        if (path != null) {
+	            return path;
+	        }
+
+	        try {
+	            if (!font.hasGlyph(code)) {
+	                String fontName = ((PDFont)font).getName();
+	                if (font instanceof PDType0Font) {
+	                    int cid = ((PDType0Font) font).codeToCID(code);
+	                    String cidHex = String.format("%04x", cid);
+	                    LOG.warn("No glyph for " + code + " (CID " + cidHex + ") in font " + fontName);
+	                }
+	                else {
+	                    LOG.warn("No glyph for " + code + " in font " + fontName);
+	                }
+	            }
+
+	            path = font.getNormalizedPath(code);
+	            cache.put(code, path);
+	            return path;
+	        }
+	        catch (IOException e) {
+	            // todo: escalate this error?
+	            LOG.error("Glyph rendering failed", e);
+	            return new GeneralPath();
+	        }
+	    }
 	}
 }
