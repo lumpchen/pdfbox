@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -314,15 +315,15 @@ public class PageThread {
 	
 	public static class PathLob {
 		
-		private Rectangle bBox;
+		private Rectangle2D bBox;
 		private PathContent pathContent;
 		
 		public PathLob(PathContent pathContent) {
 			this.pathContent = pathContent;
-			this.bBox = pathContent.getOutlineArea().getBounds();
+			this.bBox = pathContent.getOutlineArea().getBounds2D();
 		}
 		
-		public Rectangle getBBox() {
+		public Rectangle2D getBBox() {
 			return this.bBox;
 		}
 		

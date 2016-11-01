@@ -10,6 +10,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.PathIterator;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -64,8 +65,8 @@ public class PathComparator extends ContentComparator {
 	}
 
 	private boolean compare(PathLob basePath, PathLob testPath, DiffContent entry) {
-		Rectangle bbox_1 = basePath == null ? null : basePath.getBBox();
-		Rectangle bbox_2 = testPath == null ? null : testPath.getBBox();
+		Rectangle2D bbox_1 = basePath == null ? null : basePath.getBBox();
+		Rectangle2D bbox_2 = testPath == null ? null : testPath.getBBox();
 		entry.setBBox(bbox_1, bbox_2);
 		
 		boolean result = true;

@@ -2,6 +2,7 @@ package org.apache.pdfbox.tools.diff;
 
 import java.awt.Rectangle;
 import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,7 +84,7 @@ public class PageDiffResult {
 		private List<ContentAttr> contentAttrList;
 		private Area baseOutline;
 		private Area testOutline;
-		private Rectangle baseBBox, testBBox;
+		private Rectangle2D baseBBox, testBBox;
 		
 		public DiffContent(Category category) {
 			this.category = category;
@@ -117,16 +118,16 @@ public class PageDiffResult {
 			return null;
 		}
 		
-		public void setBBox(Rectangle baseBBox, Rectangle testBBox) {
+		public void setBBox(Rectangle2D baseBBox, Rectangle2D testBBox) {
 			this.baseBBox = baseBBox;
 			this.testBBox = testBBox;
 		}
 		
-		public Rectangle getBaseBBox() {
+		public Rectangle2D getBaseBBox() {
 			return this.baseBBox;
 		}
 		
-		public Rectangle getTestBBox() {
+		public Rectangle2D getTestBBox() {
 			return this.testBBox;
 		}
 		

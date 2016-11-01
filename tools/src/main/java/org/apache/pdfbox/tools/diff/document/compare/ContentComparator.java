@@ -1,6 +1,6 @@
 package org.apache.pdfbox.tools.diff.document.compare;
 
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 
 import org.apache.pdfbox.tools.diff.PageDiffResult.DiffContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.ColorDesc;
@@ -105,18 +105,18 @@ public abstract class ContentComparator {
 		return true;
 	}
 	
-	protected String asString(Rectangle rect) {
+	protected String asString(Rectangle2D rect) {
 		if (rect == null) {
 			return "";
 		}
 		StringBuilder buf = new StringBuilder();
-		buf.append("x=" + rect.x);
+		buf.append("x=" + rect.getX());
 		buf.append(", ");
-		buf.append("y=" + rect.y);
+		buf.append("y=" + rect.getY());
 		buf.append(", ");
-		buf.append("width=" + rect.width);
+		buf.append("width=" + rect.getWidth());
 		buf.append(", ");
-		buf.append("height=" + rect.height);
+		buf.append("height=" + rect.getHeight());
 		return buf.toString();
 	}
 	

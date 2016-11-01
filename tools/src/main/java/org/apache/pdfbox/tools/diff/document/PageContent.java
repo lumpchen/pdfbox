@@ -385,6 +385,8 @@ public abstract class PageContent {
 				return false;
 			}
 			
+			
+			
 			Area a1 = this.getOutlineArea();
 			Area a2 = pathContent.getOutlineArea();
 			if (a1.getBounds().intersects(a2.getBounds())) {

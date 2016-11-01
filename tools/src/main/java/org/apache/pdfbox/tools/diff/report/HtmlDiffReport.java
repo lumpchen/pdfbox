@@ -1,6 +1,6 @@
 package org.apache.pdfbox.tools.diff.report;
 
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -79,6 +79,7 @@ public class HtmlDiffReport {
 	private void writeCss() throws IOException {
 		this.copyTemplate("report_styles.css", "css");
 		this.copyTemplate("bootstrap.css", "css");
+		this.copyTemplate("bootstrap-treeview.css", "css");
 		
 		this.copyTemplate("glyphicons-halflings-regular.woff2", "fonts");
 		this.copyTemplate("glyphicons-halflings-regular.woff", "fonts");
@@ -240,21 +241,21 @@ public class HtmlDiffReport {
 		JSONArray arr = new JSONArray();
 		JSONArray sRect = new JSONArray();
 		if (diffContent.getBaseBBox() != null) {
-			Rectangle rect = diffContent.getBaseBBox();
-			sRect.put(rect.x);
-			sRect.put(rect.y);
-			sRect.put(rect.width);
-			sRect.put(rect.height);
+			Rectangle2D rect = diffContent.getBaseBBox();
+			sRect.put(rect.getX());
+			sRect.put(rect.getY());
+			sRect.put(rect.getWidth());
+			sRect.put(rect.getHeight());
 		}
 		arr.put(sRect);
 
 		sRect = new JSONArray();
 		if (diffContent.getTestBBox() != null) {
-			Rectangle rect = diffContent.getTestBBox();
-			sRect.put(rect.x);
-			sRect.put(rect.y);
-			sRect.put(rect.width);
-			sRect.put(rect.height);
+			Rectangle2D rect = diffContent.getTestBBox();
+			sRect.put(rect.getX());
+			sRect.put(rect.getY());
+			sRect.put(rect.getWidth());
+			sRect.put(rect.getHeight());
 		}
 		arr.put(sRect);
 

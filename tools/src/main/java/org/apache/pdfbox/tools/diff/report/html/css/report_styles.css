@@ -1,13 +1,13 @@
 h1 {
-	margin: .2em 0;
-	font-size: 2em;
+	margin: .1em 0;
+	font-size: 1.5em;
 }
 
 .flat-table {
 	display: block;
 	font-family: sans-serif;
 	-webkit-font-smoothing: antialiased;
-	font-size: 115%;
+	font-size: 100%;
 	overflow: auto;
 	width: auto;
 }
@@ -48,40 +48,48 @@ h1 {
 }
 
 #nav {
-	max-height: 700px;
+	position: absolute;
+	max-height: 500px;
 	background-color: #eeeeee;
 	max-width: 10%;
 	float: left;
 	padding: 5px;
 	text-align: center;
 	overflow: auto;
+	display: block;
 }
 
 #section {
-	max-width: 90%;
-	max-height: 700px;
-	float: left;
-	padding: 10px;
+	max-width: 100%;
+	max-height: 500px;
+	float: right;
+	padding: 20px;
+}
+
+.page-canvas-table {
+	border: 1px red solid;
+	padding: 0px;
 }
 
 #footer {
-	border: 2px solid;
 	background-color: gray;
-	max-height: 50%;
+	max-height: 500px;
 	overflow: auto;
 	padding: 20px;
 }
 
 #content_tree {
+	max-height: 500px;
 	background-color: gray;
 	width: 25%;
 	float: left;
 	text-align: left;
 }
 
-#content_table {
+#content_table_div {
+	position: absolute;
+	left: 26%;
 	background-color: gray;
-	width: 75%;
 	clear: both;
 	float: right;
 	text-align: left;
@@ -91,8 +99,7 @@ h1 {
 	display: block;
 	font-family: sans-serif;
 	-webkit-font-smoothing: antialiased;
-	font-size: 130%;
-	overflow: auto;
+	font-size: 100%;
 	width: 100%;
 }
 
@@ -100,7 +107,7 @@ h1 {
 	background-color: gray;
 	color: white;
 	font-weight: Bold;
-	font-size: 28px;
+	font-size: 1.5em;
 	text-align: center;
 }
 
@@ -109,7 +116,7 @@ h1 {
 	background-color: rgb(238, 238, 238);
 	color: rgb(111, 111, 111);
 	padding: 10px 10px 0px 10px;
-	font-size: 18px;
+	font-size: 1em;
 	text-align: left;
 }
 
@@ -122,3 +129,4 @@ h1 {
 	border: 1px black solid;
 	box-shadow: 5px 5px 10px #1e1e1e;
 }
+
