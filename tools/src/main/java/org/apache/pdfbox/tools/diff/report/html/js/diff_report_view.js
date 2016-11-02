@@ -155,66 +155,101 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		};
 	};
 
-	var updatePageView = function() {
-		pageNo = page_view_paras["PageNo"];
+	
+	var addCanvasMouseListener = function(canvas) {
+		canvas.style.cursor = 'crosshair';
+		
+		canvas.addEventListener('mousemove', function(evt) {
+			var mousePos = getMousePos(canvas, evt);
+			var zoomCtx = zoom.getContext("2d");
+			zoomCtx.fillStyle = "white";
+			zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
+			zoomCtx.drawImage(canvas, mousePos.x, mousePos.y, 200, 100, 0, 0, 600, 300);
+			zoom.style.top = evt.pageY + 2 + "px";
+			zoom.style.left = evt.pageX + 2 + "px";
+			zoom.style.display = "block";
+		}, false);
 
-		if (page_view_paras["BaseIsBlank"]) {
-			var baseCanvas = document.getElementById("base_page_canvas");
-			baseCanvas.width = toPixel(page_view_paras["TestPageWidth"]) + 2;
-			baseCanvas.height = toPixel(page_view_paras["TestPageHeight"]) + 2;
+		canvas.addEventListener("mouseout", function() {
+			zoom.style.display = "none";
+		});
+	};
+	
+	var pageScale = "FitToPage";
+	var baseCanvasScale = 1;
+	var testCanvasScale = 1;
+	var buildBaseCanvas = function(paras) {
+		var pageNo = page_view_paras["PageNo"];
+		
+		var w = 0, h = 0;
+		var baseCanvas = document.getElementById("base_page_canvas");
+		var cell = document.getElementById("base_page_td");
+		var cellW = cell.clientWidth  - 2;
+		
+		var cell = document.getElementById("test_page_td");
+		var cellW = cell.clientWidth  - 2;
+		
+		if (paras["BaseIsBlank"]) {
+			w = toPixel(paras["TestPageWidth"]);
+			h = toPixel(paras["TestPageHeight"]);
+		} else {
+			w = toPixel(paras["BasePageWidth"]);
+			h = toPixel(paras["BasePageHeight"]);
+		}
+
+		if (pageScale == "FitToPage") {
+			baseCanvasScale = cellW / w;
+		}
+		
+		baseCanvas.width = w * baseCanvasScale;
+		baseCanvas.height = h * baseCanvasScale;
+			
+		if (paras["BaseIsBlank"]) {
 			drawBlankPage(baseCanvas);
 		} else {
 			var imageTag = base_pdf_json_obj.pages[pageNo].imageTag;
-			var baseCanvas = document.getElementById("base_page_canvas");
-			baseCanvas.width = toPixel(page_view_paras["BasePageWidth"]) + 2;
-			baseCanvas.height = toPixel(page_view_paras["BasePageHeight"]) + 2;
 			drawPage(imageTag, baseCanvas);
-			baseCanvas.style.cursor = 'crosshair';
-
-			baseCanvas.addEventListener('mousemove', function(evt) {
-				var mousePos = getMousePos(baseCanvas, evt);
-				var zoomCtx = zoom.getContext("2d");
-				zoomCtx.fillStyle = "white";
-				zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
-				zoomCtx.drawImage(baseCanvas, mousePos.x, mousePos.y, 200, 100, 0, 0, 600, 300);
-				zoom.style.top = evt.pageY + 2 + "px";
-				zoom.style.left = evt.pageX + 2 + "px";
-				zoom.style.display = "block";
-			}, false);
-
-			baseCanvas.addEventListener("mouseout", function() {
-				zoom.style.display = "none";
-			});
+			
+			addCanvasMouseListener(baseCanvas);
 		}
+	};
 
-		if (page_view_paras["TestIsBlank"]) {
-			var testCanvas = document.getElementById("test_page_canvas");
-			testCanvas.width = toPixel(page_view_paras["BasePageWidth"]) + 2;
-			testCanvas.height = toPixel(page_view_paras["BasePageHeight"]) + 2;
+	var buildTestCanvas = function(paras) {
+		var pageNo = page_view_paras["PageNo"];
+		
+		var w = 0, h = 0;
+		var testCanvas = document.getElementById("test_page_canvas");
+		var cell = document.getElementById("test_page_td");
+		var cellW = cell.clientWidth - 2;
+		
+		if (paras["BaseIsBlank"]) {
+			w = toPixel(paras["BasePageWidth"]);
+			h = toPixel(paras["BasePageHeight"]);
+		} else {
+			w = toPixel(paras["TestPageWidth"]);
+			h = toPixel(paras["TestPageHeight"]);
+		}
+		if (pageScale == "FitToPage") {
+			testCanvasScale = cellW / w;
+		}
+		
+		testCanvas.width = w * testCanvasScale;
+		testCanvas.height = h * testCanvasScale;
+		
+		if (paras["TestIsBlank"]) {
 			drawBlankPage(testCanvas);
 		} else {
 			var imageTag = test_pdf_json_obj.pages[pageNo].imageTag;
-			var testCanvas = document.getElementById("test_page_canvas");
-			testCanvas.width = toPixel(page_view_paras["TestPageWidth"]) + 2;
-			testCanvas.height = toPixel(page_view_paras["TestPageHeight"]) + 2;
 			drawPage(imageTag, testCanvas);
-			testCanvas.style.cursor = 'crosshair';
 
-			testCanvas.addEventListener('mousemove', function(evt) {
-				var mousePos = getMousePos(testCanvas, evt);
-				var zoomCtx = zoom.getContext("2d");
-				zoomCtx.fillStyle = "white";
-				zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
-				zoomCtx.drawImage(testCanvas, mousePos.x, mousePos.y, 200, 100, 0, 0, 600, 300);
-				zoom.style.top = evt.pageY + 2 + "px";
-				zoom.style.left = evt.pageX + 2 + "px";
-				zoom.style.display = "block";
-			}, false);
-
-			testCanvas.addEventListener("mouseout", function() {
-				zoom.style.display = "none";
-			});
+			addCanvasMouseListener(testCanvas);
 		}
+	}
+	
+	var updatePageView = function() {
+	
+		buildBaseCanvas(page_view_paras);
+		buildTestCanvas(page_view_paras);	
 
 		var item = page_view_paras["DiffContent"];
 		$("#attribute_table tbody tr").remove();
@@ -392,13 +427,6 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		ctx = canvas.getContext("2d");
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		drawPageImage(imageTag, ctx, canvas.width, canvas.height);
-		ctx.save();
-		ctx.beginPath();
-		ctx.lineWidth="3";
-		ctx.strokeStyle="red";
-		ctx.rect(1, 1, canvas.width, canvas.height);
-		ctx.stroke();
-		ctx.restore();
 	};
 
 
@@ -408,6 +436,14 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		img.onload = function() {
 			ctx.drawImage(img, 1, 1, w, h);
 			
+			ctx.save();
+			ctx.beginPath();
+			ctx.lineWidth="1";
+			ctx.strokeStyle="red";
+			ctx.rect(1, 1, w - 1, h - 1);
+			ctx.stroke();
+			ctx.restore();
+		
 			var item = page_view_paras["DiffContent"];
 			var category = page_view_paras["text"];
 			if ((typeof(item) !== 'undefined') && (item !== null)) {
@@ -425,13 +461,21 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		if (baseRect.length > 0) {
 			var baseCanvas = document.getElementById("base_page_canvas");
 			var baseCtx = baseCanvas.getContext("2d");
+			
+			baseCtx.save();
+			baseCtx.scale(baseCanvasScale, baseCanvasScale);
 			drawContentOutline(category, baseRect, baseCtx, page_view_paras["BasePageWidth"], page_view_paras["BasePageHeight"], Base_Stroke_Color, Base_Fill_Color);
+			baseCtx.restore();
 		}
 
 		if (testRect.length > 0) {
 			var testCanvas = document.getElementById("test_page_canvas");
 			var testCtx = testCanvas.getContext("2d");
+			
+			testCtx.save();
+			testCtx.scale(testCanvasScale, testCanvasScale);
 			drawContentOutline(category, testRect, testCtx, page_view_paras["TestPageWidth"], page_view_paras["TestPageHeight"], Test_Stroke_Color, Test_Fill_Color);
+			testCtx.restore();
 		}
 	};
 

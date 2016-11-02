@@ -17,55 +17,60 @@
 </head>
 
 <body onload="PDF_DIFF.view.onload()">
-	<div id="header">
-		<h1>
-			<span>Baseline:</span> <span id="base_pdf_name"></span>
-		</h1>
 
-		<h1>
-			<span>Test:</span> <span id="test_pdf_name"></span>
-		</h1>
-
-		<h1>
-			<span>Page count:</span> <span id="page_count"></span>
-		</h1>
-
-		<h1>
-			<span id="diff_summary"></span>
-		</h1>
-	</div>
 
 	<div id="body">
-		<div id="nav">
-			<div>
-				<table id="page_list_table" class="flat-table">
-					<thead>
-						<tr>
-							<th>Pages</th>
-						</tr>
-					</thead>
-					<tbody></tbody>
-				</table>
-			</div>
-		</div>
-
-		<div id="section">
-			<table>
-				<tr>
-					<td>
-						<div id="base_page_div" class="page-canvas-table">
-							<canvas id="base_page_canvas"></canvas>
+	
+					<div id="nav">
+						<div id="header">
+							<h1>
+								<span>Baseline:</span> <span id="base_pdf_name"></span>
+							</h1>
+							<h1>
+								<span>Test:</span> <span id="test_pdf_name"></span>
+							</h1>
+							<h1>
+								<span>Page count:</span> <span id="page_count"></span>
+							</h1>
+							<h1>
+								<span id="diff_summary"></span>
+							</h1>
 						</div>
-					</td>
-
-					<td>
-						<div id="test_page_div" class="page-canvas-table">
-							<canvas id="test_page_canvas"></canvas>
+				
+						<br/>
+						<div>
+							<table id="page_list_table" class="flat-table">
+								<thead>
+									<tr>
+										<th>Pages</th>
+									</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
 						</div>
-					</td>
-				</tr>
-			</table>
-		</div>
+					</div>
+				
+					<div id="section">
+						<table width="100%" height="100%">
+							<tr>
+								<td id="base_page_td" width="50%" height="100%">
+								<!--	<div id="base_page_div" class="page-canvas-table">
+										<canvas id="base_page_canvas"></canvas>
+									</div>
+									-->
+									<canvas id="base_page_canvas"></canvas>
+								</td>
+
+								<td id="test_page_td" width="50%" height="100%">
+								<canvas id="test_page_canvas"></canvas>
+								<!--	<div id="test_page_div" class="page-canvas-table">
+										<canvas id="test_page_canvas"></canvas>
+									</div>
+									-->
+								</td>
+							</tr>
+						</table>
+					</div>
 
 		<canvas id="zoom" width="400" height="200"
 			style="position: absolute; top: 0; left: 0; display: none"></canvas>
