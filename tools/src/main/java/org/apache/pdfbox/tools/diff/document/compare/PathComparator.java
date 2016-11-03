@@ -59,7 +59,7 @@ public class PathComparator extends ContentComparator {
 			}
 		}
 
-		show(this.ass);
+//		show(this.ass);
 		
 		return result.toArray(new DiffContent[result.size()]);
 	}
@@ -142,6 +142,7 @@ public class PathComparator extends ContentComparator {
 		}
 		
 //		this.lookGeneralPath(path_1);
+		
 //		this.lookGeneralPath(path_2);
 //		List<Shape> shapeList_1 = path_1.getOutlineShapeList();
 //		Area area_1 = this.toArea(shapeList_1);
@@ -234,7 +235,7 @@ public class PathComparator extends ContentComparator {
 				g.setColor(Color.red);
 				g.draw(p);
 				g.setColor(Color.black);
-				g.fill(p);
+//				g.fill(p);
 			}
 			
 			ImageIO.write(img, "png", new File("c:/temp/1-1.png"));

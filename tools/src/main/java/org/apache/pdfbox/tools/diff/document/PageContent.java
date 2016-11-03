@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -166,9 +167,9 @@ public abstract class PageContent {
 	}
 	
     public Area getOutlineArea() {
-    	if (this.area != null) {
-    		return this.area;
-    	}
+//    	if (this.area != null) {
+//    		return this.area;
+//    	}
     	this.area = new Area();
     	if (this.outline != null) {
     		for (Shape s : this.outline) {
@@ -385,11 +386,19 @@ public abstract class PageContent {
 				return false;
 			}
 			
+			Rectangle2D r1 = this.getOutlineArea().getBounds2D();
+			Rectangle2D r2 = pathContent.getOutlineArea().getBounds2D();
+
+			if (r1.contains(r2)) {
+				return true;
+			}
+			if (r2.contains(r1)) {
+				this.outline.clear();
+				this.outline.addAll(pathContent.outline);
+				return true;
+			}
 			
-			
-			Area a1 = this.getOutlineArea();
-			Area a2 = pathContent.getOutlineArea();
-			if (a1.getBounds().intersects(a2.getBounds())) {
+			if (r1.intersects(r2)) {
 				this.outline.addAll(pathContent.outline);
 				return true;
 			}
