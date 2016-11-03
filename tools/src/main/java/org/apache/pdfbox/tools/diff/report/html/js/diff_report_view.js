@@ -71,27 +71,48 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		if (diff_page_count == 0) {
 			sum = "These two PDFs are the same!";
 		} else if (diff_page_count == 1) {
-			sum = "Found <span style=\"color:red\">" + diff_page_count + "</span> different page!";
+			sum = "Found <span style=\"color:red; font-size: 1.5em\">" + diff_page_count + "</span> different page!";
 		} else {
-			sum = "Found <span style=\"color:red\">" + diff_page_count + "</span> different pages!";
+			sum = "Found <span style=\"color:red; font-size: 1.5em\">" + diff_page_count + "</span> different pages!";
 		}
 		var diff_summary_span = document.getElementById("diff_summary");
 		diff_summary_span.innerHTML = sum;
 
 		var tableBody = document.getElementById("page_list_table").getElementsByTagName("tbody")[0];
+		var diffColor = "#FF0000", sameColor = "rgb(111, 111, 111)";
 		for (var i = 0; i < max_page_count; i++) {
+			
 			var pageRow = tableBody.insertRow(tableBody.rows.length);
 			var cell = pageRow.insertCell(0);
-			var text = document.createTextNode("Page " + (i + 1));
+			if (i >= base_pdf_json_obj.pageCount) {
+				var text = document.createTextNode("NA");
+			} else {
+				var text = document.createTextNode("Page " + (i + 1));	
+			}
+			
 			cell.appendChild(text);
 
-			cell.onclick = pageSelectHandler(i);
+			if (diff_page_nums.indexOf(i) >= 0) {
+				cell.style.color = diffColor;
+			} else {
+				cell.style.color = sameColor;
+			}
+
+			var cell = pageRow.insertCell(1);
+			if (i >= test_pdf_json_obj.pageCount) {
+				var text = document.createTextNode("NA");
+			} else {
+				var text = document.createTextNode("Page " + (i + 1));	
+			}
+			cell.appendChild(text);
 
 			if (diff_page_nums.indexOf(i) >= 0) {
-				cell.style.color = "#FF0000";
+				cell.style.color = diffColor;
 			} else {
-				cell.style.color = "rgb(111, 111, 111)";
+				cell.style.color = sameColor;
 			}
+
+			pageRow.onclick = pageSelectHandler(i);
 		}
 
 		$(function() {
@@ -113,15 +134,26 @@ PDF_DIFF.diff_report_view = function(report_data) {
 
 		for (var i = 0; i < tableBody.rows.length; i++) {
 			var td = tableBody.rows[i].cells[0];
+			var td_1 = tableBody.rows[i].cells[1];
 			if (i == pageNo) {
-				td.style.backgroundColor  = "lightgray";
-				td.style.fontWeight  = "Bold";
-				td.className += " selected";
+				updateCellColor(td, true);
+				updateCellColor(td_1, true);
 			} else {
-				td.style.backgroundColor = "rgb(238, 238, 238)";
-				td.style.fontWeight  = "normal";
-				td.classList.remove('selected');
+				updateCellColor(td, false);
+				updateCellColor(td_1, false);
 			}
+		}
+	}
+
+	var updateCellColor = function(td, selected) {
+		if (selected) {
+			td.style.backgroundColor  = "lightgray";
+			td.style.fontWeight  = "Bold";
+			td.className += " selected";
+		} else {
+			td.style.backgroundColor = "rgb(238, 238, 238)";
+			td.style.fontWeight  = "normal";
+			td.classList.remove('selected');
 		}
 	}
 	
@@ -200,7 +232,7 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		var testCanvas = document.getElementById("test_page_canvas");
 		var cell = document.getElementById("test_page_td");
 		
-		if (paras["BaseIsBlank"]) {
+		if (paras["TestIsBlank"]) {
 			w = toPixel(paras["BasePageWidth"]);
 			h = toPixel(paras["BasePageHeight"]);
 		} else {
@@ -331,15 +363,14 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		var ctx = canvas.getContext("2d");
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.save();
-		ctx.fillStyle = "white";
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-		ctx.rect(1, 1, canvas.width, canvas.height);
+		ctx.fillStyle = "gray";
+		ctx.fillRect(1, 1, canvas.width - 1, canvas.height - 1);
+		ctx.rect(0, 0, canvas.width, canvas.height);
 		ctx.strokeStyle = 'red';
 		ctx.stroke();
 
 		ctx.translate(72, canvas.height / 2);
-		ctx.scale(6, 6);
-		// ctx.rotate(Math.PI * 2 / (6 * -2));
+		ctx.scale(3, 3);
 		ctx.font = "16pt Calibri";
 		ctx.fillStyle = 'red';
 		ctx.fillText("NOT FOUND", 0, 0);

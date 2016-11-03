@@ -50,7 +50,7 @@ h1 {
 #nav {
 	#position: absolute;
 	#max-height: 500px;
-	border: 1px blue solid;	
+	#border: 1px blue solid;	
 	max-height: 100%;
 	background-color: #eeeeee;
 	min-width: 20%;
@@ -63,7 +63,7 @@ h1 {
 }
 
 #section {
-	border: 1px blue solid;
+	#border: 1px blue solid;
 	min-width: 80%;
 	max-width: 80%;
 	min-height: 600px;
