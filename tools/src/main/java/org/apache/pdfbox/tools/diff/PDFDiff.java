@@ -39,7 +39,7 @@ public class PDFDiff {
 		PDDocument baselinePDF = null;
 		PDDocument testPDF = null;
 		
-		PDocDiffResult result = new PDocDiffResult();
+		PDocDiffResult result = new PDocDiffResult(this.setting);
 		try {
 			baselinePDF = PDDocument.load(this.base);
 			result.getBaseDocumentInfo().setCategory("base");

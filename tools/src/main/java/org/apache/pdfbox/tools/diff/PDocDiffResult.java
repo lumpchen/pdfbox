@@ -12,10 +12,16 @@ public class PDocDiffResult {
 	private DocumentInfo testInfo;
 	private int diffPageCount;
 	private List<Integer> diffPageNumbs;
+	private DiffSetting setting;
 
-	public PDocDiffResult() {
+	public PDocDiffResult(DiffSetting setting) {
 		this.entryMap = new HashMap<Integer, PageDiffResult>();
 		this.diffPageNumbs = new ArrayList<Integer>();
+		this.setting = setting;
+	}
+	
+	public float getResolution() {
+		return this.setting.resolution;
 	}
 
 	public void setDocumentInfo(DocumentInfo baseInfo, DocumentInfo testInfo) {

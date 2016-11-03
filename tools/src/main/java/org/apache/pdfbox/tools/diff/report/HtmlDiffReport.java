@@ -32,6 +32,7 @@ public class HtmlDiffReport {
 	private static final String test_pdf_json_obj = "test_pdf_json_obj";
 	private static final String diff_content_json_obj = "diff_content_json_obj";
 	
+	private static final String Rendering_Resolution = "Rendering_Resolution";
 	private static final String Base_Stroke_Color = "Base_Stroke_Color";
 	private static final String Test_Stroke_Color = "Test_Stroke_Color";
 	private static final String Test_Fill_Color = "Test_Fill_Color";
@@ -125,6 +126,7 @@ public class HtmlDiffReport {
 		JSONObject json = new JSONObject();
 		
 		// change by setting
+		json.put(Rendering_Resolution, this.result.getResolution());
     	json.put(Base_Stroke_Color, "red");
 		json.put(Test_Stroke_Color, "red");
 		json.put(Test_Fill_Color, "rgba(138, 43, 226, 0.2)");

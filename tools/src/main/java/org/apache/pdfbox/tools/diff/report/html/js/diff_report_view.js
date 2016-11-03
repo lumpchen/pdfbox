@@ -1,6 +1,8 @@
 var PDF_DIFF = PDF_DIFF || {};
 
 PDF_DIFF.diff_report_view = function(report_data) {
+	var dpi = 96;
+	var Rendering_Resolution = report_data.Rendering_Resolution;
 	var Base_Stroke_Color = report_data.Base_Stroke_Color;
 	var Test_Stroke_Color = report_data.Test_Stroke_Color;
 	var Test_Fill_Color = report_data.Test_Fill_Color;
@@ -154,41 +156,18 @@ PDF_DIFF.diff_report_view = function(report_data) {
 			updatePageView();
 		};
 	};
-
-	
-	var addCanvasMouseListener = function(canvas) {
-		canvas.style.cursor = 'crosshair';
-		
-		canvas.addEventListener('mousemove', function(evt) {
-			var mousePos = getMousePos(canvas, evt);
-			var zoomCtx = zoom.getContext("2d");
-			zoomCtx.fillStyle = "white";
-			zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
-			zoomCtx.drawImage(canvas, mousePos.x, mousePos.y, 200, 100, 0, 0, 600, 300);
-			zoom.style.top = evt.pageY + 2 + "px";
-			zoom.style.left = evt.pageX + 2 + "px";
-			zoom.style.display = "block";
-		}, false);
-
-		canvas.addEventListener("mouseout", function() {
-			zoom.style.display = "none";
-		});
-	};
 	
 	var pageScale = "FitToPage";
 	var baseCanvasScale = 1;
 	var testCanvasScale = 1;
-	var buildBaseCanvas = function(paras) {
+
+	var buildBaseCanvas = function(paras, cellW) {
 		var pageNo = page_view_paras["PageNo"];
 		
 		var w = 0, h = 0;
 		var baseCanvas = document.getElementById("base_page_canvas");
 		var cell = document.getElementById("base_page_td");
-		var cellW = cell.clientWidth  - 2;
-		
-		var cell = document.getElementById("test_page_td");
-		var cellW = cell.clientWidth  - 2;
-		
+			
 		if (paras["BaseIsBlank"]) {
 			w = toPixel(paras["TestPageWidth"]);
 			h = toPixel(paras["TestPageHeight"]);
@@ -208,19 +187,18 @@ PDF_DIFF.diff_report_view = function(report_data) {
 			drawBlankPage(baseCanvas);
 		} else {
 			var imageTag = base_pdf_json_obj.pages[pageNo].imageTag;
-			drawPage(imageTag, baseCanvas);
+			drawPage(cell, imageTag, baseCanvas, baseCanvasScale);
 			
-			addCanvasMouseListener(baseCanvas);
+			// addCanvasMouseListener(baseCanvas);
 		}
 	};
 
-	var buildTestCanvas = function(paras) {
+	var buildTestCanvas = function(paras, cellW) {
 		var pageNo = page_view_paras["PageNo"];
 		
 		var w = 0, h = 0;
 		var testCanvas = document.getElementById("test_page_canvas");
 		var cell = document.getElementById("test_page_td");
-		var cellW = cell.clientWidth - 2;
 		
 		if (paras["BaseIsBlank"]) {
 			w = toPixel(paras["BasePageWidth"]);
@@ -240,16 +218,19 @@ PDF_DIFF.diff_report_view = function(report_data) {
 			drawBlankPage(testCanvas);
 		} else {
 			var imageTag = test_pdf_json_obj.pages[pageNo].imageTag;
-			drawPage(imageTag, testCanvas);
+			drawPage(cell, imageTag, testCanvas, testCanvasScale);
 
-			addCanvasMouseListener(testCanvas);
+			// addCanvasMouseListener(testCanvas);
 		}
 	}
 	
 	var updatePageView = function() {
-	
-		buildBaseCanvas(page_view_paras);
-		buildTestCanvas(page_view_paras);	
+		var t = document.getElementById("canvas_table");
+		var tw = t.clientWidth;
+		var canvasW = parseInt(tw / 2);
+
+		buildBaseCanvas(page_view_paras, canvasW);
+		buildTestCanvas(page_view_paras, canvasW);
 
 		var item = page_view_paras["DiffContent"];
 		$("#attribute_table tbody tr").remove();
@@ -423,19 +404,29 @@ PDF_DIFF.diff_report_view = function(report_data) {
 	};
 
 
-	var drawPage = function(imageTag, canvas) {
+	var drawPage = function(cell, imageTag, canvas, scale) {
 		ctx = canvas.getContext("2d");
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		drawPageImage(imageTag, ctx, canvas.width, canvas.height);
+		drawPageImage(cell, imageTag, ctx, canvas, scale);
 	};
 
 
-	var drawPageImage = function(imageTag, ctx, w, h) {
-		ctx.save();
+	var drawPageImage = function(cell, imageTag, ctx, canvas, scale) {
 		var img = new Image();
+		img.src = "images/" + imageTag;
+
 		img.onload = function() {
-			ctx.drawImage(img, 1, 1, w, h);
-			
+			var w = canvas.width;
+			var h = canvas.height;
+
+			var s = w / img.width;
+
+			cell.style.backgroundImage = "url(" + "images/" + imageTag + ")";
+			cell.style.backgroundSize = w + "px " + h + "px";
+			cell.style.backgroundRepeat = "no-repeat";
+
+			addCanvasMouseListener(canvas, img, scale);
+
 			ctx.save();
 			ctx.beginPath();
 			ctx.lineWidth="1";
@@ -450,8 +441,33 @@ PDF_DIFF.diff_report_view = function(report_data) {
 				drawDiffContentOutline(category, item.Outline);
 			}
 		}
-		img.src = "images/" + imageTag;
-		ctx.restore();
+	};
+
+	var addCanvasMouseListener = function(canvas, img, scale) {
+		canvas.style.cursor = 'crosshair';
+		
+		canvas.addEventListener('mousemove', function(evt) {
+			var mousePos = getMousePos(canvas, evt);
+			var zoomCtx = zoom.getContext("2d");
+			zoomCtx.fillStyle = "white";
+			zoomCtx.fillRect(0, 0, zoom.width, zoom.height);
+
+			var s = scale / (Rendering_Resolution / dpi);
+			var x = mousePos.x / s;
+			var y = mousePos.y / s;
+			var w =  zoom.width;
+			var h = zoom.height;
+
+			zoomCtx.drawImage(img, x, y, w, h, 0, 0, w, h);
+			zoomCtx.drawImage(canvas, mousePos.x, mousePos.y, w, h, 0, 0, w / s, h / s);
+			zoom.style.top = evt.pageY + 2 + "px";
+			zoom.style.left = evt.pageX + 2 + "px";
+			zoom.style.display = "block";
+		}, false);
+
+		canvas.addEventListener("mouseout", function() {
+			zoom.style.display = "none";
+		});
 	};
 
 	var drawDiffContentOutline = function(category, outlineArr) { // arr[base, test]
@@ -542,7 +558,7 @@ PDF_DIFF.diff_report_view = function(report_data) {
 	};
 
 	var toPixel = function (pt) {
-		return parseInt((pt / 72.0) * 96);
+		return parseInt((pt / 72.0) * dpi);
 	};
 };
 
