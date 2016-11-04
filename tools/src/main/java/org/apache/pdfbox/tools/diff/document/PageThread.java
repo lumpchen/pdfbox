@@ -331,6 +331,15 @@ public class PageThread {
 			return this.bBox;
 		}
 		
+		public List<Rectangle2D> getShapeBBox() {
+			List<Shape> shapes = this.pathContent.getOutlineShapeList();
+			List<Rectangle2D> shapeBBox = new ArrayList<Rectangle2D>(shapes.size());
+			for (Shape shape : shapes) {
+				shapeBBox.add(shape.getBounds2D());
+			}
+			return shapeBBox;
+		}
+		
 		public PathContent getPathContent() {
 			return this.pathContent;
 		}

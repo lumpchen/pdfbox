@@ -389,14 +389,14 @@ public abstract class PageContent {
 			Rectangle2D r1 = this.getOutlineArea().getBounds2D();
 			Rectangle2D r2 = pathContent.getOutlineArea().getBounds2D();
 
-			if (r1.contains(r2)) {
+/*			if (r1.contains(r2)) {
 				return true;
 			}
 			if (r2.contains(r1)) {
 				this.outline.clear();
 				this.outline.addAll(pathContent.outline);
 				return true;
-			}
+			}*/
 			
 			if (r1.intersects(r2)) {
 				this.outline.addAll(pathContent.outline);

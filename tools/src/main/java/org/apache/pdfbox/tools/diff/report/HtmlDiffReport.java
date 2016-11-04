@@ -260,8 +260,39 @@ public class HtmlDiffReport {
 			sRect.put(rect.getHeight());
 		}
 		arr.put(sRect);
-
 		json.put("Outline", arr);
+		
+		JSONArray subOutline = new JSONArray();
+		JSONArray baseSubOutline = new JSONArray();
+		if (diffContent.getBaseSubBBox() != null) {
+			for (int i = 0; i < diffContent.getBaseSubBBox().size(); i++) {
+				sRect = new JSONArray();			
+				Rectangle2D rect = diffContent.getBaseSubBBox().get(i);
+				sRect.put(rect.getX());
+				sRect.put(rect.getY());
+				sRect.put(rect.getWidth());
+				sRect.put(rect.getHeight());
+				
+				baseSubOutline.put(sRect);
+			}
+		}
+		subOutline.put(baseSubOutline);
+		JSONArray testSubOutline = new JSONArray();
+		if (diffContent.getTestSubBBox() != null) {
+			for (int i = 0; i < diffContent.getTestSubBBox().size(); i++) {
+				sRect = new JSONArray();
+				Rectangle2D rect = diffContent.getTestSubBBox().get(i);
+				sRect.put(rect.getX());
+				sRect.put(rect.getY());
+				sRect.put(rect.getWidth());
+				sRect.put(rect.getHeight());
+				
+				testSubOutline.put(sRect);
+			}
+		}
+		subOutline.put(testSubOutline);
+		json.put("SubOutline", subOutline);
+		
 		return json;
 	}
 

@@ -68,6 +68,10 @@ public class PathComparator extends ContentComparator {
 		Rectangle2D bbox_2 = testPath == null ? null : testPath.getBBox();
 		entry.setBBox(bbox_1, bbox_2);
 		
+		List<Rectangle2D> subBbox_1 = basePath == null ? null : basePath.getShapeBBox();
+		List<Rectangle2D> subBbox_2 = testPath == null ? null : testPath.getShapeBBox();
+		entry.setSubBBox(subBbox_1, subBbox_2);
+		
 		boolean result = true;
 		String val_1, val_2;
 		

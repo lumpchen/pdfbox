@@ -85,6 +85,7 @@ public class PageDiffResult {
 		private Area baseOutline;
 		private Area testOutline;
 		private Rectangle2D baseBBox, testBBox;
+		private List<Rectangle2D> baseSubBBox, testSubBBox;
 		
 		public DiffContent(Category category) {
 			this.category = category;
@@ -123,12 +124,25 @@ public class PageDiffResult {
 			this.testBBox = testBBox;
 		}
 		
+		public void setSubBBox(List<Rectangle2D> baseSubBBox, List<Rectangle2D> testSubBBox) {
+			this.baseSubBBox = baseSubBBox;
+			this.testSubBBox = testSubBBox;
+		}
+		
 		public Rectangle2D getBaseBBox() {
 			return this.baseBBox;
 		}
 		
 		public Rectangle2D getTestBBox() {
 			return this.testBBox;
+		}
+		
+		public List<Rectangle2D> getBaseSubBBox() {
+			return this.baseSubBBox;
+		}
+		
+		public List<Rectangle2D> getTestSubBBox() {
+			return this.testSubBBox;
 		}
 		
 		private void putAttr(String key, boolean equals, String baseVal, String testVal) {

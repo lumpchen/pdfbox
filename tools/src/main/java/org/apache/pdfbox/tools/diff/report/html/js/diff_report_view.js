@@ -469,7 +469,7 @@ PDF_DIFF.diff_report_view = function(report_data) {
 			var item = page_view_paras["DiffContent"];
 			var category = page_view_paras["text"];
 			if ((typeof(item) !== 'undefined') && (item !== null)) {
-				drawDiffContentOutline(category, item.Outline);
+				drawDiffContentOutline(category, item.Outline, item.SubOutline);
 			}
 		}
 	};
@@ -501,9 +501,12 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		});
 	};
 
-	var drawDiffContentOutline = function(category, outlineArr) { // arr[base, test]
+	var drawDiffContentOutline = function(category, outlineArr, subOutlineArr) { // arr[base, test]
 		var baseRect = outlineArr[0];
 		var testRect = outlineArr[1];
+		
+		var baseSubRectArr = subOutlineArr[0];
+		var testSubRectArr = subOutlineArr[1];
 		
 		if (baseRect.length > 0) {
 			var baseCanvas = document.getElementById("base_page_canvas");
@@ -511,7 +514,8 @@ PDF_DIFF.diff_report_view = function(report_data) {
 			
 			baseCtx.save();
 			baseCtx.scale(baseCanvasScale, baseCanvasScale);
-			drawContentOutline(category, baseRect, baseCtx, page_view_paras["BasePageWidth"], page_view_paras["BasePageHeight"], Base_Stroke_Color, Base_Fill_Color);
+			drawContentOutline(category, baseRect, baseSubRectArr, baseCtx, 
+					page_view_paras["BasePageWidth"], page_view_paras["BasePageHeight"], Base_Stroke_Color, Base_Fill_Color);
 			baseCtx.restore();
 		}
 
@@ -521,12 +525,12 @@ PDF_DIFF.diff_report_view = function(report_data) {
 			
 			testCtx.save();
 			testCtx.scale(testCanvasScale, testCanvasScale);
-			drawContentOutline(category, testRect, testCtx, page_view_paras["TestPageWidth"], page_view_paras["TestPageHeight"], Test_Stroke_Color, Test_Fill_Color);
+			drawContentOutline(category, testRect, testSubRectArr, testCtx, page_view_paras["TestPageWidth"], page_view_paras["TestPageHeight"], Test_Stroke_Color, Test_Fill_Color);
 			testCtx.restore();
 		}
 	};
 
-	var drawContentOutline = function(category, outline, ctx, pageWidth, pageHeight, strokeColor, fillColor) {
+	var drawContentOutline = function(category, outline, subOutline, ctx, pageWidth, pageHeight, strokeColor, fillColor) {
 		if (outline.length == 0) {
 			return;
 		}
@@ -552,7 +556,23 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		
 		if (category === "Path") {
 			ctx.rect(x, y - h, w, h);
-			ctx.fill();
+			
+			if (subOutline.length > 0) {
+				ctx.stroke();
+				
+				for (var i = 0; i < subOutline.length; i++) {
+					var subRect = subOutline[i];
+					var sx = toPixel(subRect[0]);
+					var sy = toPixel(pageHeight - subRect[1]);
+					var sh = toPixel(subRect[3]);
+					var sw = toPixel(subRect[2]);
+					ctx.save();
+					ctx.rect(sx, sy - sh, sw, sh);
+					ctx.stroke();
+					ctx.restore();
+				}
+			}
+			ctx.fill();	
 		} else {
 			if (strokeColor == "red") {
 				ctx.rect(x, y - h, w, h);	
