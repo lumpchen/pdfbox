@@ -30,8 +30,10 @@ public class PDFDiffTool {
 				setting.compSetting.enableCompareAnnots = false;
 			} else if (arg.equals("-disableComparePath")) {
 				setting.compSetting.enableComparePath = false;
-			} else if (arg.equals("-disableMergePath")) {
-				setting.compSetting.enableMergePath = false;
+			} else if (arg.equals("-enableMergePath")) {
+				setting.compSetting.enableMergePath = true;
+			} else if (arg.equals("-printReport")) {
+				setting.printReport = true;
 			} else if (arg.equals("-imageQuality")) {
 				if (args[++i].equalsIgnoreCase("high")) {
 					setting.resolution = 300;
@@ -58,13 +60,15 @@ public class PDFDiffTool {
 	}
 	
 	private static void showUsage() {
-        String message = "Usage: java -jar pdfdiff.jar [options] <baseline> <compare> <result_folder>\n"
+        String message = "Usage: java -jar pdfdiff.jar [options] <baseline-pdf> <test-pdf> <result-folder>\n"
                 + "\nOptions:\n"
-                + "  -folder                                  : Compare all pdf file in folder\n"
-                + "  -disableCompareAnnots                    : Disable annotation compare\n"
-                + "  -disableComparePath                      : Disable path compare\n"
-                + "  -disableTextPositionCompare              : Disable text position compare\n"
-                + "  -imageQuality                            : <high> as reolustion 300dpi\n";
+                + "  -folder                                  : Compare all pdfs file in folder\n"
+                + "  -disableCompareAnnots                    : Disable annotation comparing\n"
+                + "  -disableComparePath                      : Disable path comparing\n"
+                + "  -enableMergePath                         : Enable path auto merge for comparing\n"
+                + "  -disableTextPositionCompare              : Disable text position comparing\n"
+                + "  -printReport                             : Print diff report on console\n"
+                + "  -imageQuality                            : <high> as reolustion 300dpi, default as 96dpi\n";
         
         System.err.println(message);
         System.exit(1);
@@ -94,12 +98,12 @@ public class PDFDiffTool {
 		
 		PDFDiff differ = new PDFDiff(base, test, setting, logger);
 		try {
-			logger.info("Compare PDF: " + base.getName() + " To " + test.getName());
+			logger.info("Comparing PDF: " + base.getName() + " To " + test.getName());
 			PDocDiffResult result = differ.diff();
 			
 			int count = result.countOfDiffPages();
 			if (count > 0) {
-				logger.info("Found " + count + " different " + (count == 1 ? "page" : "pages"));
+				logger.info("Found " + count + " different " + (count == 1 ? "page" : "pages") + "!");
 			} else {
 				logger.info("PDFs are same!");
 				if (setting.noReportOnSameResult) {
@@ -112,16 +116,18 @@ public class PDFDiffTool {
 				throw new IOException("Can't create report folder: " + reportDir.getAbsolutePath());
 			}
 			
-			Integer[] nums = result.getDiffPageNums();
-			for (int num : nums) {
-				PageDiffResult pageDiffResult = result.getPageDiffResult(num);
-				List<DiffContent> contentList = pageDiffResult.getContentList();
-				
-				if (contentList != null) {
-					for (DiffContent content : contentList) {
-						logger.info(content.toString());
+			if (setting.printReport) {
+				Integer[] nums = result.getDiffPageNums();
+				for (int num : nums) {
+					PageDiffResult pageDiffResult = result.getPageDiffResult(num);
+					List<DiffContent> contentList = pageDiffResult.getContentList();
+					
+					if (contentList != null) {
+						for (DiffContent content : contentList) {
+							logger.info(content.toString());
+						}
 					}
-				}
+				}				
 			}
 
 			HtmlDiffReport report = new HtmlDiffReport(reportDir, "report", result);

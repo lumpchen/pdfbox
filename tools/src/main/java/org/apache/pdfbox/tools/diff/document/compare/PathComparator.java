@@ -193,7 +193,6 @@ public class PathComparator extends ContentComparator {
 		
 		for (int i = 0; i < shapes.size(); i++) {
 			GeneralPath p = (GeneralPath) shapes.get(i);
-			
 			PathIterator iter = p.getPathIterator(null);
 			float[] coords = new float[6];
 			

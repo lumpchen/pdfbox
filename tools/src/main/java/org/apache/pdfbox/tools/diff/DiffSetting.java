@@ -7,6 +7,7 @@ public class DiffSetting {
 	public float resolution = 96;
 	public String previewImageFormat = "png";
 	public boolean noReportOnSameResult = true;
+	public boolean printReport = false;
 	
 	public CompareSetting compSetting;
 	
@@ -16,6 +17,7 @@ public class DiffSetting {
 		setting.resolution = 96;
 		setting.previewImageFormat = "png";
 		setting.noReportOnSameResult = true;
+		setting.printReport = false;
 		
 		setting.compSetting = new CompareSetting();
 		
