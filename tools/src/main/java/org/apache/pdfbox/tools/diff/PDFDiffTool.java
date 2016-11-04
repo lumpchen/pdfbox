@@ -30,6 +30,8 @@ public class PDFDiffTool {
 				setting.compSetting.enableCompareAnnots = false;
 			} else if (arg.equals("-disableComparePath")) {
 				setting.compSetting.enableComparePath = false;
+			} else if (arg.equals("-disableMergePath")) {
+				setting.compSetting.enableMergePath = false;
 			} else if (arg.equals("-imageQuality")) {
 				if (args[++i].equalsIgnoreCase("high")) {
 					setting.resolution = 300;

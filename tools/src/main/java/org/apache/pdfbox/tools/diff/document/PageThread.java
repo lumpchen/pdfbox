@@ -12,6 +12,7 @@ import org.apache.pdfbox.tools.diff.document.PageContent.AnnotContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.ImageContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.PathContent;
 import org.apache.pdfbox.tools.diff.document.PageContent.TextContent;
+import org.apache.pdfbox.tools.diff.document.compare.CompareSetting;
 
 public class PageThread {
 
@@ -20,8 +21,11 @@ public class PageThread {
 	private ImageSet imageSet;
 	private PathSet pathSet;
 	private AnnotSet annotSet;
+	
+	CompareSetting setting;
 
-	public PageThread(List<PageContent> contentList) {
+	public PageThread(List<PageContent> contentList, CompareSetting setting) {
+		this.setting = setting;
 		this.contentList = contentList;
 		this.analysis();
 	}
@@ -29,7 +33,7 @@ public class PageThread {
 	private void analysis() {
 		this.textThread = new TextThread();
 		this.imageSet = new ImageSet();
-		this.pathSet = new PathSet();
+		this.pathSet = new PathSet(setting.enableMergePath);
 		this.annotSet = new AnnotSet();
 		
 		if (this.contentList == null || this.contentList.isEmpty()) {
@@ -339,9 +343,11 @@ public class PageThread {
 	public static class PathSet {
 		
 		private List<PathContent> pathList;
+		private boolean mergePath = false;
 		
-		public PathSet() {
+		public PathSet(boolean mergePath) {
 			this.pathList = new ArrayList<PathContent>();
+			this.mergePath = mergePath;
 		}
 		
 		private void merge(List<PathContent> mergeList, PathContent content) {
@@ -358,8 +364,11 @@ public class PageThread {
 		}
 		
 		public void addPathContent(PathContent pathContent) {
-			this.merge(this.pathList, pathContent);
-//			this.pathList.add(pathContent);
+			if (this.mergePath) {
+				this.merge(this.pathList, pathContent);	
+			} else {
+				this.pathList.add(pathContent);				
+			}
 		}
 		
 		public List<PathLob> getPathLobList() {

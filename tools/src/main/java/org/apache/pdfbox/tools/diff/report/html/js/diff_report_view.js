@@ -538,23 +538,21 @@ PDF_DIFF.diff_report_view = function(report_data) {
 
 		if (category === "Text") {
 			var dh = parseInt(h / 4);
-			//x -= 2;
 			y += dh;
 			h += dh;
 			w += 6;
 		}
 		
 		ctx.save();
-		ctx.setLineDash([8, 8]);
+		ctx.setLineDash([4, 4]);
 		ctx.beginPath();
 		ctx.lineWidth = "1";
 		ctx.strokeStyle = strokeColor;
 		ctx.fillStyle = fillColor;
 		
 		if (category === "Path") {
-			ctx.fillStyle = "red";
-			ctx.rect(x, y - h - 2, w, h + 2);
-			ctx.stroke();
+			ctx.rect(x, y - h, w, h);
+			ctx.fill();
 		} else {
 			if (strokeColor == "red") {
 				ctx.rect(x, y - h, w, h);	
@@ -565,16 +563,13 @@ PDF_DIFF.diff_report_view = function(report_data) {
 			ctx.stroke();
 			ctx.fill();
 		}
-		
-		ctx.lineWidth = "1";
+
 		ctx.moveTo(0, y);
 		ctx.lineTo(toPixel(pageWidth), y);
 		ctx.font = "16pt Calibri";
 		ctx.fillStyle = 'red';
 		ctx.fillText("x:" + outline[0] + " y:" + outline[1], 0, y);
-//		if (category !== "Path") {
-			ctx.stroke();	
-//		}
+		ctx.stroke();
 		ctx.restore();
 	};
 

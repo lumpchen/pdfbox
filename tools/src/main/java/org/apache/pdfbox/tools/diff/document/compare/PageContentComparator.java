@@ -34,8 +34,8 @@ public class PageContentComparator {
 	}
 
 	public PageDiffResult compare(List<PageContent> basePageContents, List<PageContent> testPageContents) {
-		PageThread basePageThread = new PageThread(basePageContents);
-		PageThread testPageThread = new PageThread(testPageContents);
+		PageThread basePageThread = new PageThread(basePageContents, this.setting);
+		PageThread testPageThread = new PageThread(testPageContents, this.setting);
 
 		PageDiffResult result = new PageDiffResult();
 
