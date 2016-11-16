@@ -174,7 +174,7 @@ public abstract class PageContent {
     	if (this.outline != null) {
     		for (Shape s : this.outline) {
     			if (s instanceof GeneralPath) {
-    				this.area.add(new Area(((GeneralPath) s).getBounds()));
+    				this.area.add(new Area(((GeneralPath) s).getBounds2D()));
     			} else {
     				this.area.add(new Area(s));    				
     			}
@@ -183,28 +183,28 @@ public abstract class PageContent {
     	return this.area;
     }
     
-    public int getY() {
+    public double getY() {
     	Area area = this.getOutlineArea();
     	if (area == null) {
     		return 0;
     	}
-    	return area.getBounds().y;
+    	return area.getBounds2D().getY();
     }
     
-    public int getX() {
+    public double getX() {
     	Area area = this.getOutlineArea();
     	if (area == null) {
     		return 0;
     	}
-    	return area.getBounds().x;
+    	return area.getBounds2D().getX();
     }
     
-    public int getHeight() {
+    public double getHeight() {
     	Area area = this.getOutlineArea();
     	if (area == null) {
     		return 0;
     	}
-    	return area.getBounds().height;
+    	return area.getBounds2D().getHeight();
     }
 
 	public Type getType() {
@@ -333,7 +333,7 @@ public abstract class PageContent {
 			return null;
 		}
 
-		public Rectangle getBBox(int begin, int end) {
+		public Rectangle2D getBBox(int begin, int end) {
 			if (begin < 0 || end > this.outline.size()) {
 				return new Rectangle(0, 0);
 			}
@@ -342,13 +342,13 @@ public abstract class PageContent {
 	    		for (int i = begin; i < end; i++) {
 	    			Shape s = this.outline.get(i);
 	    			if (s instanceof GeneralPath) {
-	    				area.add(new Area(((GeneralPath) s).getBounds()));
+	    				area.add(new Area(((GeneralPath) s).getBounds2D()));
 	    			} else {
 	    				area.add(new Area(s));    				
 	    			}
 	        	}
 	    	}
-	    	return area.getBounds();
+	    	return area.getBounds2D();
 		}
 	}
 	

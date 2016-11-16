@@ -243,7 +243,7 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 		AffineTransform at = textRenderingMatrix.createAffineTransform();
 		at.concatenate(font.getFontMatrix().createAffineTransform());
 
-        PDVectorFont vectorFont = ((PDVectorFont)font);
+        PDVectorFont vectorFont = ((PDVectorFont) font);
         GlyphCache cache = glyphCaches.get(font);
         if (cache == null) {
             cache = new GlyphCache(vectorFont);
@@ -274,7 +274,7 @@ public class PageContentExtractor extends PDFGraphicsStreamEngine {
 
             // render glyph
             Shape glyph = at.createTransformedShape(path);
-            this.markPath(glyph.getBounds());
+            this.markPath(glyph.getBounds2D());
             
             if (renderingMode.isFill()) {
             }

@@ -26,7 +26,18 @@ public abstract class ContentComparator {
 		if (f1 == null || f2 == null) {
 			return false;
 		}
-		return Math.abs(f1 - f2) <= 0.00001;
+		return Math.abs(f1 - f2) <= 0.1;
+	}
+	
+	protected boolean compare(Double d1, Double d2) {
+		return this.compare(d1, d2, 0.1);
+	}
+	
+	protected boolean compare(Double d1, Double d2, double tor) {
+		if (d1 == null || d2 == null) {
+			return false;
+		}
+		return Math.abs(d1 - d2) <= tor;
 	}
 
 	protected boolean compare(Integer f1, Integer f2) {
@@ -34,6 +45,28 @@ public abstract class ContentComparator {
 			return false;
 		}
 		return f1.intValue() == f2.intValue();
+	}
+	
+	protected boolean compare(Rectangle2D r1, Rectangle2D r2) {
+		if (r1 == null || r2 == null) {
+			return false;
+		}
+		boolean equal = compare(r1.getX(), r2.getX());
+		equal &= compare(r1.getY(), r2.getY());
+		equal &= compare(r1.getHeight(), r2.getHeight());
+		equal &= compare(r1.getWidth(), r2.getWidth());
+		return equal;
+	}
+	
+	protected boolean compare(Rectangle2D r1, Rectangle2D r2, double tor) {
+		if (r1 == null || r2 == null) {
+			return false;
+		}
+		boolean equal = compare(r1.getX(), r2.getX(), tor);
+		equal &= compare(r1.getY(), r2.getY(), tor);
+		equal &= compare(r1.getHeight(), r2.getHeight(), tor);
+		equal &= compare(r1.getWidth(), r2.getWidth(), tor);
+		return equal;
 	}
 
 	protected boolean compare(GraphicsStateDesc gstate_1, GraphicsStateDesc gstate_2) {

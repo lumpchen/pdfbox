@@ -588,7 +588,7 @@ PDF_DIFF.diff_report_view = function(report_data) {
 		ctx.lineTo(toPixel(pageWidth), y);
 		ctx.font = "16pt Calibri";
 		ctx.fillStyle = 'red';
-		ctx.fillText("x:" + outline[0] + " y:" + outline[1], 0, y);
+		ctx.fillText("x:" + Math.round(outline[0]) + " y:" + Math.round(outline[1]), 0, y);
 		ctx.stroke();
 		ctx.restore();
 	};

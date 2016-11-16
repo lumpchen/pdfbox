@@ -130,14 +130,14 @@ public class TextComparator extends ContentComparator {
 		entry.putAttr(DiffContent.Key.Attr_Stroke_Color, equals, val_1, val_2);
 		
 		if (this.setting.enableTextPositionCompare) {
-			Integer x_1 = baseLob.getBoundingBox().x;
-			Integer x_2 = testLob.getBoundingBox().x;
+			double x_1 = baseLob.getBoundingBox().getX();
+			double x_2 = testLob.getBoundingBox().getX();
 			equals = compare(x_1, x_2); 
 			result &= equals;
 			entry.putAttr(DiffContent.Key.Attr_Pos_X, equals, x_1, x_2);
 			
-			Integer y_1 = baseLob.getBoundingBox().y;
-			Integer y_2 = testLob.getBoundingBox().y;
+			double y_1 = baseLob.getBoundingBox().getY();
+			double y_2 = testLob.getBoundingBox().getY();
 			equals = compare(y_1, y_2);
 			result &= equals;
 			entry.putAttr(DiffContent.Key.Attr_Pos_Y, equals, y_1, y_2);

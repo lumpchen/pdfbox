@@ -34,6 +34,8 @@ public class PDFDiffTool {
 				setting.compSetting.enableMergePath = true;
 			} else if (arg.equals("-printReport")) {
 				setting.printReport = true;
+			} else if (arg.equals("-reportOnSameResult")) {
+				setting.noReportOnSameResult = false;	
 			} else if (arg.equals("-imageQuality")) {
 				if (args[++i].equalsIgnoreCase("high")) {
 					setting.resolution = 300;
@@ -68,6 +70,7 @@ public class PDFDiffTool {
                 + "  -enableMergePath                         : Enable path auto merge for comparing\n"
                 + "  -disableTextPositionCompare              : Disable text position comparing\n"
                 + "  -printReport                             : Print diff report on console\n"
+                + "  -reportOnSameResult                      : Print diff report when result is same\n"
                 + "  -imageQuality                            : <high> as reolustion 300dpi, default as 96dpi\n";
         
         System.err.println(message);

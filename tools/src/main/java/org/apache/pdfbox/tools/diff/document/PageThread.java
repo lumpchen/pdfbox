@@ -155,7 +155,7 @@ public class PageThread {
 				TextContent run = span.textContent;
 				String text = span.text;
 				buf.append(text.substring(beginContentOffset, endContentOffset));
-				Rectangle bbox = span.getBBox(beginContentOffset, endContentOffset);
+				Rectangle2D bbox = span.getBBox(beginContentOffset, endContentOffset);
 				return new TextLob[]{new TextLob(buf.toString(), bbox, run)};
 			}
 
@@ -165,17 +165,17 @@ public class PageThread {
 				TextContent run = span.textContent;
 				if (i == beginContentIndex) {
 					String text = span.text.substring(beginContentOffset);
-					Rectangle rect = span.getBBox(beginContentOffset);
+					Rectangle2D rect = span.getBBox(beginContentOffset);
 					list[i - beginContentIndex] = new TextLob(text, rect, run);
 					continue;
 				}
 				if (i == endContentIndex) {
 					String text = span.text.substring(0, endContentOffset);
-					Rectangle rect = span.getBBox(0, endContentOffset);
+					Rectangle2D rect = span.getBBox(0, endContentOffset);
 					list[i - beginContentIndex] = new TextLob(text, rect, run);
 					continue;
 				} else {
-					Rectangle rect = span.getBBox(0, span.length);
+					Rectangle2D rect = span.getBBox(0, span.length);
 					list[i - beginContentIndex] = new TextLob(run.getText(), rect, run);
 				}
 			}
@@ -185,21 +185,21 @@ public class PageThread {
 	
 	public static class TextLob {
 		private String text;
-		private Rectangle bBox;
+		private Rectangle2D bBox;
 		private TextContent content;
 
 		public TextLob(TextContent content) {
 			this.content = content;
 			this.text = content.getText();
-			this.bBox = content.getOutlineArea().getBounds();
+			this.bBox = content.getOutlineArea().getBounds2D();
 		}
 		
-		public TextLob(String text, Rectangle bBox) {
+		public TextLob(String text, Rectangle2D bBox) {
 			this.text = text;
 			this.bBox = bBox;
 		}
 		
-		public TextLob(String text, Rectangle bBox, TextContent content) {
+		public TextLob(String text, Rectangle2D bBox, TextContent content) {
 			this(text, bBox);
 			this.content = content;
 		}
@@ -209,7 +209,7 @@ public class PageThread {
 			return this.text == null ? "" : this.text;
 		}
 
-		public Rectangle getBoundingBox() {
+		public Rectangle2D getBoundingBox() {
 			return this.bBox;
 		}
 		
@@ -222,11 +222,11 @@ public class PageThread {
 				return false;
 			}
 			
-			Rectangle rect = next.getBoundingBox();
-			int dh = Math.abs(this.getBoundingBox().y - rect.y);
-			if (dh <= rect.height) {
+			Rectangle2D rect = next.getBoundingBox();
+			double dh = Math.abs(this.getBoundingBox().getY() - rect.getY());
+			if (dh <= rect.getHeight()) {
 				this.text += next.text;
-				this.bBox = this.bBox.union(rect);
+				this.bBox = this.bBox.createUnion(rect);
 				return true;
 			}
 			return false;
@@ -240,11 +240,11 @@ public class PageThread {
 		Shape[] shapeArr;
 		TextContent textContent;
 		
-		public Rectangle getBBox(int begin) {
+		public Rectangle2D getBBox(int begin) {
 			return this.getBBox(begin, this.length);
 		}
 		
-		public Rectangle getBBox(int begin, int end) {
+		public Rectangle2D getBBox(int begin, int end) {
 			Area area = new Area();
 	    	if (this.shapeArr != null) {
 	    		for (int i = begin; i < end; i++) {
@@ -253,13 +253,13 @@ public class PageThread {
 	    				break;
 	    			}
 	    			if (s instanceof GeneralPath) {
-	    				area.add(new Area(((GeneralPath) s).getBounds()));
+	    				area.add(new Area(((GeneralPath) s).getBounds2D()));
 	    			} else {
 	    				area.add(new Area(s));    				
 	    			}
 	        	}
 	    	}
-	    	return area.getBounds();
+	    	return area.getBounds2D();
 		}
 	}
 
@@ -273,7 +273,7 @@ public class PageThread {
 		public int width;
 		public String suffix;
 
-		private Rectangle bBox;
+		private Rectangle2D bBox;
 		
 		public ImageLob(ImageContent img) {
 			this.bitsPerComponent = img.bitsPerComponent;
@@ -284,10 +284,10 @@ public class PageThread {
 			this.width = img.width;
 			this.suffix = img.suffix;
 			
-			this.bBox = img.getOutlineArea().getBounds();
+			this.bBox = img.getOutlineArea().getBounds2D();
 		}
 		
-		public Rectangle getBBox() {
+		public Rectangle2D getBBox() {
 			return this.bBox;
 		}
 	}

@@ -84,7 +84,7 @@ public class PathComparator extends ContentComparator {
 		PathContent pathContent_1 = basePath == null ? null : basePath.getPathContent();
 		PathContent pathContent_2 = testPath == null ? null : testPath.getPathContent();
 		
-		if ("Fill".equalsIgnoreCase(val_1)) {
+		if ("Fill".equalsIgnoreCase(val_1) || "Fill".equalsIgnoreCase(val_2)) {
 			val_1 = pathContent_1 == null ? null : pathContent_1.getNonStrokingColorspace();
 			val_2 = pathContent_2 == null ? null : pathContent_2.getNonStrokingColorspace();
 			equals = compare(val_1, val_2);
@@ -117,11 +117,7 @@ public class PathComparator extends ContentComparator {
 			entry.putAttr(DiffContent.Key.Attr_Stroke_Color, equals, val_1, val_2);
 		}
 
-		if (bbox_1 != null) {
-			equals = bbox_1.equals(bbox_2);
-		} else {
-			equals = false;
-		}
+		equals = this.compare(bbox_1, bbox_2, this.setting.toleranceOfPath); 
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Frame_size, equals, asString(bbox_1), asString(bbox_2));
 		
@@ -171,7 +167,7 @@ public class PathComparator extends ContentComparator {
 	}
 	
 	private boolean equalsWithTolerance(Area a1, Area a2) {
-		Rectangle r1 = a1.getBounds();
+		/*Rectangle r1 = a1.getBounds();
 		Rectangle r2 = a2.getBounds();
 		if (r1.width != r2.width || r1.height != r2.height) {
 			return false;
@@ -186,7 +182,13 @@ public class PathComparator extends ContentComparator {
 				return true;
 			}
 		}
-		return false;
+		return false;*/
+		
+		Rectangle2D r1 = a1.getBounds2D();
+		Rectangle2D r2 = a2.getBounds2D();
+		float tor = this.setting.toleranceOfPath;
+		boolean equals = this.compare(r1, r2, tor);
+		return equals;
 	}
 	
 	private void lookGeneralPath(PathContent content) {

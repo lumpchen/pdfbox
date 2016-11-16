@@ -1,6 +1,6 @@
 package org.apache.pdfbox.tools.diff.document.compare;
 
-import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,9 +45,9 @@ public class ImageComparator extends ContentComparator {
 	}
 	
 	private boolean diff(ImageLob baseImage, ImageLob testImage, DiffContent entry) {
-		Rectangle bbox_1 = baseImage == null ? null : baseImage.getBBox();
-		Rectangle bbox_2 = testImage == null ? null : testImage.getBBox();
-		entry.setBBox(bbox_1, bbox_2);
+		Rectangle2D baseRect = baseImage == null ? null : baseImage.getBBox();
+		Rectangle2D testRect = testImage == null ? null : testImage.getBBox();
+		entry.setBBox(baseRect, testRect);
 		boolean result = true;
 		
 		Integer val_1 = baseImage == null ? null : baseImage.width;
@@ -80,19 +80,13 @@ public class ImageComparator extends ContentComparator {
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Suffix, equals, s_1, s_2);
 		
-		s_1 = baseImage == null ? null : baseImage.decode;
-		s_2 = testImage == null ? null : testImage.decode;
-		equals = compare(s_1, s_2);
-		result &= equals;
-		entry.putAttr(DiffContent.Key.Attr_Decode, equals, s_1, s_2);
+//		s_1 = baseImage == null ? null : baseImage.decode;
+//		s_2 = testImage == null ? null : testImage.decode;
+//		equals = compare(s_1, s_2);
+//		result &= equals;
+//		entry.putAttr(DiffContent.Key.Attr_Decode, equals, s_1, s_2);
 		
-		Rectangle baseRect = baseImage == null ? null : baseImage.getBBox();
-		Rectangle testRect = testImage == null ? null : testImage.getBBox();
-		if (baseRect != null) {
-			equals = baseRect.equals(testRect);
-		} else {
-			equals = false;
-		}
+		equals = this.compare(baseRect, testRect);
 		result &= equals;
 		entry.putAttr(DiffContent.Key.Attr_Frame_size, equals, asString(baseRect), asString(testRect));
 		
